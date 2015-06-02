@@ -2,17 +2,17 @@
 
 from copy import deepcopy
 
-# Constants
-SINGLE_RECORD = 1
-MULTI_RECORD = 2
-
 class RecType(object):
-    # Preliminary; some single-line items may be multi
-    #~ single = ("ID", "AC", "SQ", "GN", "OC", "OS", "PE", "RA", "RL", "RN", "RP", "RX")
-    #~ multi = ("DE", "CC", "OH", "DT", "KW", "RT", "FT", "DR")
+    """
+    Container class containing constants and constant tuples
+    """
     single = ("ID", "AC")
     multi = ("OS", )
-    joinchar = " "
+    
+    SINGLE_RECORD = 1
+    MULTI_RECORD = 2
+    
+    JOINCHAR = " "
 
 class Record(dict):
     """
@@ -34,31 +34,41 @@ class Record(dict):
         for keyword in RecType.multi:
             self[keyword] = []
     
-class RecordSet(object):
+class RecordSet(dict):
+    """
+    Parses UniProt KeyList records into dictionary-like Record objects and stores these Records
+    in a dictionary with the key-value structure record["ID"]:record.
+    """
     def __init__(self, infile):
+        dict.__init__(self)
         self.handle = open(infile, "r")
-        self.record_set = {record["ID"]:record for record in self.parse(self.handle)}
+        self = self.build_dict()
+        
+    def build_dict(self):
+        for record in self.parse(self.handle):
+            self[record["ID"]] = record
         
     def parse(self, handle): # The parameter handle is the UniProt KeyList file.
         record = Record()
-        mode = SINGLE_RECORD
+        mode = RecType.SINGLE_RECORD
+        
         # Now parse the records
         for line in handle:
             key = line[:2]
+            
             if key=="//": # The last line of the current record has been reached.
                 for rectype in RecType.multi:
                     if len(record[rectype]) > 1:
-                        record[rectype] = RecType.joinchar.join(record[rectype])
+                        record[rectype] = RecType.JOINCHAR.join(record[rectype])
                     elif len(record[rectype]) == 1:
                         record[rectype] = record[rectype][0]
                     else:
                         record[rectype] = ""
-                if mode == MULTI_RECORD:
+                if mode == RecType.MULTI_RECORD:
                     record_list = [record]
                     for element in range(len(value_list) - 1):
                         additional_record = deepcopy(record)
                         record_list.append(additional_record)  
-                    
                     record_value_pairs = zip(record_list, value_list)
                     for record, value in record_value_pairs:
                         record["AC"] = value
@@ -66,7 +76,8 @@ class RecordSet(object):
                 else:
                     yield record     # So we output the record and pass to other one. 
                 record = Record()
-                mode = SINGLE_RECORD 
+                mode = RecType.SINGLE_RECORD
+            
             elif line[2:5]=="   ": # If not, we continue recruiting the information. 
                 value = line[5:].strip()
                 if key in RecType.single:
@@ -76,14 +87,13 @@ class RecordSet(object):
                         value_list = value.split()
                         value_list_len = len(value_list)
                         if len(value_list) > 1:
-                            mode = MULTI_RECORD
-                    if mode == SINGLE_RECORD or key != "AC":
+                            mode = RecType.MULTI_RECORD
+                    if mode == RecType.SINGLE_RECORD or key != "AC":
                         value = value.rstrip(";").rstrip(".")
                         record[key] = value
-                    elif mode == MULTI_RECORD and key == "AC":
+                    elif mode == RecType.MULTI_RECORD and key == "AC":
                         for idx, value in enumerate(value_list):
                             value_list[idx] = value.rstrip(";").rstrip(".")
-
                 elif key in RecType.multi:
                     record[key].append(value) 
                 else:
@@ -92,8 +102,25 @@ class RecordSet(object):
         # Read the footer and throw it away
         for line in handle:
             pass
+
+# Presently unused
+#
+
+class Indices(object):
+    """
+    Generates and stores dictionaries for the Uniprot indices sec_ac and acindex.
+    """
+    def __init__(self, sec_ac, acindex):
+        self.sec_ac = self.build_index(sec_ac)
+        self.acindex = self.build_index(acindex)
+
+    def build_index(self, index_file):
+        with open(index_file, "r") as index_obj:
+            index_dict = self.build_index_dictionary(index_obj)
+        
+        return index_dict
             
-    def build_dictionary(self, source):
+    def build_index_dictionary(self, source):
         map_dict = {}
         continuation = False
         continued_record = None
@@ -116,17 +143,5 @@ class RecordSet(object):
                         continued_record = line[0]
                 else:
                     break
-            
-        #~ for element in map_dict.values():
-            #~ if element[-1] == ",":
-                #~ print element
-                #~ raw_input()
-        
+                    
         return map_dict
-
-    def build_indices(self, sec_ac, acindex):
-        with open(sec_ac, "r") as sec_ac_obj:
-            sec_ac_dict = build_dictionary(sec_ac_obj)
-        with open(acindex, "r") as acindex_obj:
-            acindex_dict = build_dictionary(acindex_obj)
-        return sec_ac_dict, acindex_dict
