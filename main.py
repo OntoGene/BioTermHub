@@ -1,6 +1,7 @@
 from pprint import pprint
-from uniprot_keylist_parser import parse, build_indices
-from csv import writer 
+from uniprot_parser import parse, build_indices
+from csv import writer
+from dependencies import *
 
 def main():
     handle = open("uniprot_sprot.dat", "r")

@@ -6,6 +6,8 @@ ENTREZ_GENE_INTERACTOR_A = "Entrez Gene Interactor A"
 ENTREZ_GENE_INTERACTOR_B = "Entrez Gene Interactor B"
 BIOGRID_ID_INTERACTOR_A = "BioGRID ID Interactor A"
 BIOGRID_ID_INTERACTOR_B = "BioGRID ID Interactor B"
+SYNONYMS_INTERACTOR_A = "Synonyms Interactor A"
+SYNONYMS_INTERACTOR_B = "Synonyms Interactor B"
 
 BIOGRID_ID = "BIOGRID_ID"
 IDENTIFIER_VALUE = "IDENTIFIER_VALUE"    
@@ -17,7 +19,9 @@ RECORD_COLUMN_CONSTANTS = [
              ENTREZ_GENE_INTERACTOR_A,
              ENTREZ_GENE_INTERACTOR_B,
              BIOGRID_ID_INTERACTOR_A,
-             BIOGRID_ID_INTERACTOR_B
+             BIOGRID_ID_INTERACTOR_B,
+             SYNONYMS_INTERACTOR_A,
+             SYNONYMS_INTERACTOR_B
             ]
 
 IDENTIFIER_COLUMN_CONSTANTS = [
@@ -43,7 +47,13 @@ class RecordSet(object):
             record = {}
             self.term_dict[row[BIOGRID_INTERACTION_ID]] = record
             for column in RECORD_COLUMN_CONSTANTS:
-                record[column] = row[column]
+                if not column in [SYNONYMS_INTERACTOR_A, SYNONYMS_INTERACTOR_B]:
+                    record[column] = row[column]
+                else:
+                    if not row[column] == "-":
+                        record[column] = row[column].split("|")
+                    else:
+                        record[column] = []
         print self.term_dict.items()[:10]
 
 class IdentifierSet(object):
