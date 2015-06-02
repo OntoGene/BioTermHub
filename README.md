@@ -1,7 +1,7 @@
 # README #
 
 ### Used data
-(Draft Adrian
+(Draft Adrian)
 
 * [Uniprot Reviewed (Swiss-Prot) (text)](ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/completw/uniprot_sprot.dat.gz) (http://www.uniprot.org/downloads)
     * Additional files
