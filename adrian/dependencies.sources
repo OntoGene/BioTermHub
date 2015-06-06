@@ -1,0 +1,20 @@
+# Supported protocols: HTTP, FTP
+#
+# Source format: <full path to file with protocol scheme (e.g. http://)
+# Note: Disable sources by prepending `#`
+
+# Uniprot
+ftp://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/docs/acindex.txt
+ftp://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/docs/sec_ac.txt
+ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz
+# ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz
+
+# EntrezGene
+ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
+
+# BIOGRID
+http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-ALL-LATEST.tab2.zip
+http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LATEST.tab.zip
+
+# NLM NIH MeSH
+ftp://ftp.nlm.nih.gov/online/mesh/2014/desc2014.xml
