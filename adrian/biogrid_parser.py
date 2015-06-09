@@ -50,7 +50,7 @@ class RecordSet(dict):
         dict.__init__(self)
         self.csv_file = infile_csv = open(infile, "r")
         self.csv_object = DictReader(infile_csv, dialect=BioGRID_Dialect)
-        self = self.build_dict()
+        self.build_dict()
         
     def build_dict(self):
         for row in self.csv_object:
@@ -92,7 +92,7 @@ class IdentifierSet(dict):
         while filerow != "\t".join(header) + "\n":
             filerow = self.csv_file.next()
         self.csv_object = DictReader(infile_csv, dialect=BioGRID_Dialect, fieldnames=header)
-        self = self.build_dict()
+        self.build_dict()
 
     def build_dict(self):
         identifier_dict = {}

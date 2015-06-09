@@ -42,7 +42,7 @@ class RecordSet(dict):
     def __init__(self, infile):
         dict.__init__(self)
         self.handle = open(infile, "r")
-        self = self.build_dict()
+        self.build_dict()
         
     def build_dict(self):
         for record in self.parse(self.handle):

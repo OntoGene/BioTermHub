@@ -9,6 +9,9 @@ ftp://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/docs/sec_ac.txt
 ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz
 # ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz
 
+# ExPASy Cellosaurus
+# ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
+
 # EntrezGene
 ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
 
@@ -16,5 +19,11 @@ ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-ALL-LATEST.tab2.zip
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LATEST.tab.zip
 
-# NLM NIH MeSH
-ftp://ftp.nlm.nih.gov/online/mesh/2014/desc2014.xml
+# NLM NIH MeSH (need to be changed once a year)
+## Descriptor records
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc2015.zip
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc2015.dtd
+
+## Supplementary records
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp2015.zip
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp2015.dtd

@@ -1,5 +1,6 @@
 import biogrid_parser
 import uniprot_parser
+import entrezgene_n2o3_wrapper
 
 class RecordSetContainer(object):
     def __init__(self, 
@@ -15,7 +16,7 @@ class RecordSetContainer(object):
         self.uniprot_records = \
             uniprot_parser.RecordSet(uniprot_records)
         self.entrezgene_records = \
-            None # TODO()
+            entrezgene_n2o3_wrapper.RecordSet(entrezgene_records)
 
 class UnifiedBuilder(object):
     def __init__(self, rsc):

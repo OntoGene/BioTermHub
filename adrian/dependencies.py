@@ -9,13 +9,19 @@ import ftplib
 import email.utils as eut
 from collections import defaultdict
 from glob import glob
+import socket # timeout and adress resolution error for FTP
+import sys
+
+TIMEOUT = 1
 
 # Import from non-standard packages
 try:
-    from wget import download
-    from requests import head
+    import requests
+    from requests import head, ConnectionError
+    from requests.adapters import ConnectTimeout
+    from progressbar import *
 except ImportError:
-    print "Error: Modules 'wget' and 'requests' needed to download ressources."
+    print "Error: Modules 'progressbar' and 'requests' needed to download ressources."
     quit()
 
 class RemoteCDateCheckFailed(Exception):
@@ -37,7 +43,6 @@ def getdeps(dpath, force = False, rd_fail="ask"):
     # previous modification dates (if available)
     dependencies = {}
     dependencies_log_dict = defaultdict(dict)
-    
     
     # Open and parse sources file
     try:
@@ -65,16 +70,13 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                     llist[1]
                 dependencies_log_dict[llist[0]]["datetime"] = \
                     datetime.date.fromtimestamp(int(llist[1]))
-            dependencies_log.close()
         except IndexError:
-            dependencies_log.close()
+            pass
     except IOError:
-        pass
+        pass        
+    finally:
+        dependencies_log.close()
         
-    # Reopen log file, overwriting old log file
-    dependencies_log = open('dependencies.log', 'w')
-        
-    
     # Iterate through sources 
     for dfile in dependencies:
         dfile_download = False
@@ -114,8 +116,22 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             # Automatically force download
             elif rd_fail == "force":
                 force_file = True
-
         
+        except ConnectTimeout:
+            print "error: HTTP connection timed out, skipping ..."
+            continue
+        
+        except ConnectionError:
+            print "error: HTTP connection error, skipping ..."
+            continue
+        
+        except socket.timeout:
+            print "error: FTP connection timed out, skipping ..."
+            continue
+        
+        except socket.error:
+            print "error: FTP connection error, skipping ..."
+            continue
         
         if not force:
             # If the file has a log entry, calculate difference in timestamps
@@ -142,15 +158,26 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 print "new version found, downloading. \n"
             else:
                 print "downloading. \n"
-            dependencies_log_dict[dfile]["timestamp"] = str(int(unixtimestamp(changedate)))
-    
+            
             download_path = dpath + dfile
-            download(dependencies[dfile], download_path)
+            try:
+                if dependencies[dfile].startswith("http"):
+                    download_file_http(dependencies[dfile], dpath)
+                elif dependencies[dfile].startswith("ftp"):
+                    download_file_ftp(dependencies[dfile], dpath)
+                    
+                # Do not insert timestamp or overwrite previous timestamp if download is forced
+                if not force_file:
+                    dependencies_log_dict[dfile]["timestamp"] = str(int(unixtimestamp(changedate)))
+            except IOError:
+                print "Error: Could not download %s" % dfile
+                del dependencies_log_dict[dfile]
+                continue
             
             # If the file is compressed, decompress and erase archive
             
             # gzip-compressed tarballs
-            if dfile.endsiwth(".tar.gz"):
+            if dfile.endswith(".tar.gz"):
                 tfile = tarfile.open(download_path, "r:gz")
                 print "\nExtracting compressed tarball %s ..." % dfile
                 tfile.extractall()
@@ -160,7 +187,8 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             # gzip-compressed single files
             elif dfile.endswith(".gz"):
                 with gzip.open(download_path, "rb") as infile:
-                    with open(download_path.rstrip(".gz", "w") as outfile:
+                    download_path_stripped = download_path.rstrip(".gz", "w") 
+                    with open(download_path_stripped) as outfile:
                         for line in infile:
                             outfile.write(line)
                 remove(download_path)
@@ -178,6 +206,9 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             print "up-to-date."
     print "Download complete."
     
+    # Reopen log file, overwriting old log file
+    dependencies_log = open('dependencies.log', 'w')
+
     # Write updated dependency log to disk
     for dfile, datedict in dependencies_log_dict.iteritems():
         dependencies_log.write(dfile + " " + datedict["timestamp"] + "\n")
@@ -193,7 +224,7 @@ def date_modified_ftp(dfile, dependencies):
     # Attempt to retrieve modification date via FTP, 
     # raise RemoteCDateCheckFailed if this fails
     try:
-        connection = ftplib.FTP(dfile_pathlist[2])
+        connection = ftplib.FTP(dfile_pathlist[2], timeout=TIMEOUT)
         connection.login()
         modifiedTime = connection.sendcmd('MDTM ' + dfile_serverpath)
         connection.quit() 
@@ -201,15 +232,15 @@ def date_modified_ftp(dfile, dependencies):
         date_only = date_time.date()
         return date_only
         
-    except ftplib.all_errors as e:
-        print "error. "
-        raise RemoteCDateCheckFailed
+    except (ftplib.error_perm, ftplib.error_temp) as e:
+       print "error. "
+       raise RemoteCDateCheckFailed
     
 def date_modified_http(dfile, dependencies):
     '''
     Retrieve modification date for a remote file via HTTP
     '''
-    request = head(dependencies[dfile])
+    request = head(dependencies[dfile], timeout=TIMEOUT)
     # Attempt to look up modification date in the HTTP header dictionary, 
     # raise RemoteCDateCheckFailed if this fails
     try:
@@ -220,6 +251,54 @@ def date_modified_http(dfile, dependencies):
     except KeyError:
         print "error. "
         raise RemoteCDateCheckFailed
+        
+# Sources:
+# http://stackoverflow.com/a/16696317
+# http://stackoverflow.com/a/15645088
+def download_file_http(url, path):
+    filename = url.split('/')[-1]
+    r = requests.get(url, stream=True)
+    r.raise_for_status() #throw exception on HTTP error codes
+    total_length = r.headers.get('content-length')
+    
+    if total_length is None: # no content length header
+            f.write(response.content)
+    else:
+        dl = 0
+        total_length = int(total_length)
+    with open(path + filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024): 
+            if chunk: # filter out keep-alive new chunks
+                dl += len(chunk)
+                f.write(chunk)
+                f.flush()
+                done = int(50 * dl / total_length)
+                sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
+                sys.stdout.flush()
+
+def download_file_ftp(url, path):
+        dfile_pathlist = url.split("/")
+        dfile_serverpath = url.split("/", 3)[-1]
+        filename = url.split('/')[-1]
+        try:
+            connection = ftplib.FTP(dfile_pathlist[2], timeout=TIMEOUT)
+            connection.login()
+            filesize = connection.size(dfile_serverpath)
+            print "Downloading %s-%d-bytes" % (filename, filesize)
+            
+            pbar=ProgressBar(widgets=[FileTransferSpeed(),' ', Bar(marker=RotatingMarker()), ' ', 
+                                                    Percentage(),' ', ETA()], maxval=filesize).start()
+            # Closure to access pbar
+            def handleupload(block):
+                pbar.update(pbar.currval+len(block))
+                
+            with open(path + filename, 'wb') as localfile:
+                connection.retrbinary('RETR %s' % dfile_serverpath, callback = handleupload, blocksize = 1024)
+            pbar.finish()
+            print "Finished"
+            connection.quit()
+        except (ftplib.error_perm, ftplib.error_temp), self.exc:
+            print self.exc
 
 def parsedate(text):
     '''
