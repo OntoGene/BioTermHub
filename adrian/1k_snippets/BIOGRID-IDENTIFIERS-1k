@@ -1,0 +1,1000 @@
+IN NO EVENT SHALL MOUNT SINAI HOSPITAL BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF MOUNT SINAI HOSPITAL
+HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+MOUNT SINAI HOSPITAL SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED HEREUNDER IS PROVIDED "AS IS". MOUNT SINAI HOSPITAL HAS NO
+OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+Published research assisted by this document should cite the original publishing author, as well as:
+In any articles making use of this data, please refer to:
+Stark C, Breitkreutz BJ, Reguly T, Boucher L, Breitkreutz A, Tyers M. BioGRID: A General Repository for Interaction Datasets.
+Nucleic Acids Res. Jan1;34:D535-9.
+
+This data is distributed for research purposes only, and is provided WITHOUT ANY WARRANTY.
+
+----------------------------------------------------------------------------------------------------
+
+Brief Description of the Columns: 
+
+A.) BIOGRID_ID			Identifier for this ID within the BioGRID Database
+B.) IDENTIFIER_VALUE			Identifier Value Mapped
+C.) IDENTIFIER_TYPE			A Brief Text Description of the Identifier
+D.) ORGANISM_OFFICIAL_NAME			Official name of the organism
+
+----------------------------------------------------------------------------------------------------
+File Version: 3.4.125
+----------------------------------------------------------------------------------------------------
+
+BIOGRID_ID	IDENTIFIER_VALUE	IDENTIFIER_TYPE	ORGANISM_OFFICIAL_NAME
+1	1	BIOGRID	Arabidopsis thaliana
+1	ArthMr001	SYSTEMATIC NAME	Arabidopsis thaliana
+1	ArthMr001	ORDERED LOCUS	Arabidopsis thaliana
+1	rrn26	OFFICIAL SYMBOL	Arabidopsis thaliana
+1	814566	ENTREZ_GENE	Arabidopsis thaliana
+1	ETG814566	ENTREZ_GENE_ETG	Arabidopsis thaliana
+2	2	BIOGRID	Arabidopsis thaliana
+2	ArthMp007	SYSTEMATIC NAME	Arabidopsis thaliana
+2	ArthMp007	ORDERED LOCUS	Arabidopsis thaliana
+2	nad9	OFFICIAL SYMBOL	Arabidopsis thaliana
+2	NDUS3_ARATH	SYNONYM	Arabidopsis thaliana
+2	AtMg00070	SYNONYM	Arabidopsis thaliana
+2	NP_085479.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+2	814568	ENTREZ_GENE	Arabidopsis thaliana
+2	ETG814568	ENTREZ_GENE_ETG	Arabidopsis thaliana
+2	NP_085479	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+2	13449296	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+2	P93279	UNIPROT-ACCESSION	Arabidopsis thaliana
+2	Q95748	SWISS-PROT	Arabidopsis thaliana
+2	A7KNI3	UNIPROT-ACCESSION	Arabidopsis thaliana
+3	3	BIOGRID	Arabidopsis thaliana
+3	ArthMp008	SYSTEMATIC NAME	Arabidopsis thaliana
+3	ArthMp008	ORDERED LOCUS	Arabidopsis thaliana
+3	rpl16	OFFICIAL SYMBOL	Arabidopsis thaliana
+3	G1C2Q4_ARATH	SYNONYM	Arabidopsis thaliana
+3	AtMg00080	SYNONYM	Arabidopsis thaliana
+3	RM16_ARATH	SYNONYM	Arabidopsis thaliana
+3	NP_085480.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+3	814569	ENTREZ_GENE	Arabidopsis thaliana
+3	13449297	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+3	ETG814569	ENTREZ_GENE_ETG	Arabidopsis thaliana
+3	NP_085480	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+3	G1C2Q4	TREMBL	Arabidopsis thaliana
+3	A7KNJ7	UNIPROT-ACCESSION	Arabidopsis thaliana
+3	Q95747	SWISS-PROT	Arabidopsis thaliana
+4	4	BIOGRID	Arabidopsis thaliana
+4	ArthMp009	SYSTEMATIC NAME	Arabidopsis thaliana
+4	ArthMp009	ORDERED LOCUS	Arabidopsis thaliana
+4	rps3	OFFICIAL SYMBOL	Arabidopsis thaliana
+4	RT03_ARATH	SYNONYM	Arabidopsis thaliana
+4	G1C2T6_ARATH	SYNONYM	Arabidopsis thaliana
+4	AtMg00090	SYNONYM	Arabidopsis thaliana
+4	814570	ENTREZ_GENE	Arabidopsis thaliana
+4	NP_085481	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+4	13449298	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+4	NP_085481.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+4	ETG814570	ENTREZ_GENE_ETG	Arabidopsis thaliana
+4	G1C2T6	TREMBL	Arabidopsis thaliana
+4	Q95749	SWISS-PROT	Arabidopsis thaliana
+4	A7KNJ9	UNIPROT-ACCESSION	Arabidopsis thaliana
+5	5	BIOGRID	Arabidopsis thaliana
+5	ArthMt001	SYSTEMATIC NAME	Arabidopsis thaliana
+5	ArthMt001	ORDERED LOCUS	Arabidopsis thaliana
+5	tRNA-Lys	OFFICIAL SYMBOL	Arabidopsis thaliana
+5	814571	ENTREZ_GENE	Arabidopsis thaliana
+5	ETG814571	ENTREZ_GENE_ETG	Arabidopsis thaliana
+6	6	BIOGRID	Arabidopsis thaliana
+6	ArthMp010	SYSTEMATIC NAME	Arabidopsis thaliana
+6	ArthMp010	ORDERED LOCUS	Arabidopsis thaliana
+6	ccb206	OFFICIAL SYMBOL	Arabidopsis thaliana
+6	CCB2	SYNONYM	Arabidopsis thaliana
+6	CCMB_ARATH	SYNONYM	Arabidopsis thaliana
+6	ABCI2	SYNONYM	Arabidopsis thaliana
+6	G1C2W9_ARATH	SYNONYM	Arabidopsis thaliana
+6	AtMg00110	SYNONYM	Arabidopsis thaliana
+6	CCMB	SYNONYM	Arabidopsis thaliana
+6	13449299	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+6	NP_085482	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+6	ETG814572	ENTREZ_GENE_ETG	Arabidopsis thaliana
+6	NP_085482.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+6	814572	ENTREZ_GENE	Arabidopsis thaliana
+6	P93280	SWISS-PROT	Arabidopsis thaliana
+6	G1C2W9	TREMBL	Arabidopsis thaliana
+7	7	BIOGRID	Arabidopsis thaliana
+7	ArthMp015	SYSTEMATIC NAME	Arabidopsis thaliana
+7	ArthMp015	ORDERED LOCUS	Arabidopsis thaliana
+7	cox2	OFFICIAL SYMBOL	Arabidopsis thaliana
+7	G1C2Q7_ARATH	SYNONYM	Arabidopsis thaliana
+7	COX2_ARATH	SYNONYM	Arabidopsis thaliana
+7	COXII	SYNONYM	Arabidopsis thaliana
+7	AtMg00160	SYNONYM	Arabidopsis thaliana
+7	NP_085487	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+7	NP_085487.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+7	ETG814573	ENTREZ_GENE_ETG	Arabidopsis thaliana
+7	814573	ENTREZ_GENE	Arabidopsis thaliana
+7	13449304	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+7	G1C2Q7	TREMBL	Arabidopsis thaliana
+7	P93285	SWISS-PROT	Arabidopsis thaliana
+8	8	BIOGRID	Arabidopsis thaliana
+8	ArthMp017	SYSTEMATIC NAME	Arabidopsis thaliana
+8	ArthMp017	ORDERED LOCUS	Arabidopsis thaliana
+8	ccb452	OFFICIAL SYMBOL	Arabidopsis thaliana
+8	CCB6C	SYNONYM	Arabidopsis thaliana
+8	G1C2X7_ARATH	SYNONYM	Arabidopsis thaliana
+8	AtMg00180	SYNONYM	Arabidopsis thaliana
+8	CCMF_ARATH	SYNONYM	Arabidopsis thaliana
+8	CCMFC	SYNONYM	Arabidopsis thaliana
+8	13449306	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+8	NP_085489	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+8	ETG814574	ENTREZ_GENE_ETG	Arabidopsis thaliana
+8	814574	ENTREZ_GENE	Arabidopsis thaliana
+8	NP_085489.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+8	P93286	SWISS-PROT	Arabidopsis thaliana
+8	G1C2X7	TREMBL	Arabidopsis thaliana
+9	9	BIOGRID	Arabidopsis thaliana
+9	ArthMt002	SYSTEMATIC NAME	Arabidopsis thaliana
+9	ArthMt002	ORDERED LOCUS	Arabidopsis thaliana
+9	tRNA-Gly	OFFICIAL SYMBOL	Arabidopsis thaliana
+9	ETG814575	ENTREZ_GENE_ETG	Arabidopsis thaliana
+9	814575	ENTREZ_GENE	Arabidopsis thaliana
+10	10	BIOGRID	Arabidopsis thaliana
+10	ArthMp019	SYSTEMATIC NAME	Arabidopsis thaliana
+10	ArthMp019	ORDERED LOCUS	Arabidopsis thaliana
+10	rpl5	OFFICIAL SYMBOL	Arabidopsis thaliana
+10	AtMg00210	SYNONYM	Arabidopsis thaliana
+10	At2g07725	SYNONYM	Arabidopsis thaliana
+10	Q6NMS1_ARATH	SYNONYM	Arabidopsis thaliana
+10	RM05_ARATH	SYNONYM	Arabidopsis thaliana
+10	ETG814576	ENTREZ_GENE_ETG	Arabidopsis thaliana
+10	NP_085491.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+10	814576	ENTREZ_GENE	Arabidopsis thaliana
+10	13449308	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+10	NP_085491	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+10	P93288	UNIPROT-ACCESSION	Arabidopsis thaliana
+10	Q6NMS1	TREMBL	Arabidopsis thaliana
+10	P42793	SWISS-PROT	Arabidopsis thaliana
+10	Q8S8I8	UNIPROT-ACCESSION	Arabidopsis thaliana
+10	Q33886	UNIPROT-ACCESSION	Arabidopsis thaliana
+11	11	BIOGRID	Arabidopsis thaliana
+11	ArthMp020	SYSTEMATIC NAME	Arabidopsis thaliana
+11	ArthMp020	ORDERED LOCUS	Arabidopsis thaliana
+11	cob	OFFICIAL SYMBOL	Arabidopsis thaliana
+11	CYB_ARATH	SYNONYM	Arabidopsis thaliana
+11	MTCYB	SYNONYM	Arabidopsis thaliana
+11	MT-CYB	SYNONYM	Arabidopsis thaliana
+11	CYTB	SYNONYM	Arabidopsis thaliana
+11	AtMg00220	SYNONYM	Arabidopsis thaliana
+11	ETG814577	ENTREZ_GENE_ETG	Arabidopsis thaliana
+11	814577	ENTREZ_GENE	Arabidopsis thaliana
+11	NP_085492.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+11	13449309	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+11	NP_085492	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+11	F4IND9	UNIPROT-ACCESSION	Arabidopsis thaliana
+11	P42792	SWISS-PROT	Arabidopsis thaliana
+11	P93289	UNIPROT-ACCESSION	Arabidopsis thaliana
+12	12	BIOGRID	Arabidopsis thaliana
+12	ArthMt003	SYSTEMATIC NAME	Arabidopsis thaliana
+12	ArthMt003	ORDERED LOCUS	Arabidopsis thaliana
+12	tRNA-Ser	OFFICIAL SYMBOL	Arabidopsis thaliana
+12	814578	ENTREZ_GENE	Arabidopsis thaliana
+12	ETG814578	ENTREZ_GENE_ETG	Arabidopsis thaliana
+13	13	BIOGRID	Arabidopsis thaliana
+13	ArthMp024	SYSTEMATIC NAME	Arabidopsis thaliana
+13	ArthMp024	ORDERED LOCUS	Arabidopsis thaliana
+13	nad6	OFFICIAL SYMBOL	Arabidopsis thaliana
+13	NU6M_ARATH	SYNONYM	Arabidopsis thaliana
+13	AtMg00270	SYNONYM	Arabidopsis thaliana
+13	ND6	SYNONYM	Arabidopsis thaliana
+13	G1C2Y0_ARATH	SYNONYM	Arabidopsis thaliana
+13	13449312	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+13	NP_085495	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+13	814580	ENTREZ_GENE	Arabidopsis thaliana
+13	NP_085495.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+13	ETG814580	ENTREZ_GENE_ETG	Arabidopsis thaliana
+13	A7KNH9	UNIPROT-ACCESSION	Arabidopsis thaliana
+13	P60497	SWISS-PROT	Arabidopsis thaliana
+13	Q01825	UNIPROT-ACCESSION	Arabidopsis thaliana
+13	G1C2Y0	TREMBL	Arabidopsis thaliana
+14	14	BIOGRID	Arabidopsis thaliana
+14	ArthMp027	SYSTEMATIC NAME	Arabidopsis thaliana
+14	ArthMp027	ORDERED LOCUS	Arabidopsis thaliana
+14	rps4	OFFICIAL SYMBOL	Arabidopsis thaliana
+14	AtMg00290	SYNONYM	Arabidopsis thaliana
+14	RT04_ARATH	SYNONYM	Arabidopsis thaliana
+14	NP_085497	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+14	NP_085497.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+14	13449315	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+14	814581	ENTREZ_GENE	Arabidopsis thaliana
+14	ETG814581	ENTREZ_GENE_ETG	Arabidopsis thaliana
+14	Q31708	SWISS-PROT	Arabidopsis thaliana
+14	A7KNK1	UNIPROT-ACCESSION	Arabidopsis thaliana
+14	Q8S8J0	UNIPROT-ACCESSION	Arabidopsis thaliana
+14	O03980	UNIPROT-ACCESSION	Arabidopsis thaliana
+14	F4INE3	UNIPROT-ACCESSION	Arabidopsis thaliana
+15	15	BIOGRID	Arabidopsis thaliana
+15	ArthMt007	SYSTEMATIC NAME	Arabidopsis thaliana
+15	ArthMt007	ORDERED LOCUS	Arabidopsis thaliana
+15	tRNA-Pro	OFFICIAL SYMBOL	Arabidopsis thaliana
+15	814584	ENTREZ_GENE	Arabidopsis thaliana
+15	ETG814584	ENTREZ_GENE_ETG	Arabidopsis thaliana
+16	16	BIOGRID	Arabidopsis thaliana
+16	ArthMt008	SYSTEMATIC NAME	Arabidopsis thaliana
+16	ArthMt008	ORDERED LOCUS	Arabidopsis thaliana
+16	tRNA-Cys	OFFICIAL SYMBOL	Arabidopsis thaliana
+16	814585	ENTREZ_GENE	Arabidopsis thaliana
+16	ETG814585	ENTREZ_GENE_ETG	Arabidopsis thaliana
+17	17	BIOGRID	Arabidopsis thaliana
+17	ArthMt009	SYSTEMATIC NAME	Arabidopsis thaliana
+17	ArthMt009	ORDERED LOCUS	Arabidopsis thaliana
+17	tRNA-Asn	OFFICIAL SYMBOL	Arabidopsis thaliana
+17	ETG814586	ENTREZ_GENE_ETG	Arabidopsis thaliana
+17	814586	ENTREZ_GENE	Arabidopsis thaliana
+18	18	BIOGRID	Arabidopsis thaliana
+18	ArthMt010	SYSTEMATIC NAME	Arabidopsis thaliana
+18	ArthMt010	ORDERED LOCUS	Arabidopsis thaliana
+18	tRNA-Tyr	OFFICIAL SYMBOL	Arabidopsis thaliana
+18	ETG814587	ENTREZ_GENE_ETG	Arabidopsis thaliana
+18	814587	ENTREZ_GENE	Arabidopsis thaliana
+19	19	BIOGRID	Arabidopsis thaliana
+19	ArthMp035	SYSTEMATIC NAME	Arabidopsis thaliana
+19	ArthMp035	ORDERED LOCUS	Arabidopsis thaliana
+19	atp6-1	OFFICIAL SYMBOL	Arabidopsis thaliana
+19	ATP61_ARATH	SYNONYM	Arabidopsis thaliana
+19	AtMg00410	SYNONYM	Arabidopsis thaliana
+19	13449321	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+19	NP_085503	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+19	814588	ENTREZ_GENE	Arabidopsis thaliana
+19	NP_085503.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+19	ETG814588	ENTREZ_GENE_ETG	Arabidopsis thaliana
+19	A7KNE5	UNIPROT-ACCESSION	Arabidopsis thaliana
+19	F4INF7	UNIPROT-ACCESSION	Arabidopsis thaliana
+19	P93298	SWISS-PROT	Arabidopsis thaliana
+20	20	BIOGRID	Arabidopsis thaliana
+20	ArthMt011	SYSTEMATIC NAME	Arabidopsis thaliana
+20	ArthMt011	ORDERED LOCUS	Arabidopsis thaliana
+20	tRNA-Ser	OFFICIAL SYMBOL	Arabidopsis thaliana
+20	814589	ENTREZ_GENE	Arabidopsis thaliana
+20	ETG814589	ENTREZ_GENE_ETG	Arabidopsis thaliana
+21	21	BIOGRID	Arabidopsis thaliana
+21	ArthMt012	SYSTEMATIC NAME	Arabidopsis thaliana
+21	ArthMt012	ORDERED LOCUS	Arabidopsis thaliana
+21	tRNA-Ile	OFFICIAL SYMBOL	Arabidopsis thaliana
+21	ETG814590	ENTREZ_GENE_ETG	Arabidopsis thaliana
+21	814590	ENTREZ_GENE	Arabidopsis thaliana
+22	22	BIOGRID	Arabidopsis thaliana
+22	ArthMp040	SYSTEMATIC NAME	Arabidopsis thaliana
+22	ArthMp040	ORDERED LOCUS	Arabidopsis thaliana
+22	orfB	OFFICIAL SYMBOL	Arabidopsis thaliana
+22	AtMg00480	SYNONYM	Arabidopsis thaliana
+22	atp8	SYNONYM	Arabidopsis thaliana
+22	YMF19	SYNONYM	Arabidopsis thaliana
+22	G1C2R4_ARATH	SYNONYM	Arabidopsis thaliana
+22	YMF19_ARATH	SYNONYM	Arabidopsis thaliana
+22	ETG814591	ENTREZ_GENE_ETG	Arabidopsis thaliana
+22	814591	ENTREZ_GENE	Arabidopsis thaliana
+22	NP_085508.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+22	NP_085508	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+22	13449326	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+22	Q4PL89	UNIPROT-ACCESSION	Arabidopsis thaliana
+22	G1C2R4	TREMBL	Arabidopsis thaliana
+22	P93303	SWISS-PROT	Arabidopsis thaliana
+23	23	BIOGRID	Arabidopsis thaliana
+23	ArthMp043	SYSTEMATIC NAME	Arabidopsis thaliana
+23	ArthMp043	ORDERED LOCUS	Arabidopsis thaliana
+23	nad7	OFFICIAL SYMBOL	Arabidopsis thaliana
+23	G1C2X4_ARATH	SYNONYM	Arabidopsis thaliana
+23	AtMg00510	SYNONYM	Arabidopsis thaliana
+23	NDUS2_ARATH	SYNONYM	Arabidopsis thaliana
+23	NP_085511	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+23	13449329	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+23	ETG814592	ENTREZ_GENE_ETG	Arabidopsis thaliana
+23	814592	ENTREZ_GENE	Arabidopsis thaliana
+23	NP_085511.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+23	G1C2X4	TREMBL	Arabidopsis thaliana
+23	P93306	SWISS-PROT	Arabidopsis thaliana
+24	24	BIOGRID	Arabidopsis thaliana
+24	ArthMp045	SYSTEMATIC NAME	Arabidopsis thaliana
+24	ArthMp045	ORDERED LOCUS	Arabidopsis thaliana
+24	matR	OFFICIAL SYMBOL	Arabidopsis thaliana
+24	AtMg00520	SYNONYM	Arabidopsis thaliana
+24	P93307_ARATH	SYNONYM	Arabidopsis thaliana
+24	NP_085512.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+24	13449330	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+24	ETG814593	ENTREZ_GENE_ETG	Arabidopsis thaliana
+24	814593	ENTREZ_GENE	Arabidopsis thaliana
+24	NP_085512	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+24	P93307	TREMBL	Arabidopsis thaliana
+25	25	BIOGRID	Arabidopsis thaliana
+25	ArthMp049	SYSTEMATIC NAME	Arabidopsis thaliana
+25	ArthMp049	ORDERED LOCUS	Arabidopsis thaliana
+25	rpl2	OFFICIAL SYMBOL	Arabidopsis thaliana
+25	RM02_ARATH	SYNONYM	Arabidopsis thaliana
+25	AtMg00560	SYNONYM	Arabidopsis thaliana
+25	G1C2X5_ARATH	SYNONYM	Arabidopsis thaliana
+25	13449334	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+25	NP_085516	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+25	NP_085516.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+25	ETG814594	ENTREZ_GENE_ETG	Arabidopsis thaliana
+25	814594	ENTREZ_GENE	Arabidopsis thaliana
+25	G1C2X5	TREMBL	Arabidopsis thaliana
+25	P93311	SWISS-PROT	Arabidopsis thaliana
+25	Q33885	UNIPROT-ACCESSION	Arabidopsis thaliana
+25	Q8S887	UNIPROT-ACCESSION	Arabidopsis thaliana
+26	26	BIOGRID	Arabidopsis thaliana
+26	ArthMp050	SYSTEMATIC NAME	Arabidopsis thaliana
+26	ArthMp050	ORDERED LOCUS	Arabidopsis thaliana
+26	orfX	OFFICIAL SYMBOL	Arabidopsis thaliana
+26	YMF16_ARATH	SYNONYM	Arabidopsis thaliana
+26	YMF16	SYNONYM	Arabidopsis thaliana
+26	AtMg00570	SYNONYM	Arabidopsis thaliana
+26	MTT2	SYNONYM	Arabidopsis thaliana
+26	13449335	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+26	NP_085517.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+26	ETG814595	ENTREZ_GENE_ETG	Arabidopsis thaliana
+26	NP_085517	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+26	814595	ENTREZ_GENE	Arabidopsis thaliana
+26	P93312	SWISS-PROT	Arabidopsis thaliana
+26	A7KNJ1	UNIPROT-ACCESSION	Arabidopsis thaliana
+26	Q36322	UNIPROT-ACCESSION	Arabidopsis thaliana
+27	27	BIOGRID	Arabidopsis thaliana
+27	ArthMp051	SYSTEMATIC NAME	Arabidopsis thaliana
+27	ArthMp051	ORDERED LOCUS	Arabidopsis thaliana
+27	nad4	OFFICIAL SYMBOL	Arabidopsis thaliana
+27	AtMg00580	SYNONYM	Arabidopsis thaliana
+27	ND4	SYNONYM	Arabidopsis thaliana
+27	G1C2U9_ARATH	SYNONYM	Arabidopsis thaliana
+27	NU4M_ARATH	SYNONYM	Arabidopsis thaliana
+27	814596	ENTREZ_GENE	Arabidopsis thaliana
+27	13449336	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+27	NP_085518	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+27	NP_085518.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+27	ETG814596	ENTREZ_GENE_ETG	Arabidopsis thaliana
+27	P93313	SWISS-PROT	Arabidopsis thaliana
+27	G1C2U9	TREMBL	Arabidopsis thaliana
+28	28	BIOGRID	Arabidopsis thaliana
+28	ArthMp057	SYSTEMATIC NAME	Arabidopsis thaliana
+28	ArthMp057	ORDERED LOCUS	Arabidopsis thaliana
+28	orf25	OFFICIAL SYMBOL	Arabidopsis thaliana
+28	MI25_ARATH	SYNONYM	Arabidopsis thaliana
+28	AtMg00640	SYNONYM	Arabidopsis thaliana
+28	814597	ENTREZ_GENE	Arabidopsis thaliana
+28	NP_085524.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+28	13449342	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+28	NP_085524	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+28	ETG814597	ENTREZ_GENE_ETG	Arabidopsis thaliana
+28	A7KNI5	UNIPROT-ACCESSION	Arabidopsis thaliana
+28	Q04613	SWISS-PROT	Arabidopsis thaliana
+29	29	BIOGRID	Arabidopsis thaliana
+29	ArthMp058	SYSTEMATIC NAME	Arabidopsis thaliana
+29	ArthMp058	ORDERED LOCUS	Arabidopsis thaliana
+29	nad4L	OFFICIAL SYMBOL	Arabidopsis thaliana
+29	ND4L	SYNONYM	Arabidopsis thaliana
+29	G1C2W6_ARATH	SYNONYM	Arabidopsis thaliana
+29	NU4LM_ARATH	SYNONYM	Arabidopsis thaliana
+29	AtMg00650	SYNONYM	Arabidopsis thaliana
+29	ETG814598	ENTREZ_GENE_ETG	Arabidopsis thaliana
+29	13449343	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+29	814598	ENTREZ_GENE	Arabidopsis thaliana
+29	NP_085525.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+29	NP_085525	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+29	A7KNH4	UNIPROT-ACCESSION	Arabidopsis thaliana
+29	Q04614	SWISS-PROT	Arabidopsis thaliana
+29	G1C2W6	TREMBL	Arabidopsis thaliana
+33	33	BIOGRID	Arabidopsis thaliana
+33	AT2G01050	SYSTEMATIC NAME	Arabidopsis thaliana
+33	AT2G01050	ORDERED LOCUS	Arabidopsis thaliana
+33	AT2G01050	OFFICIAL SYMBOL	Arabidopsis thaliana
+33	F23H14.2	SYNONYM	Arabidopsis thaliana
+33	F23H14_2	SYNONYM	Arabidopsis thaliana
+33	Q9SJW1_ARATH	SYNONYM	Arabidopsis thaliana
+33	18379136	REFSEQ-RNA-GI	Arabidopsis thaliana
+33	AT2G01050	TAIR	Arabidopsis thaliana
+33	15226168	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+33	NM_126167	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+33	NP_178215	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+33	814629	ENTREZ_GENE	Arabidopsis thaliana
+33	NP_178215.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+33	ETG814629	ENTREZ_GENE_ETG	Arabidopsis thaliana
+33	Q9SJW1	TREMBL	Arabidopsis thaliana
+34	34	BIOGRID	Arabidopsis thaliana
+34	AT2G01060	SYSTEMATIC NAME	Arabidopsis thaliana
+34	AT2G01060	ORDERED LOCUS	Arabidopsis thaliana
+34	AT2G01060	OFFICIAL SYMBOL	Arabidopsis thaliana
+34	F23H14.3	SYNONYM	Arabidopsis thaliana
+34	F23H14_3	SYNONYM	Arabidopsis thaliana
+34	F4IM72_ARATH	SYNONYM	Arabidopsis thaliana
+34	Q9SJW0_ARATH	SYNONYM	Arabidopsis thaliana
+34	At2g01060/F23H14.3	SYNONYM	Arabidopsis thaliana
+34	145362098	REFSEQ-RNA-GI	Arabidopsis thaliana
+34	42570623	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+34	NP_973385	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+34	NP_178216.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+34	AT2G01060	TAIR	Arabidopsis thaliana
+34	814630	ENTREZ_GENE	Arabidopsis thaliana
+34	15226170	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+34	ETG814630	ENTREZ_GENE_ETG	Arabidopsis thaliana
+34	NP_178216	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+34	NP_973385.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+34	NM_201656	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+34	186498435	REFSEQ-RNA-GI	Arabidopsis thaliana
+34	NM_126168	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+34	F4IM72	TREMBL	Arabidopsis thaliana
+34	Q9SJW0	TREMBL	Arabidopsis thaliana
+35	35	BIOGRID	Arabidopsis thaliana
+35	AT2G01031	SYSTEMATIC NAME	Arabidopsis thaliana
+35	AT2G01031	ORDERED LOCUS	Arabidopsis thaliana
+35	AT2G01031	OFFICIAL SYMBOL	Arabidopsis thaliana
+35	AT2G01031	TAIR	Arabidopsis thaliana
+35	ETG814631	ENTREZ_GENE_ETG	Arabidopsis thaliana
+35	814631	ENTREZ_GENE	Arabidopsis thaliana
+40	40	BIOGRID	Arabidopsis thaliana
+40	AT2G01080	SYSTEMATIC NAME	Arabidopsis thaliana
+40	AT2G01080	ORDERED LOCUS	Arabidopsis thaliana
+40	AT2G01080	OFFICIAL SYMBOL	Arabidopsis thaliana
+40	F23H14.5	SYNONYM	Arabidopsis thaliana
+40	F23H14_5	SYNONYM	Arabidopsis thaliana
+40	Q9SJV8_ARATH	SYNONYM	Arabidopsis thaliana
+40	AT2G01080	TAIR	Arabidopsis thaliana
+40	NP_565250	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+40	NP_565250.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+40	NM_126170	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+40	814636	ENTREZ_GENE	Arabidopsis thaliana
+40	145359793	REFSEQ-RNA-GI	Arabidopsis thaliana
+40	ETG814636	ENTREZ_GENE_ETG	Arabidopsis thaliana
+40	18379145	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+40	Q9SJV8	TREMBL	Arabidopsis thaliana
+41	41	BIOGRID	Arabidopsis thaliana
+41	AT2G01070	SYSTEMATIC NAME	Arabidopsis thaliana
+41	AT2G01070	ORDERED LOCUS	Arabidopsis thaliana
+41	AT2G01070	OFFICIAL SYMBOL	Arabidopsis thaliana
+41	F23H14.4	SYNONYM	Arabidopsis thaliana
+41	F23H14_4	SYNONYM	Arabidopsis thaliana
+41	F4IM73_ARATH	SYNONYM	Arabidopsis thaliana
+41	B3H5T8_ARATH	SYNONYM	Arabidopsis thaliana
+41	NP_001118245.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+41	NP_178217.2	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+41	NP_001118245	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+41	AT2G01070	TAIR	Arabidopsis thaliana
+41	186498438	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+41	186498437	REFSEQ-RNA-GI	Arabidopsis thaliana
+41	42568843	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+41	NP_178217	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+41	NP_178217.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+41	814637	ENTREZ_GENE	Arabidopsis thaliana
+41	NM_001124773	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+41	145359792	REFSEQ-RNA-GI	Arabidopsis thaliana
+41	ETG814637	ENTREZ_GENE_ETG	Arabidopsis thaliana
+41	NM_126169	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+41	NP_178217.3	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+41	F4IM73	TREMBL	Arabidopsis thaliana
+41	B3H5T8	TREMBL	Arabidopsis thaliana
+42	42	BIOGRID	Arabidopsis thaliana
+42	AT2G01090	SYSTEMATIC NAME	Arabidopsis thaliana
+42	AT2G01090	ORDERED LOCUS	Arabidopsis thaliana
+42	AT2G01090	OFFICIAL SYMBOL	Arabidopsis thaliana
+42	F23H14.6	SYNONYM	Arabidopsis thaliana
+42	F23H14_6	SYNONYM	Arabidopsis thaliana
+42	Q9SJV7_ARATH	SYNONYM	Arabidopsis thaliana
+42	AT2G01090	TAIR	Arabidopsis thaliana
+42	814638	ENTREZ_GENE	Arabidopsis thaliana
+42	15226177	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+42	334184081	REFSEQ-RNA-GI	Arabidopsis thaliana
+42	NP_001189492	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+42	NP_178219	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+42	334184080	REFSEQ-RNA-GI	Arabidopsis thaliana
+42	NP_001189492.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+42	NP_178219.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+42	NM_126171	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+42	ETG814638	ENTREZ_GENE_ETG	Arabidopsis thaliana
+42	NM_001202563	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+42	334184082	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+42	Q9SJV7	TREMBL	Arabidopsis thaliana
+43	43	BIOGRID	Arabidopsis thaliana
+43	AT2G01100	SYSTEMATIC NAME	Arabidopsis thaliana
+43	AT2G01100	ORDERED LOCUS	Arabidopsis thaliana
+43	AT2G01100	OFFICIAL SYMBOL	Arabidopsis thaliana
+43	F23H14.7	SYNONYM	Arabidopsis thaliana
+43	F23H14_7	SYNONYM	Arabidopsis thaliana
+43	Q9SJV6_ARATH	SYNONYM	Arabidopsis thaliana
+43	NP_565251.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+43	NP_973386.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+43	NM_126172	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+43	186498448	REFSEQ-RNA-GI	Arabidopsis thaliana
+43	AT2G01100	TAIR	Arabidopsis thaliana
+43	814639	ENTREZ_GENE	Arabidopsis thaliana
+43	18379151	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+43	145359794	REFSEQ-RNA-GI	Arabidopsis thaliana
+43	NM_201657	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+43	NP_849919	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+43	NP_565251	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+43	30677872	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+43	NP_973386	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+43	NP_849919.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+43	42570625	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+43	NM_179588	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+43	30677871	REFSEQ-RNA-GI	Arabidopsis thaliana
+43	ETG814639	ENTREZ_GENE_ETG	Arabidopsis thaliana
+43	Q9SJV6	TREMBL	Arabidopsis thaliana
+44	44	BIOGRID	Arabidopsis thaliana
+44	AT2G01110	SYSTEMATIC NAME	Arabidopsis thaliana
+44	AT2G01110	ORDERED LOCUS	Arabidopsis thaliana
+44	APG2	OFFICIAL SYMBOL	Arabidopsis thaliana
+44	ALBINO AND PALE GREEN 2	SYNONYM	Arabidopsis thaliana
+44	F23H14.8	SYNONYM	Arabidopsis thaliana
+44	F23H14_8	SYNONYM	Arabidopsis thaliana
+44	PGA2	SYNONYM	Arabidopsis thaliana
+44	TATC	SYNONYM	Arabidopsis thaliana
+44	TWIN-ARGININE TRANSLOCATION C	SYNONYM	Arabidopsis thaliana
+44	UNE3	SYNONYM	Arabidopsis thaliana
+44	unfertilized embryo sac 3	SYNONYM	Arabidopsis thaliana
+44	TATC_ARATH	SYNONYM	Arabidopsis thaliana
+44	NM_126173	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+44	ETG814640	ENTREZ_GENE_ETG	Arabidopsis thaliana
+44	NP_565252	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+44	NP_565252.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+44	42568846	REFSEQ-RNA-GI	Arabidopsis thaliana
+44	AT2G01110	TAIR	Arabidopsis thaliana
+44	18379153	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+44	814640	ENTREZ_GENE	Arabidopsis thaliana
+44	Q9XFI4	UNIPROT-ACCESSION	Arabidopsis thaliana
+44	Q9SJV5	SWISS-PROT	Arabidopsis thaliana
+45	45	BIOGRID	Arabidopsis thaliana
+45	AT2G01120	SYSTEMATIC NAME	Arabidopsis thaliana
+45	AT2G01120	ORDERED LOCUS	Arabidopsis thaliana
+45	ORC4	OFFICIAL SYMBOL	Arabidopsis thaliana
+45	ATORC4	SYNONYM	Arabidopsis thaliana
+45	F23H14.9	SYNONYM	Arabidopsis thaliana
+45	F23H14_9	SYNONYM	Arabidopsis thaliana
+45	ORIGIN RECOGNITION COMPLEX SUBUNIT 4	SYNONYM	Arabidopsis thaliana
+45	F4IM82_ARATH	SYNONYM	Arabidopsis thaliana
+45	F4IM83_ARATH	SYNONYM	Arabidopsis thaliana
+45	ETG814641	ENTREZ_GENE_ETG	Arabidopsis thaliana
+45	334184084	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+45	NM_126174	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+45	814641	ENTREZ_GENE	Arabidopsis thaliana
+45	NP_178222.4	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+45	NP_001189493	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+45	NP_178222.3	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+45	334184083	REFSEQ-RNA-GI	Arabidopsis thaliana
+45	NP_178222.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+45	NP_178222.2	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+45	240254422	REFSEQ-RNA-GI	Arabidopsis thaliana
+45	240254423	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+45	NM_001202564	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+45	NP_001189493.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+45	AT2G01120	TAIR	Arabidopsis thaliana
+45	NP_178222	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+45	F4IM82	TREMBL	Arabidopsis thaliana
+45	F4IM83	TREMBL	Arabidopsis thaliana
+46	46	BIOGRID	Arabidopsis thaliana
+46	AT2G01130	SYSTEMATIC NAME	Arabidopsis thaliana
+46	AT2G01130	ORDERED LOCUS	Arabidopsis thaliana
+46	AT2G01130	OFFICIAL SYMBOL	Arabidopsis thaliana
+46	F10A8.28	SYNONYM	Arabidopsis thaliana
+46	F4IM84_ARATH	SYNONYM	Arabidopsis thaliana
+46	NP_178223.2	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+46	814642	ENTREZ_GENE	Arabidopsis thaliana
+46	NP_178223	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+46	NM_126175	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+46	334184085	REFSEQ-RNA-GI	Arabidopsis thaliana
+46	NP_178223.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+46	79548544	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+46	AT2G01130	TAIR	Arabidopsis thaliana
+46	ETG814642	ENTREZ_GENE_ETG	Arabidopsis thaliana
+46	F4IM84	TREMBL	Arabidopsis thaliana
+47	47	BIOGRID	Arabidopsis thaliana
+47	AT2G01140	SYSTEMATIC NAME	Arabidopsis thaliana
+47	AT2G01140	ORDERED LOCUS	Arabidopsis thaliana
+47	AT2G01140	OFFICIAL SYMBOL	Arabidopsis thaliana
+47	F10A8.2	SYNONYM	Arabidopsis thaliana
+47	FBA3	SYNONYM	Arabidopsis thaliana
+47	ALFC3_ARATH	SYNONYM	Arabidopsis thaliana
+47	814643	ENTREZ_GENE	Arabidopsis thaliana
+47	186498459	REFSEQ-RNA-GI	Arabidopsis thaliana
+47	AT2G01140	TAIR	Arabidopsis thaliana
+47	15226185	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+47	NP_178224	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+47	NM_126176	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+47	ETG814643	ENTREZ_GENE_ETG	Arabidopsis thaliana
+47	NP_178224.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+47	Q9ZU52	SWISS-PROT	Arabidopsis thaliana
+48	48	BIOGRID	Arabidopsis thaliana
+48	AT2G01150	SYSTEMATIC NAME	Arabidopsis thaliana
+48	AT2G01150	ORDERED LOCUS	Arabidopsis thaliana
+48	RHA2B	OFFICIAL SYMBOL	Arabidopsis thaliana
+48	F10A8.3	SYNONYM	Arabidopsis thaliana
+48	F10A8_3	SYNONYM	Arabidopsis thaliana
+48	RING-H2 FINGER PROTEIN RHA2B	SYNONYM	Arabidopsis thaliana
+48	RING-H2 finger protein 2B	SYNONYM	Arabidopsis thaliana
+48	Q1H5F4_ARATH	SYNONYM	Arabidopsis thaliana
+48	RHA2B_ARATH	SYNONYM	Arabidopsis thaliana
+48	814644	ENTREZ_GENE	Arabidopsis thaliana
+48	AT2G01150	TAIR	Arabidopsis thaliana
+48	NM_126177	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+48	30677879	REFSEQ-RNA-GI	Arabidopsis thaliana
+48	NP_565253	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+48	ETG814644	ENTREZ_GENE_ETG	Arabidopsis thaliana
+48	NP_565253.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+48	18379162	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+48	Q1H5F4	TREMBL	Arabidopsis thaliana
+48	Q9ZU51	SWISS-PROT	Arabidopsis thaliana
+49	49	BIOGRID	Arabidopsis thaliana
+49	AT2G01170	SYSTEMATIC NAME	Arabidopsis thaliana
+49	AT2G01170	ORDERED LOCUS	Arabidopsis thaliana
+49	BAT1	OFFICIAL SYMBOL	Arabidopsis thaliana
+49	bidirectional amino acid transporter 1	SYNONYM	Arabidopsis thaliana
+49	BAT1_ARATH	SYNONYM	Arabidopsis thaliana
+49	F10A8.5	SYNONYM	Arabidopsis thaliana
+49	GABP	SYNONYM	Arabidopsis thaliana
+49	Q5FV40_ARATH	SYNONYM	Arabidopsis thaliana
+49	18379164	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+49	814645	ENTREZ_GENE	Arabidopsis thaliana
+49	AT2G01170	TAIR	Arabidopsis thaliana
+49	NP_565254.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+49	42570627	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+49	NM_126178	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+49	ETG814645	ENTREZ_GENE_ETG	Arabidopsis thaliana
+49	NP_565254	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+49	NP_973387.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+49	42570626	REFSEQ-RNA-GI	Arabidopsis thaliana
+49	NP_973387	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+49	42568847	REFSEQ-RNA-GI	Arabidopsis thaliana
+49	NM_201658	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+49	Q9ZU50	SWISS-PROT	Arabidopsis thaliana
+49	O22509	UNIPROT-ACCESSION	Arabidopsis thaliana
+49	Q5FV40	TREMBL	Arabidopsis thaliana
+49	Q8RXY5	UNIPROT-ACCESSION	Arabidopsis thaliana
+50	50	BIOGRID	Arabidopsis thaliana
+50	AT2G01180	SYSTEMATIC NAME	Arabidopsis thaliana
+50	AT2G01180	ORDERED LOCUS	Arabidopsis thaliana
+50	PAP1	OFFICIAL SYMBOL	Arabidopsis thaliana
+50	ATLPP1	SYNONYM	Arabidopsis thaliana
+50	ATPAP1	SYNONYM	Arabidopsis thaliana
+50	F10A8.6	SYNONYM	Arabidopsis thaliana
+50	F10A8_6	SYNONYM	Arabidopsis thaliana
+50	LIPID PHOSPHATE PHOSPHATASE 1	SYNONYM	Arabidopsis thaliana
+50	LPP1	SYNONYM	Arabidopsis thaliana
+50	phosphatidic acid phosphatase 1	SYNONYM	Arabidopsis thaliana
+50	LPP1_ARATH	SYNONYM	Arabidopsis thaliana
+50	814646	ENTREZ_GENE	Arabidopsis thaliana
+50	NP_565255.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+50	42570630	REFSEQ-RNA-GI	Arabidopsis thaliana
+50	NP_973389	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+50	18379166	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+50	145359796	REFSEQ-RNA-GI	Arabidopsis thaliana
+50	AT2G01180	TAIR	Arabidopsis thaliana
+50	NM_126179	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+50	NP_973389.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+50	42570631	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+50	NP_565255	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+50	NM_201660	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+50	ETG814646	ENTREZ_GENE_ETG	Arabidopsis thaliana
+50	Q8LDP8	UNIPROT-ACCESSION	Arabidopsis thaliana
+50	Q8H0G3	UNIPROT-ACCESSION	Arabidopsis thaliana
+50	Q3EC91	UNIPROT-ACCESSION	Arabidopsis thaliana
+50	Q9ZU49	SWISS-PROT	Arabidopsis thaliana
+50	Q945N3	UNIPROT-ACCESSION	Arabidopsis thaliana
+50	Q9ZU49-2	UNIPROT-ISOFORM	Arabidopsis thaliana
+50	Q94LY6	UNIPROT-ACCESSION	Arabidopsis thaliana
+51	51	BIOGRID	Arabidopsis thaliana
+51	AT2G01190	SYSTEMATIC NAME	Arabidopsis thaliana
+51	AT2G01190	ORDERED LOCUS	Arabidopsis thaliana
+51	AT2G01190	OFFICIAL SYMBOL	Arabidopsis thaliana
+51	F10A8.7	SYNONYM	Arabidopsis thaliana
+51	F10A8_7	SYNONYM	Arabidopsis thaliana
+51	Q9ZU48_ARATH	SYNONYM	Arabidopsis thaliana
+51	42568849	REFSEQ-RNA-GI	Arabidopsis thaliana
+51	NP_565256.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+51	NP_565256	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+51	814647	ENTREZ_GENE	Arabidopsis thaliana
+51	ETG814647	ENTREZ_GENE_ETG	Arabidopsis thaliana
+51	NM_126180	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+51	AT2G01190	TAIR	Arabidopsis thaliana
+51	18379168	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+51	Q9ZU48	TREMBL	Arabidopsis thaliana
+51	Q8VYS3	UNIPROT-ACCESSION	Arabidopsis thaliana
+52	52	BIOGRID	Arabidopsis thaliana
+52	AT2G01200	SYSTEMATIC NAME	Arabidopsis thaliana
+52	AT2G01200	ORDERED LOCUS	Arabidopsis thaliana
+52	IAA32	OFFICIAL SYMBOL	Arabidopsis thaliana
+52	F10A8.8	SYNONYM	Arabidopsis thaliana
+52	F10A8_8	SYNONYM	Arabidopsis thaliana
+52	MEE10	SYNONYM	Arabidopsis thaliana
+52	indole-3-acetic acid inducible 32	SYNONYM	Arabidopsis thaliana
+52	maternal effect embryo arrest 10	SYNONYM	Arabidopsis thaliana
+52	F4IM94_ARATH	SYNONYM	Arabidopsis thaliana
+52	IAA32_ARATH	SYNONYM	Arabidopsis thaliana
+52	Q2VW97_ARATH	SYNONYM	Arabidopsis thaliana
+52	42568851	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+52	145359797	REFSEQ-RNA-GI	Arabidopsis thaliana
+52	AT2G01200	TAIR	Arabidopsis thaliana
+52	ETG814648	ENTREZ_GENE_ETG	Arabidopsis thaliana
+52	NP_973390	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+52	NP_178229.3	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+52	42570632	REFSEQ-RNA-GI	Arabidopsis thaliana
+52	42570633	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+52	NM_126181	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+52	NP_178229	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+52	NM_201661	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+52	NP_178229.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+52	NP_178229.2	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+52	NP_973390.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+52	814648	ENTREZ_GENE	Arabidopsis thaliana
+52	Q9ZU47	UNIPROT-ACCESSION	Arabidopsis thaliana
+52	F4IM94	TREMBL	Arabidopsis thaliana
+52	Q8RYC6	SWISS-PROT	Arabidopsis thaliana
+52	Q2VW97	TREMBL	Arabidopsis thaliana
+53	53	BIOGRID	Arabidopsis thaliana
+53	AT2G01210	SYSTEMATIC NAME	Arabidopsis thaliana
+53	AT2G01210	ORDERED LOCUS	Arabidopsis thaliana
+53	AT2G01210	OFFICIAL SYMBOL	Arabidopsis thaliana
+53	F10A8.9	SYNONYM	Arabidopsis thaliana
+53	F10A8_9	SYNONYM	Arabidopsis thaliana
+53	Q9ZU46_ARATH	SYNONYM	Arabidopsis thaliana
+53	LRR-RLK	SYNONYM	Arabidopsis thaliana
+53	AT2G01210	TAIR	Arabidopsis thaliana
+53	NM_126182	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+53	ETG814649	ENTREZ_GENE_ETG	Arabidopsis thaliana
+53	15226197	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+53	814649	ENTREZ_GENE	Arabidopsis thaliana
+53	NP_178230.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+53	145359798	REFSEQ-RNA-GI	Arabidopsis thaliana
+53	NP_178230	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+53	Q9ZU46	TREMBL	Arabidopsis thaliana
+54	54	BIOGRID	Arabidopsis thaliana
+54	AT2G01220	SYSTEMATIC NAME	Arabidopsis thaliana
+54	AT2G01220	ORDERED LOCUS	Arabidopsis thaliana
+54	AT2G01220	OFFICIAL SYMBOL	Arabidopsis thaliana
+54	AT2G01230	SYNONYM	Arabidopsis thaliana
+54	F10A8.10	SYNONYM	Arabidopsis thaliana
+54	F10A8_10	SYNONYM	Arabidopsis thaliana
+54	Q8L845_ARATH	SYNONYM	Arabidopsis thaliana
+54	F4IM97_ARATH	SYNONYM	Arabidopsis thaliana
+54	At2g01220:At2g01230	SYNONYM	Arabidopsis thaliana
+54	814650	ENTREZ_GENE	Arabidopsis thaliana
+54	NP_178231.2	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+54	NP_178231.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+54	NP_178231	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+54	30677893	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+54	AT2G01220	TAIR	Arabidopsis thaliana
+54	NP_849920	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+54	145361539	REFSEQ-RNA-GI	Arabidopsis thaliana
+54	ETG814650	ENTREZ_GENE_ETG	Arabidopsis thaliana
+54	30677889	REFSEQ-RNA-GI	Arabidopsis thaliana
+54	NP_849920.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+54	NM_179589	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+54	NM_126183	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+54	30677890	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+54	F4IM97	TREMBL	Arabidopsis thaliana
+54	Q8L845	TREMBL	Arabidopsis thaliana
+55	55	BIOGRID	Arabidopsis thaliana
+55	AT2G01240	SYSTEMATIC NAME	Arabidopsis thaliana
+55	AT2G01240	ORDERED LOCUS	Arabidopsis thaliana
+55	AT2G01240	OFFICIAL SYMBOL	Arabidopsis thaliana
+55	F10A8.12	SYNONYM	Arabidopsis thaliana
+55	F10A8_12	SYNONYM	Arabidopsis thaliana
+55	RTNLB15	SYNONYM	Arabidopsis thaliana
+55	RTNLO_ARATH	SYNONYM	Arabidopsis thaliana
+55	18379183	REFSEQ-RNA-GI	Arabidopsis thaliana
+55	AT2G01240	TAIR	Arabidopsis thaliana
+55	ETG814651	ENTREZ_GENE_ETG	Arabidopsis thaliana
+55	NP_178233	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+55	814651	ENTREZ_GENE	Arabidopsis thaliana
+55	NM_126185	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+55	NP_178233.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+55	15226209	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+55	F4IM98	UNIPROT-ACCESSION	Arabidopsis thaliana
+55	Q9ZU43	SWISS-PROT	Arabidopsis thaliana
+56	56	BIOGRID	Arabidopsis thaliana
+56	AT2G01250	SYSTEMATIC NAME	Arabidopsis thaliana
+56	AT2G01250	ORDERED LOCUS	Arabidopsis thaliana
+56	AT2G01250	OFFICIAL SYMBOL	Arabidopsis thaliana
+56	F10A8.13	SYNONYM	Arabidopsis thaliana
+56	F10A8_13	SYNONYM	Arabidopsis thaliana
+56	RL72_ARATH	SYNONYM	Arabidopsis thaliana
+56	RPL7B	SYNONYM	Arabidopsis thaliana
+56	A8MRH4_ARATH	SYNONYM	Arabidopsis thaliana
+56	NP_178234	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+56	NP_001077863	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+56	814652	ENTREZ_GENE	Arabidopsis thaliana
+56	145328233	REFSEQ-RNA-GI	Arabidopsis thaliana
+56	NP_178234.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+56	145328234	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+56	145359799	REFSEQ-RNA-GI	Arabidopsis thaliana
+56	NP_001077863.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+56	NM_001084394	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+56	NM_126186	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+56	15226212	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+56	ETG814652	ENTREZ_GENE_ETG	Arabidopsis thaliana
+56	AT2G01250	TAIR	Arabidopsis thaliana
+56	Q9ZU42	UNIPROT-ACCESSION	Arabidopsis thaliana
+56	A8MRH4	TREMBL	Arabidopsis thaliana
+56	P60040	SWISS-PROT	Arabidopsis thaliana
+56	O80581	UNIPROT-ACCESSION	Arabidopsis thaliana
+56	Q42208	UNIPROT-ACCESSION	Arabidopsis thaliana
+57	57	BIOGRID	Arabidopsis thaliana
+57	AT2G01260	SYSTEMATIC NAME	Arabidopsis thaliana
+57	AT2G01260	ORDERED LOCUS	Arabidopsis thaliana
+57	AT2G01260	OFFICIAL SYMBOL	Arabidopsis thaliana
+57	F10A8.14	SYNONYM	Arabidopsis thaliana
+57	F10A8_14	SYNONYM	Arabidopsis thaliana
+57	F4IN81_ARATH	SYNONYM	Arabidopsis thaliana
+57	F4IN82_ARATH	SYNONYM	Arabidopsis thaliana
+57	Q9ZU41_ARATH	SYNONYM	Arabidopsis thaliana
+57	NP_001030935.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+57	79316305	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+57	NP_973391	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+57	NP_565257	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+57	NP_973391.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+57	18379188	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+57	NM_001035858	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+57	42570635	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+57	NM_126187	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+57	ETG814653	ENTREZ_GENE_ETG	Arabidopsis thaliana
+57	145362099	REFSEQ-RNA-GI	Arabidopsis thaliana
+57	NP_565257.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+57	814653	ENTREZ_GENE	Arabidopsis thaliana
+57	NM_201662	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+57	NP_001030935	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+57	145359800	REFSEQ-RNA-GI	Arabidopsis thaliana
+57	79316304	REFSEQ-RNA-GI	Arabidopsis thaliana
+57	AT2G01260	TAIR	Arabidopsis thaliana
+57	F4IN82	TREMBL	Arabidopsis thaliana
+57	F4IN81	TREMBL	Arabidopsis thaliana
+57	Q9ZU41	TREMBL	Arabidopsis thaliana
+58	58	BIOGRID	Arabidopsis thaliana
+58	AT2G01270	SYSTEMATIC NAME	Arabidopsis thaliana
+58	AT2G01270	ORDERED LOCUS	Arabidopsis thaliana
+58	QSOX2	OFFICIAL SYMBOL	Arabidopsis thaliana
+58	AtQSOX2	SYNONYM	Arabidopsis thaliana
+58	F10A8.15	SYNONYM	Arabidopsis thaliana
+58	F10A8_15	SYNONYM	Arabidopsis thaliana
+58	quiescin-sulfhydryl oxidase 2	SYNONYM	Arabidopsis thaliana
+58	QSOX2_ARATH	SYNONYM	Arabidopsis thaliana
+58	AT2G01270	TAIR	Arabidopsis thaliana
+58	ETG814654	ENTREZ_GENE_ETG	Arabidopsis thaliana
+58	NP_565258.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+58	814654	ENTREZ_GENE	Arabidopsis thaliana
+58	145359801	REFSEQ-RNA-GI	Arabidopsis thaliana
+58	18379190	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+58	NM_126188	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+58	NP_565258	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+58	Q94C52	UNIPROT-ACCESSION	Arabidopsis thaliana
+58	Q9ZU40	SWISS-PROT	Arabidopsis thaliana
+59	59	BIOGRID	Arabidopsis thaliana
+59	AT2G01275	SYSTEMATIC NAME	Arabidopsis thaliana
+59	AT2G01275	ORDERED LOCUS	Arabidopsis thaliana
+59	AT2G01275	OFFICIAL SYMBOL	Arabidopsis thaliana
+59	Q6NKQ5_ARATH	SYNONYM	Arabidopsis thaliana
+59	22325409	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+59	79316317	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+59	NM_147230	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+59	ETG814655	ENTREZ_GENE_ETG	Arabidopsis thaliana
+59	814655	ENTREZ_GENE	Arabidopsis thaliana
+59	AT2G01275	TAIR	Arabidopsis thaliana
+59	NP_671763	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+59	145322960	REFSEQ-RNA-GI	Arabidopsis thaliana
+59	NM_001035859	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+59	186498508	REFSEQ-RNA-GI	Arabidopsis thaliana
+59	NP_001030936.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+59	NP_671763.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+59	NP_001030936	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+59	Q6NKQ5	TREMBL	Arabidopsis thaliana
+60	60	BIOGRID	Arabidopsis thaliana
+60	AT2G01280	SYSTEMATIC NAME	Arabidopsis thaliana
+60	AT2G01280	ORDERED LOCUS	Arabidopsis thaliana
+60	MEE65	OFFICIAL SYMBOL	Arabidopsis thaliana
+60	F10A8.16	SYNONYM	Arabidopsis thaliana
+60	F10A8_16	SYNONYM	Arabidopsis thaliana
+60	maternal effect embryo arrest 65	SYNONYM	Arabidopsis thaliana
+60	F4IN86_ARATH	SYNONYM	Arabidopsis thaliana
+60	814656	ENTREZ_GENE	Arabidopsis thaliana
+60	334184086	REFSEQ-RNA-GI	Arabidopsis thaliana
+60	ETG814656	ENTREZ_GENE_ETG	Arabidopsis thaliana
+60	334184087	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+60	NP_178237	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+60	NP_178237.2	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+60	NP_178237.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+60	NP_178237.3	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+60	NM_126189	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+60	AT2G01280	TAIR	Arabidopsis thaliana
+60	F4IN86	TREMBL	Arabidopsis thaliana
+61	61	BIOGRID	Arabidopsis thaliana
+61	AT2G01290	SYSTEMATIC NAME	Arabidopsis thaliana
+61	AT2G01290	ORDERED LOCUS	Arabidopsis thaliana
+61	RPI2	OFFICIAL SYMBOL	Arabidopsis thaliana
+61	F10A8.17	SYNONYM	Arabidopsis thaliana
+61	F10A8_17	SYNONYM	Arabidopsis thaliana
+61	ribose-5-phosphate isomerase 2	SYNONYM	Arabidopsis thaliana
+61	RPI2_ARATH	SYNONYM	Arabidopsis thaliana
+61	NP_178238.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+61	814657	ENTREZ_GENE	Arabidopsis thaliana
+61	ETG814657	ENTREZ_GENE_ETG	Arabidopsis thaliana
+61	NM_126190	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+61	NP_178238	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+61	15226223	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+61	18379193	REFSEQ-RNA-GI	Arabidopsis thaliana
+61	AT2G01290	TAIR	Arabidopsis thaliana
+61	Q9ZU38	SWISS-PROT	Arabidopsis thaliana
+61	Q1PFB3	UNIPROT-ACCESSION	Arabidopsis thaliana
+62	62	BIOGRID	Arabidopsis thaliana
+62	AT2G01300	SYSTEMATIC NAME	Arabidopsis thaliana
+62	AT2G01300	ORDERED LOCUS	Arabidopsis thaliana
+62	AT2G01300	OFFICIAL SYMBOL	Arabidopsis thaliana
+62	F10A8.18	SYNONYM	Arabidopsis thaliana
+62	F10A8_18	SYNONYM	Arabidopsis thaliana
+62	Q9ZU37_ARATH	SYNONYM	Arabidopsis thaliana
+62	NP_178239	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+62	NM_126191	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+62	AT2G01300	TAIR	Arabidopsis thaliana
+62	145359802	REFSEQ-RNA-GI	Arabidopsis thaliana
+62	ETG814658	ENTREZ_GENE_ETG	Arabidopsis thaliana
+62	814658	ENTREZ_GENE	Arabidopsis thaliana
+62	15226225	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+62	NP_178239.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+62	Q9ZU37	TREMBL	Arabidopsis thaliana
+63	63	BIOGRID	Arabidopsis thaliana
+63	AT2G01310	SYSTEMATIC NAME	Arabidopsis thaliana
+63	AT2G01310	ORDERED LOCUS	Arabidopsis thaliana
+63	AT2G01310	OFFICIAL SYMBOL	Arabidopsis thaliana
+63	F10A8.19	SYNONYM	Arabidopsis thaliana
+63	F10A8_19	SYNONYM	Arabidopsis thaliana
+63	Q9ZU36_ARATH	SYNONYM	Arabidopsis thaliana
+63	AT2G01310	TAIR	Arabidopsis thaliana
+63	18379196	REFSEQ-RNA-GI	Arabidopsis thaliana
+63	NP_178240.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+63	814659	ENTREZ_GENE	Arabidopsis thaliana
+63	NP_178240	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+63	NM_126192	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+63	15226226	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+63	ETG814659	ENTREZ_GENE_ETG	Arabidopsis thaliana
+63	Q9ZU36	TREMBL	Arabidopsis thaliana
+64	64	BIOGRID	Arabidopsis thaliana
+64	AT2G01320	SYSTEMATIC NAME	Arabidopsis thaliana
+64	AT2G01320	ORDERED LOCUS	Arabidopsis thaliana
+64	AT2G01320	OFFICIAL SYMBOL	Arabidopsis thaliana
+64	F10A8.20	SYNONYM	Arabidopsis thaliana
+64	F10A8_20	SYNONYM	Arabidopsis thaliana
+64	ABCG7	SYNONYM	Arabidopsis thaliana
+64	WBC7	SYNONYM	Arabidopsis thaliana
+64	AB7G_ARATH	SYNONYM	Arabidopsis thaliana
+64	A0NAA8_ARATH	SYNONYM	Arabidopsis thaliana
+64	814660	ENTREZ_GENE	Arabidopsis thaliana
+64	NM_201663	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+64	15226227	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+64	NP_849921	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+64	NP_849921.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+64	NP_849922.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+64	30677905	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+64	NM_126193	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+64	NP_178241.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+64	NP_849922	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+64	30677906	REFSEQ-RNA-GI	Arabidopsis thaliana
+64	ETG814660	ENTREZ_GENE_ETG	Arabidopsis thaliana
+64	42568855	REFSEQ-RNA-GI	Arabidopsis thaliana
+64	NP_973392	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+64	30677907	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+64	NP_973392.1	REFSEQ-PROTEIN-ACCESSION-VERSIONED	Arabidopsis thaliana
+64	NM_179591	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+64	NM_179590	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+64	42570637	REFSEQ-PROTEIN-GI	Arabidopsis thaliana
+64	145361540	REFSEQ-RNA-GI	Arabidopsis thaliana
+64	42570636	REFSEQ-RNA-GI	Arabidopsis thaliana
+64	AT2G01320	TAIR	Arabidopsis thaliana
+64	NP_178241	REFSEQ-PROTEIN-ACCESSION	Arabidopsis thaliana
+64	Q3EC89	UNIPROT-ACCESSION	Arabidopsis thaliana
+64	A2P2R5	UNIPROT-ACCESSION	Arabidopsis thaliana
+64	A0NAA8	TREMBL	Arabidopsis thaliana
+64	Q9ASR9	UNIPROT-ACCESSION	Arabidopsis thaliana
+64	Q9ZU35-2	UNIPROT-ISOFORM	Arabidopsis thaliana
+64	Q9ZU35	SWISS-PROT	Arabidopsis thaliana
+65	65	BIOGRID	Arabidopsis thaliana
+65	AT2G01330	SYSTEMATIC NAME	Arabidopsis thaliana
+65	AT2G01330	ORDERED LOCUS	Arabidopsis thaliana
+65	AT2G01330	OFFICIAL SYMBOL	Arabidopsis thaliana
+65	F10A8.21	SYNONYM	Arabidopsis thaliana
+65	F10A8_21	SYNONYM	Arabidopsis thaliana
+65	Q9ZU34_ARATH	SYNONYM	Arabidopsis thaliana
+65	NM_001202565	REFSEQ-RNA-ACCESSION	Arabidopsis thaliana
+65	ETG814661	ENTREZ_GENE_ETG	Arabidopsis thaliana
+65	334184091	REFSEQ-PROTEIN-GI	Arabidopsis thaliana

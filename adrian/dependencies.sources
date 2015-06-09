@@ -1,6 +1,6 @@
 # Supported protocols: HTTP, FTP
 #
-# Source format: <full path to file with protocol scheme (e.g. http://)
+# Source format: <full path to file with protocol scheme (e.g. http://)>
 # Note: Disable sources by prepending `#`
 
 # Uniprot
