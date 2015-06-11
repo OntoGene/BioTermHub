@@ -5,12 +5,14 @@ from time import time
 import datetime
 import tarfile
 from zipfile import ZipFile
+import gzip
 import ftplib
 import email.utils as eut
 from collections import defaultdict
 from glob import glob
 import socket # timeout and adress resolution error for FTP
 import sys
+import re
 
 TIMEOUT = 1
 
@@ -21,7 +23,7 @@ try:
     from requests.adapters import ConnectTimeout
     from progressbar import *
 except ImportError:
-    print "Error: Modules 'progressbar' and 'requests' needed to download ressources."
+    print "Error: Modules 'progressbar' and 'requests' (>= 2.7.0) needed to download ressources."
     quit()
 
 class RemoteCDateCheckFailed(Exception):
@@ -32,7 +34,8 @@ def getdeps(dpath, force = False, rd_fail="ask"):
     # Check if download path exists
     if not exists(dpath):
         mkdir(dpath)
-        remove('dependencies.log')
+        if exists('dependencies.log'):
+            remove('dependencies.log')
     
     # Remove temporary files from cancelled downloads
     tmpfiles = glob("*.tmp")
@@ -48,13 +51,17 @@ def getdeps(dpath, force = False, rd_fail="ask"):
     try:
         dependencies_source = open('dependencies.sources', 'r')
         for line in dependencies_source:
-            
+            stripped_line = line.strip()
             # Skip lines that are empty or comments (#)
-            if line.strip() and line[0] != "#":
-                adress = line.rstrip("\n")
-                filename_key = line.split("/")[-1].rstrip("\n")
-                dependencies[filename_key] = adress
-    
+            if stripped_line and stripped_line[0] != "#":
+                date_tag = re.match(".*\{(.+?)\}.*", line)
+                if date_tag:
+                    date_string = date_tag.group(1)
+                else:
+                    adress = line.rstrip("\n")
+                    filename_key = line.split("/")[-1].rstrip("\n")
+                    dependencies[filename_key] = adress
+        dependencies_source.close()
     except IOError:
             print "Error: Dependency sources not found"
             quit()
@@ -72,10 +79,10 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                     datetime.date.fromtimestamp(int(llist[1]))
         except IndexError:
             pass
-    except IOError:
-        pass        
-    finally:
         dependencies_log.close()
+    except IOError:
+        pass
+        
         
     # Iterate through sources 
     for dfile in dependencies:
@@ -180,24 +187,25 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             if dfile.endswith(".tar.gz"):
                 tfile = tarfile.open(download_path, "r:gz")
                 print "\nExtracting compressed tarball %s ..." % dfile
-                tfile.extractall()
+                tfile.extractall(dpath)
                 tfile.close()
                 remove(download_path)
             
             # gzip-compressed single files
             elif dfile.endswith(".gz"):
+                rint "\nExtracting gzipped file %s ..." % dfile
                 with gzip.open(download_path, "rb") as infile:
-                    download_path_stripped = download_path.rstrip(".gz", "w") 
-                    with open(download_path_stripped) as outfile:
+                    download_path_stripped = download_path.rstrip(".gz") 
+                    with open(download_path_stripped, "w") as outfile:
                         for line in infile:
                             outfile.write(line)
                 remove(download_path)
             
             # ZIP files
             elif dfile.endswith(".zip"):
-                print "\nExtracting zip file %s ..." %dfile
+                print "\nExtracting zip archive %s ..." %dfile
                 zfile = ZipFile(download_path)
-                zfile.extractall()
+                zfile.extractall(dpath)
                 zfile.close()
                 remove(download_path)
             print ""
@@ -283,22 +291,24 @@ def download_file_ftp(url, path):
         try:
             connection = ftplib.FTP(dfile_pathlist[2], timeout=TIMEOUT)
             connection.login()
+            connection.voidcmd("TYPE I")
             filesize = connection.size(dfile_serverpath)
             print "Downloading %s-%d-bytes" % (filename, filesize)
             
             pbar=ProgressBar(widgets=[FileTransferSpeed(),' ', Bar(marker=RotatingMarker()), ' ', 
                                                     Percentage(),' ', ETA()], maxval=filesize).start()
-            # Closure to access pbar
+            # Closure to access pbar and write localfile
             def handleupload(block):
                 pbar.update(pbar.currval+len(block))
+                localfile.write(block)
                 
             with open(path + filename, 'wb') as localfile:
-                connection.retrbinary('RETR %s' % dfile_serverpath, callback = handleupload, blocksize = 1024)
+                connection.retrbinary('RETR %s' % dfile_serverpath, callback = handleupload)
             pbar.finish()
             print "Finished"
             connection.quit()
-        except (ftplib.error_perm, ftplib.error_temp), self.exc:
-            print self.exc
+        except (ftplib.error_perm, ftplib.error_temp), exc:
+            print exc
 
 def parsedate(text):
     '''

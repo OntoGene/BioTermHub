@@ -1,23 +1,42 @@
+import codecs
+import csv
+
 import biogrid_parser
 import uniprot_parser
 import entrezgene_n2o3_wrapper
+from unicode_csv import UnicodeDictWriter
 
 class RecordSetContainer(object):
     def __init__(self, 
                  biogrid_idents, 
-                 biogrid_records,
                  uniprot_records, 
                  entrezgene_records):
                      
-        self.biogrid_idents = \
-            biogrid_parser.IdentifierSet(biogrid_idents)
-        self.biogrid_records = \
-            biogrid_parser.RecordSet(biogrid_records)
         self.uniprot_records = \
             uniprot_parser.RecordSet(uniprot_records)
         self.entrezgene_records = \
             entrezgene_n2o3_wrapper.RecordSet(entrezgene_records)
+        
+        # Feed uniprot and entrezgene into the biogrid parser
+        self.biogrid_idents = \
+            biogrid_parser.IdentifierSet(biogrid_idents)
+            
+        self.biogrid_idents_rowlist = self.biogrid_idents.get_rowlist()
+        self.uniport_records_rowlist = self.uniprot_records.get_rowlist()
+        self.entrezgene_records_rowlist = self.entrezgene_records.get_rowlist()
+        
+        self.rsc_list = [# self.biogrid_idents_rowlist,
+                         self.uniport_records_rowlist,
+                         self.entrezgene_records_rowlist,]
 
-class UnifiedBuilder(object):
-    def __init__(self, rsc):
-        pass
+class UnifiedBuilder(dict):
+    def __init__(self, rsc, filename):
+        dict.__init__(self)
+        csv_file = codecs.open(filename, 'wt', 'utf-8')
+        fieldnames = ["oid", "resource", "original_id", "term", "preferred_term", "entity_type"]
+        writer = UnicodeDictWriter(csv_file, dialect= csv.excel_tab, fieldnames=fieldnames, quotechar=str("\""), quoting= csv.QUOTE_NONE, restval='__')
+        writer.writeheader()
+
+        for rsc_rowlist in rsc.rsc_list:
+            for row in rsc_rowlist:
+                writer.writerow(row)

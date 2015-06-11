@@ -1,4 +1,6 @@
 from csv import DictReader, QUOTE_NONE, Dialect
+from oid_generator import OID
+from copy import deepcopy
 
 ##
 ## Label constants and constants lists
@@ -57,12 +59,9 @@ class RecordSet(dict):
             record = {}
             numerical_id = int(row[BIOGRID_INTERACTION_ID])
             self[numerical_id] = record
+            record["OID"] = OID.get()
             for column in RECORD_COLUMNS:
-                if row[column].isdigit():
-                    record[column] = int(row[column])
-                elif not column in [SYNONYMS_INTERACTOR_A, SYNONYMS_INTERACTOR_B]:
-                    record[column] = row[column]
-                else:
+                if column in SYNONYM_COLUMNS:
                     # Split synonyms into lists. Insert empty lists for empty fields
                     # (Placeholder `-`)
                     if not row[column] == "-":
@@ -70,6 +69,13 @@ class RecordSet(dict):
                     else:
                         record[column] = []
 
+                elif row[column].isdigit():
+                    record[column] = int(row[column])
+    
+                else:
+                    record[column] = row[column]
+            
+        
 class IdentifierSet(dict):
     """
     Parses BioGRID identifier records into dictionaries and stores these dictionaries
@@ -99,12 +105,41 @@ class IdentifierSet(dict):
         previous_id = None
         for row in self.csv_object:
             numerical_id = int(row[BIOGRID_ID])
+            
             if not previous_id == numerical_id:
                 record = {}
+                record["OID"] = OID.get()
                 self[numerical_id] = record
+                
             record[ORGANISM_OFFICIAL_NAME] = row[ORGANISM_OFFICIAL_NAME]
-            if row[IDENTIFIER_VALUE].isdigit():
+            
+            if row[IDENTIFIER_TYPE] == "SYNONYM" and row[IDENTIFIER_TYPE] in record:
+                try:
+                    # value is already a list
+                    record[row[IDENTIFIER_TYPE]].append(row[IDENTIFIER_VALUE])
+                except AttributeError:
+                    # encapsulate first rowvalue_dict in list, append second rowvalue_dict
+                    rowvalue_list = [record[row[IDENTIFIER_TYPE]]]
+                    rowvalue_list.append(row[IDENTIFIER_VALUE])
+                    record[row[IDENTIFIER_TYPE]] = rowvalue_list
+                
+            elif row[IDENTIFIER_VALUE].isdigit():
                 record[row[IDENTIFIER_TYPE]] = int(row[IDENTIFIER_VALUE])
             else:
                 record[row[IDENTIFIER_TYPE]] = row[IDENTIFIER_VALUE]
             previous_id = numerical_id
+    
+    def get_rowlist(self):
+        row_list = []
+        for k, v in self.iteritems():
+            row_dict = {key:value for key,value in v.iteritems() if key not in ["OFFICIAL SYMBOL", "SYNONYM"]}
+            common_row_dict = deepcopy(row_dict)
+            row_dict["SYMBOL"] = v["OFFICIAL SYMBOL"]
+            row_list.append(row_dict)
+            if "SYNONYM" in v:
+                for synonym in v["SYNONYM"]:
+                    row_dict = deepcopy(common_row_dict)
+                    row_dict["SYMBOL"] = synonym
+                    row_list.append(row_dict)
+        
+        return row_list
