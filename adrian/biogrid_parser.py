@@ -128,13 +128,18 @@ class IdentifierSet(dict):
             else:
                 record[row[IDENTIFIER_TYPE]] = row[IDENTIFIER_VALUE]
             previous_id = numerical_id
-    
+
     def get_rowlist(self):
         row_list = []
         for k, v in self.iteritems():
             row_dict = {key:value for key,value in v.iteritems() if key not in ["OFFICIAL SYMBOL", "SYNONYM"]}
             common_row_dict = deepcopy(row_dict)
-            row_dict["SYMBOL"] = v["OFFICIAL SYMBOL"]
+            
+            try:
+                row_dict["SYMBOL"] = v["OFFICIAL SYMBOL"]
+            except KeyError:
+                row_dict["SYMBOL"] = "No official symbol"
+                
             row_list.append(row_dict)
             if "SYNONYM" in v:
                 for synonym in v["SYNONYM"]:
