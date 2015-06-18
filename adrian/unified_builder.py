@@ -11,23 +11,33 @@ class RecordSetContainer(object):
                  biogrid_idents, 
                  uniprot_records, 
                  entrezgene_records):
-                     
-        self.uniprot_records = \
-            uniprot_parser.RecordSet(uniprot_records)
-        self.entrezgene_records = \
-            entrezgene_n2o3_wrapper.RecordSet(entrezgene_records)
+        
+        self.uniprot_records = None
+        self.entrezgene_records = None
+        self.biogrid_idents = None
+        self.rsc_list = []
+        
+        if uniprot_records:
+            self.uniprot_records = \
+                uniprot_parser.RecorSet(uniprot_records)
+            self.uniprot_records_rowlist = \
+                self.uniprot_records.get_rowlist()
+            self.rsc_list.append(self.uniprot_records_rowlist)
+                
+        if entrezgene_records:
+            self.entrezgene_records = \
+                entrezgene_n2o3_wrapper.RecordSet(entrezgene_records)
+            self.entrezgene_records_rowlist = \
+                self.entrezgene_records.get_rowlist()
+            self.rsc_list.append(self.entrezgene_records_rowlist)
         
         # Feed uniprot and entrezgene into the biogrid parser
-        self.biogrid_idents = \
-            biogrid_parser.IdentifierSet(biogrid_idents)
-            
-        self.biogrid_idents_rowlist = self.biogrid_idents.get_rowlist()
-        self.uniport_records_rowlist = self.uniprot_records.get_rowlist()
-        self.entrezgene_records_rowlist = self.entrezgene_records.get_rowlist()
-        
-        self.rsc_list = [# self.biogrid_idents_rowlist,
-                         self.uniport_records_rowlist,
-                         self.entrezgene_records_rowlist,]
+        if biogrid_idents:
+            self.biogrid_idents = \
+                biogrid_parser.IdentifierSet(biogrid_idents)
+            self.biogrid_idents_rowlist = \
+                self.biogrid_idents.get_rowlist()
+            self.rsc_list.append(self.biogrid_idents_rowlist)
 
 class UnifiedBuilder(dict):
     def __init__(self, rsc, filename):
