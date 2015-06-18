@@ -19,7 +19,7 @@ class RecordSetContainer(object):
         
         if uniprot_records:
             self.uniprot_records = \
-                uniprot_parser.RecorSet(uniprot_records)
+                uniprot_parser.RecordSet(uniprot_records)
             self.uniprot_records_rowlist = \
                 self.uniprot_records.get_rowlist()
             self.rsc_list.append(self.uniprot_records_rowlist)
@@ -48,5 +48,7 @@ class UnifiedBuilder(dict):
         writer.writeheader()
 
         for rsc_rowlist in rsc.rsc_list:
-            for row in rsc_rowlist:
-                writer.writerow(row)
+            if rsc_rowlist:
+                for row in rsc_rowlist:
+                    writer.writerow(row)
+    
