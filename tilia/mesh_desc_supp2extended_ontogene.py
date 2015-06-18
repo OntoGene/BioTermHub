@@ -21,7 +21,11 @@ import xml.etree.cElementTree as ET
 
 
 import cProfile
-import tstables
+
+sys.path.append('../lib')
+#sys.path.append('/Users/tilia/Projects/cgtt_combined_terminologies/terminology_tool/lib')
+
+from unicode_csv import UnicodeDictWriter
 
 
 
@@ -29,37 +33,6 @@ import tstables
 sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
 sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
-
-
-
-
-class UnicodeDictWriter(object):
-
-    def __init__(self, f, fieldnames, dialect=csv.excel_tab, quoting= csv.QUOTE_NONE, encoding="utf-8", **kwds):
-        # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
-        self.writer = csv.DictWriter(self.queue, fieldnames, quoting=quoting, escapechar = chr(92),dialect=dialect, **kwds)
-        self.stream = f
-        self.encoder = codecs.getincrementalencoder(encoding)()
-
-    def writerow(self, D):
-        self.writer.writerow({unicode(k):unicode(v).encode("utf-8") for k,v in D.items()})
-        # Fetch UTF-8 output from the queue ...
-        data = self.queue.getvalue()
-        data = data.decode("utf-8")
-        # ... and reencode it into the target encoding
-        data = self.encoder.encode(data)
-        # write to the target stream
-        self.stream.write(data.decode("utf-8"))
-        # empty queue
-        self.queue.truncate(0)
-
-    def writerows(self, rows):
-        for D in rows:
-            self.writerow(D)
-
-    def writeheader(self):
-        self.writer.writeheader()
 
 
 def parse_desc_file(desc_file):
@@ -272,39 +245,35 @@ def desc2ontogene_headers(desc_dict_list):
     for one_dict in desc_dict_list:
     
         try:
-            for tree_number in one_dict['TreeNumbers']:
+    
+            branch_set = set([one_tree_number[0] for one_tree_number in one_dict['TreeNumbers']])
+    
+        
+            for entity_type_code in branch_set:
+                # adding information for different entity types
         
                 ontogene_dict_temp = {}
+                
+                 # Is this the right place to insert oid? (One per mesh id per entity type)
+                ontogene_dict_temp['oid'] = 'none'
+                # ADD OID
             
-                branch_id = tree_number[0]
-                branch_cat = mesh_trees[branch_id]
+                branch_cat = mesh_trees[entity_type_code]
                 ontogene_dict_temp['entity_type'] = branch_cat
                 # standardize entity type name?
             
                 term_set = one_dict['term_set']
             
                 for one_term in term_set:
+                    # adding all synonyms for all entity types/tree numbers
                     ontogene_dict_temp2 = ontogene_dict_temp.copy()
                     ontogene_dict_temp2['term'] = one_term
                     ontogene_dict_temp2['original_id'] = one_dict['DescriptorUI']
                     ontogene_dict_temp2['preferred_term'] = one_dict['DescriptorName']
                     ontogene_dict_temp2['resource'] = 'mesh_desc'
                 
-                
-                    for tree_number in one_dict['TreeNumbers']:
-                        print one_dict
-                        ontogene_dict = ontogene_dict_temp2.copy()
+                    ontogene_dict_list.append(ontogene_dict_temp2)
                     
-                        branch_id = tree_number[0]
-                        branch_cat = mesh_trees[branch_id]
-                        ontogene_dict['entity_type'] = branch_cat
-                        # standardize entity type name?
-                
-                        # Is this the right place to insert oid? (One per term) Or better one per entity type? (several terms per oid?)
-                        ontogene_dict['oid'] = ' '
-        
-                    
-                        ontogene_dict_list.append(ontogene_dict)
         except KeyError:
             print one_dict, 'NO TREE NUMBERS'
                 
@@ -333,15 +302,20 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
             
         
             desc_id = desc_id_raw.lstrip('*')
-            print desc_id, 'DESC ID'
+            #print desc_id, 'DESC ID'
             
             tree_number_list = desc_tree_dict[desc_id]
             
-            for tree_number in tree_number_list:
+            branch_set = set([one_tree_number[0] for one_tree_number in tree_number_list])
+            
+            for entity_type_code in branch_set:
                 ontogene_dict_temp = {}
                 
-                branch_id = tree_number[0]
-                branch_cat = mesh_trees[branch_id]
+                # Is this the right place to insert oid? (One per mesh id per entity type)
+                ontogene_dict_temp['oid'] = 'none'
+                # ADD OID
+                
+                branch_cat = mesh_trees[entity_type_code]
                 ontogene_dict_temp['entity_type'] = branch_cat
                 # standardize entity type name?
             
@@ -353,7 +327,6 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
                     ontogene_dict_temp2['original_id'] = one_dict['SupplementalRecordUI']
                     ontogene_dict_temp2['preferred_term'] = one_dict['SupplementalRecordName']
                     ontogene_dict_temp2['resource'] = 'mesh_supp'
-                    ontogene_dict_temp2['oid'] = 'none'
                     
                     ontogene_dict_list.append(ontogene_dict_temp2)
                 
@@ -431,7 +404,7 @@ def main():
     """
     Invoke this module as a script
     """
-    usage = "usage: %prog [options] input: directory of pubmed dump with abstract data(args[0])"
+    usage = "usage: %prog [options] input: Mesh desc file (args[0]); Mesh supp file (args[1]). output: Ouput file (args[2])"
     parser = OptionParser(version='%prog 0.99', usage=usage)
 
     parser.add_option('-l', '--logfile', dest='logfilename',
