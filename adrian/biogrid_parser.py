@@ -113,15 +113,21 @@ class IdentifierSet(dict):
                 
             record[ORGANISM_OFFICIAL_NAME] = row[ORGANISM_OFFICIAL_NAME]
             
-            if row[IDENTIFIER_TYPE] == "SYNONYM" and row[IDENTIFIER_TYPE] in record:
-                try:
-                    # value is already a list
-                    record[row[IDENTIFIER_TYPE]].append(row[IDENTIFIER_VALUE])
-                except AttributeError:
-                    # encapsulate first rowvalue_dict in list, append second rowvalue_dict
-                    rowvalue_list = [record[row[IDENTIFIER_TYPE]]]
-                    rowvalue_list.append(row[IDENTIFIER_VALUE])
-                    record[row[IDENTIFIER_TYPE]] = rowvalue_list
+            if row[IDENTIFIER_TYPE] == "SYNONYM":
+                # if a synonym has already been added to the record
+                if row[IDENTIFIER_TYPE] in record:
+                    try:
+                        # value is already a list
+                        record[row[IDENTIFIER_TYPE]].append(row[IDENTIFIER_VALUE])
+                    except AttributeError:
+                        # encapsulate first rowvalue_dict in list, append second rowvalue_dict
+                        rowvalue_list = [record[row[IDENTIFIER_TYPE]]]
+                        rowvalue_list.append(row[IDENTIFIER_VALUE])
+                        record[row[IDENTIFIER_TYPE]] = rowvalue_list
+                
+                # otherwise assign value to key SYNONYM
+                else:
+                    record[row[IDENTIFIER_TYPE]] = row[IDENTIFIER_VALUE]
                 
             elif row[IDENTIFIER_VALUE].isdigit():
                 record[row[IDENTIFIER_TYPE]] = int(row[IDENTIFIER_VALUE])
