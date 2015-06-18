@@ -1,8 +1,7 @@
 from unified_builder import RecordSetContainer, UnifiedBuilder
 
 test_rsc = RecordSetContainer("data/BIOGRID-IDENTIFIERS-3.4.125.tab.txt",
-                              None #"1k_snippets/BIOGRID-IDENTIFIERS-1k",
-                              #"data/uniprot_sprot.dat",
+                              "data/uniprot_sprot.dat",
                               None #"data/gene_info"
                               )
 
