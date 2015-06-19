@@ -31,10 +31,12 @@ for ident in biogrid_idents:
     if "UNIPROT-ACCESSION" in biogrid_idents[ident]:
         counter_uni += 1
         if not biogrid_idents[ident]["UNIPROT-ACCESSION"] in uniprot_records:
-            missing_UNIPROT.append(biogrid_idents[ident]["UNIPROT-ACCESSION"])
+            missing_UNIPROT.append(biogrid_idents[ident]["UNIPROT-ACCESSION"]+"\n")
 
+print "Entrez gene"
 print len(missing_ENTREZ_GENE)
 print counter_ent
+print "Uniprot"
 print len(missing_UNIPROT)
 print counter_uni
 
