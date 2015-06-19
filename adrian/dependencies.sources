@@ -1,7 +1,13 @@
 # Supported protocols: HTTP, FTP
 #
 # Source format: <full path to file with protocol scheme (e.g. http://)>
+#
 # Note: Disable sources by prepending `#`
+# Date placeholders must be formatting directives readable by Python
+# `datetime.strftime()`, enclosed in curly braces
+# (See https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior)
+#
+# Recommendation: Put links with date placeholders *last*
 
 # Uniprot
 ftp://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/docs/acindex.txt
@@ -10,7 +16,7 @@ ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/comple
 # ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.dat.gz
 
 # ExPASy Cellosaurus
-# ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
+ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
 
 # EntrezGene
 ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
@@ -19,11 +25,12 @@ ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-ALL-LATEST.tab2.zip
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LATEST.tab.zip
 
+# NCBI Taxonomy
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip
+
 # NLM NIH MeSH (need to be changed once a year)
 ## Descriptor records
-ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc2015.zip
-ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc2015.dtd
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc{%Y}.zip
 
 ## Supplementary records
-ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp2015.zip
-ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp2015.dtd
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp{%Y}.zip

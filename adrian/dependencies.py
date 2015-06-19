@@ -8,7 +8,7 @@ from zipfile import ZipFile
 import gzip
 import ftplib
 import email.utils as eut
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from glob import glob
 import socket # timeout and adress resolution error for FTP
 import sys
@@ -28,6 +28,9 @@ except ImportError:
 
 class RemoteCDateCheckFailed(Exception):
     '''Raised when a remote change date check (either via FTP or HTTP) fails'''
+    
+class DownloadFailed(Exception):
+    '''Raised when a file download (either via FTP or HTTP) fails'''
 
 def getdeps(dpath, force = False, rd_fail="ask"):
     
@@ -44,7 +47,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
 
     # Initialize and populate hash with file dependencies and 
     # previous modification dates (if available)
-    dependencies = {}
+    dependencies = OrderedDict()
     dependencies_log_dict = defaultdict(dict)
     
     # Open and parse sources file
@@ -54,13 +57,9 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             stripped_line = line.strip()
             # Skip lines that are empty or comments (#)
             if stripped_line and stripped_line[0] != "#":
-                date_tag = re.match(".*\{(.+?)\}.*", line)
-                if date_tag:
-                    date_string = date_tag.group(1)
-                else:
-                    adress = line.rstrip("\n")
-                    filename_key = line.split("/")[-1].rstrip("\n")
-                    dependencies[filename_key] = adress
+                adress = line.rstrip("\n")
+                filename_key = line.split("/")[-1].rstrip("\n")
+                dependencies[filename_key] = adress
         dependencies_source.close()
     except IOError:
             print "Error: Dependency sources not found"
@@ -83,42 +82,80 @@ def getdeps(dpath, force = False, rd_fail="ask"):
     except IOError:
         pass
         
-        
-    # Iterate through sources 
+    # Initialize dictionary for resolved sources
+    res_dependencies = {}
+    
+    # Iterate through raw sources 
     for dfile in dependencies:
+        
+        # Initialize variables to default values
         dfile_download = False
         force_file = False
         changedate = datetime.date(1970,1,1)
         
+        # Resolve date substitution strings if present
+        
+        res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies[dfile])
+        
+        # Store resolved url in resolved dependencies
+        res_dependencies[res_dfile] = res_dfile_url
+
         if not force and dfile in dependencies_log_dict:
-            print "%-35s\tChecking for a newer version ... " % dfile, 
+            print "%-35s\tChecking for a newer version ... " % res_dfile, 
         else:
-            print "%-35s\tFetching timestamp..." % dfile,
+            print "%-35s\tFetching timestamp..." % res_dfile,
         
         # Attempt to fetch timestamp depending on the used protocol
         try:
-            if dependencies[dfile].startswith("http"):
-                changedate = date_modified_http(dfile, dependencies)
-        
-            elif dependencies[dfile].startswith("ftp"):
-                changedate = date_modified_ftp(dfile, dependencies)
-        
+            changedate = fetch_changedate(res_dfile_url)
+            
         # Handle failed attempts to fetch timestamp
         except RemoteCDateCheckFailed:
             
             # Ask user whether to download or skip
             if rd_fail == "ask":
                 usr_input = None
-                while usr_input not in ["y", "n"]:
-                    usr_input = raw_input("Timestamp of remote file unknown. Download file? (y/n) ")
-                if usr_input == "y":
+                while usr_input not in ["d", "p", "s"]:
+                    usr_input = raw_input("Timestamp of remote file unknown. (d)ownload file, try (p)revious year or (s)kip? (d/p/s) ")
+                
+                if usr_input == "d":
                     force_file = True
+                
+                elif usr_input == "p":
+                    # If the url has a date substitution string, attempt to download file with one year subtracted from the current year
+                    if url_is_resolved:
+                        print "Attempting to fetch timestamp from previous year...",
+                        try:
+                            del res_dependencies[res_dfile]
+                            res_dfile, res_dfile_url, _ = resolveurl(dependencies[dfile], yearoffset = 1)
+                            changedate = fetch_changedate(res_dfile_url)
+                            res_dependencies[res_dfile] = res_dfile_url
+                        except RemoteCDateCheckFailed:
+                            print "Skipping %s..." % res_dfile
+                            continue
+                    else:
+                        print "No date substitution string found, trying to force download ..."
+                        force_file = True
                 else:
+                    print "Skipping %s..." % res_dfile
                     continue
             
             # Automatically skip file
             elif rd_fail == "skip":
+                print "Skipping %s..." % res_dfile
                 continue
+                
+            # Automatically fall-back if url contains a resolved date place-holder
+            # Force download if check still fails
+            elif rd_fail == "force-fallback":
+                try:
+                    del res_dependencies[res_dfile]
+                    res_dfile, res_dfile_url, _ = resolveurl(dependencies[dfile], yearoffset = 1)
+                    print "Attempting to fetch timestamp from previous year...",
+                    changedate = fetch_changedate(res_dfile_url)
+                    res_dependencies[res_dfile] = res_dfile_url
+                except RemoteCDateCheckFailed:
+                    force_file = True
             
             # Automatically force download
             elif rd_fail == "force":
@@ -143,7 +180,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         if not force:
             # If the file has a log entry, calculate difference in timestamps
             try:
-                prev_changedate = dependencies_log_dict[dfile]["datetime"]
+                prev_changedate = dependencies_log_dict[res_dfile]["datetime"]
                 changedate_delta = (changedate - prev_changedate).days
                 dfile_is_old = changedate_delta > 0
                 dfile_does_not_exist = False
@@ -163,22 +200,24 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             
             if dfile_is_old:
                 print "new version found, downloading. \n"
+            elif force_file:
+                print "downloading (forced)."
             else:
                 print "downloading. \n"
             
-            download_path = dpath + dfile
+            download_path = dpath + res_dfile
             try:
-                if dependencies[dfile].startswith("http"):
-                    download_file_http(dependencies[dfile], dpath)
-                elif dependencies[dfile].startswith("ftp"):
-                    download_file_ftp(dependencies[dfile], dpath)
+                if res_dfile_url.startswith("http"):
+                    download_file_http(res_dfile_url, dpath)
+                elif res_dfile_url.startswith("ftp"):
+                    download_file_ftp(res_dfile_url, dpath)
                     
                 # Do not insert timestamp or overwrite previous timestamp if download is forced
                 if not force_file:
-                    dependencies_log_dict[dfile]["timestamp"] = str(int(unixtimestamp(changedate)))
-            except IOError:
-                print "Error: Could not download %s" % dfile
-                del dependencies_log_dict[dfile]
+                    dependencies_log_dict[res_dfile]["timestamp"] = str(int(unixtimestamp(changedate)))
+            except DownloadFailed:
+                print "Error: Could not download %s" % res_dfile
+                del dependencies_log_dict[res_dfile]
                 continue
             
             # If the file is compressed, decompress and erase archive
@@ -193,7 +232,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             
             # gzip-compressed single files
             elif dfile.endswith(".gz"):
-                rint "\nExtracting gzipped file %s ..." % dfile
+                print "\nExtracting gzipped file %s ..." % dfile
                 with gzip.open(download_path, "rb") as infile:
                     download_path_stripped = download_path.rstrip(".gz") 
                     with open(download_path_stripped, "w") as outfile:
@@ -222,12 +261,12 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         dependencies_log.write(dfile + " " + datedict["timestamp"] + "\n")
     dependencies_log.close()
 
-def date_modified_ftp(dfile, dependencies):
+def date_modified_ftp(dfile_url):
     '''
     Retrieve modification date for a remote file via FTP
     '''
-    dfile_pathlist = dependencies[dfile].split("/")
-    dfile_serverpath = dependencies[dfile].split("/", 3)[-1]
+    dfile_pathlist = dfile_url.split("/")
+    dfile_serverpath = dfile_url.split("/", 3)[-1]
     
     # Attempt to retrieve modification date via FTP, 
     # raise RemoteCDateCheckFailed if this fails
@@ -244,11 +283,11 @@ def date_modified_ftp(dfile, dependencies):
        print "error. "
        raise RemoteCDateCheckFailed
     
-def date_modified_http(dfile, dependencies):
+def date_modified_http(dfile_url):
     '''
     Retrieve modification date for a remote file via HTTP
     '''
-    request = head(dependencies[dfile], timeout=TIMEOUT)
+    request = head(dfile_url, timeout=TIMEOUT)
     # Attempt to look up modification date in the HTTP header dictionary, 
     # raise RemoteCDateCheckFailed if this fails
     try:
@@ -308,7 +347,7 @@ def download_file_ftp(url, path):
             print "Finished"
             connection.quit()
         except (ftplib.error_perm, ftplib.error_temp), exc:
-            print exc
+            raise DownloadFailed
 
 def parsedate(text):
     '''
@@ -322,6 +361,46 @@ def unixtimestamp(date):
     Calculate unix timestamp in seconds.
     '''
     return (date - datetime.date(1970,1,1)).total_seconds()
+    
+def resolveurl(url, yearoffset = 0):
+    '''
+    Substitute datetime.datetime.strftime-compatible date formatting
+    strings with the present date.
+    
+    yearoffset: year value to subtract from the output of strftime if
+    the format string is %Y or %y (4- or 2-digit year)
+    '''
+    date_tag = re.match(".*\{(.+?)\}.*", url)
+    if date_tag:
+        date_string = date_tag.group(1)
+        
+        #debug: 
+        dnow = datetime.date(2017, 1, 1)
+        #dnow = datetime.datetime.now()
+        
+        date_subs_string = dnow.strftime(date_string)
+        if date_string in ("%Y", "%y") and yearoffset:
+            try:
+                date_subs = int(date_subs_string)
+                date_subs_string = str(date_subs - yearoffset)
+            except ValueError:
+                pass
+        resolved_url = re.sub("\{.+?\}", date_subs_string, url)
+        resolved_file = resolved_url.split("/")[-1]
+        
+        return resolved_file, resolved_url, True
+        
+    else:
+        return False, url, False
+        
+def fetch_changedate(dfile_url):
+    if dfile_url.startswith("http"):
+        changedate = date_modified_http(dfile_url)
+
+    elif dfile_url.startswith("ftp"):
+        changedate = date_modified_ftp(dfile_url)
+    
+    return changedate
 
 if __name__ == "__main__":
     from dependencies_config import *
