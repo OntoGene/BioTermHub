@@ -1,7 +1,13 @@
 # Supported protocols: HTTP, FTP
 #
 # Source format: <full path to file with protocol scheme (e.g. http://)>
+#
 # Note: Disable sources by prepending `#`
+# Date placeholders must be formatting directives readable by Python
+# `datetime.strftime()`, enclosed in curly braces
+# (See https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior)
+#
+# Recommendation: Put links with date placeholders *last*
 
 # Uniprot
 ftp://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/docs/acindex.txt
@@ -19,12 +25,12 @@ ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-ALL-LATEST.tab2.zip
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LATEST.tab.zip
 
-# NLM NIH MeSH (need to be changed once a year)
-## Descriptor records
-ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc{YYYY}.zip
-
-## Supplementary records
-ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp{YYYY}.zip
-
 # NCBI Taxonomy
 ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip
+
+# NLM NIH MeSH (need to be changed once a year)
+## Descriptor records
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc{%Y}.zip
+
+## Supplementary records
+ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp{%Y}.zip
