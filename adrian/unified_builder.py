@@ -1,5 +1,7 @@
 import codecs
 import csv
+import sys
+sys.path.insert(0, '../lib')
 
 import biogrid_parser
 import uniprot_parser

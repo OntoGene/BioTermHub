@@ -1,15 +1,15 @@
 from unified_builder import RecordSetContainer, UnifiedBuilder
 
-test_rsc = RecordSetContainer("data/BIOGRID-IDENTIFIERS-3.4.125.tab.txt",
-                              "data/uniprot_sprot.dat",
-                              None #"data/gene_info"
-                              )
-
-#~ test_rsc = RecordSetContainer("1k_snippets/BIOGRID-IDENTIFIERS-1k",
-                              #~ #"1k_snippets/BIOGRID-ALL-1k"
-                              #~ "1k_snippets/uniprot_sprot-1k",
-                              #~ None #"1k_snippets/gene_info_10k"
+#~ test_rsc = RecordSetContainer("data/BIOGRID-IDENTIFIERS-3.4.125.tab.txt",
+                              #~ "data/uniprot_sprot.dat",
+                              #~ None #"data/gene_info"
                               #~ )
+
+test_rsc = RecordSetContainer("1k_snippets/BIOGRID-IDENTIFIERS-1k",
+                              #"1k_snippets/BIOGRID-ALL-1k",
+                              None, #"1k_snippets/uniprot_sprot-1k",
+                              None #"1k_snippets/gene_info_10k"
+                              )
 
 biogrid_idents = test_rsc.biogrid_idents
 #biogrid_records = test_rsc.biogrid_records
@@ -23,10 +23,10 @@ missing_ENTREZ_GENE = []
 missing_UNIPROT = []
 
 for ident in biogrid_idents:
-    if "ENTREZ_GENE" in biogrid_idents[ident]:
-        counter_ent += 1
-        if not biogrid_idents[ident]["ENTREZ_GENE"] in entrezgene_records:
-            missing_ENTREZ_GENE.append(biogrid_idents[ident]["ENTREZ_GENE"])
+    #~ if "ENTREZ_GENE" in biogrid_idents[ident]:
+        #~ counter_ent += 1
+        #~ if not biogrid_idents[ident]["ENTREZ_GENE"] in entrezgene_records:
+            #~ missing_ENTREZ_GENE.append(biogrid_idents[ident]["ENTREZ_GENE"])
 
     if "UNIPROT-ACCESSION" in biogrid_idents[ident]:
         counter_uni += 1

@@ -11,6 +11,9 @@ from optparse import OptionParser
 import codecs
 import sys
 import os
+import sys
+sys.path.insert(0, '../lib')
+
 #from Bio import Entrez
 import codecs
 import shutil
