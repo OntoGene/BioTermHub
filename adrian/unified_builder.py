@@ -4,27 +4,36 @@ import sys
 sys.path.insert(0, '../lib')
 
 import biogrid_parser
-import uniprot_parser
+import uniprot_cellosaurus_parser
 import entrezgene_n2o3_wrapper
 from unicode_csv import UnicodeDictWriter
 
 class RecordSetContainer(object):
     def __init__(self, 
                  biogrid_idents, 
-                 uniprot_records, 
+                 uniprot_records,
+                 cellosaurus_records, 
                  entrezgene_records):
         
         self.uniprot_records = None
+        self.cellosaurus = None
         self.entrezgene_records = None
         self.biogrid_idents = None
         self.rsc_list = []
         
         if uniprot_records:
             self.uniprot_records = \
-                uniprot_parser.RecordSet(uniprot_records)
+                uniprot_cellosaurus_parser.RecordSet(uniprot_records, uniprot_cellosaurus_parser.UniProtRecTypes)
             self.uniprot_records_rowlist = \
                 self.uniprot_records.get_rowlist()
             self.rsc_list.append(self.uniprot_records_rowlist)
+            
+        if cellosaurus_records:
+            self.cellosaurus_records = \
+                uniprot_cellosaurus_parser.RecordSet(cellosaurus_records, uniprot_cellosaurus_parser.CellosaurusRecTypes)
+            self.cellosaurus_records_rowlist = \
+                self.cellosaurus_records.get_rowlist()
+            self.rsc_list.append(self.cellosaurus_records_rowlist)
                 
         if entrezgene_records:
             self.entrezgene_records = \

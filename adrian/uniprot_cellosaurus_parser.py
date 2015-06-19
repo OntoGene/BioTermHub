@@ -2,21 +2,46 @@
 # Extended with cellosaurus functionality
 
 from copy import deepcopy
+from numpy import prod
 from oid_generator import OID
 
-class UniProtRecType(object):
+
+SINGLE_RECORD = 1
+MULTI_RECORD = 2
+
+JOINCHAR = " "
+
+
+class UniProtRecTypes(object):
     """
     Container class containing constants and constant tuples
     """
+    resource = "Uniprot"
+    entity_type = "protein"
+    
+    identifier = "AC"
+    
     single = ("ID", "AC")
-    multi = ("OS", )
+    multi_row = ("OS", )
+    multi_value = "AC"
     
     og_mapping = {"AC":"original_id", "OS":"term"}
     
-    SINGLE_RECORD = 1
-    MULTI_RECORD = 2
+class CellosaurusRecTypes(object):
+    """
+    Container class containing constants and constant tuples
+    """
+    resource = "Cellosaurus"
+    entity_type = "undefined" #TODO
     
-    JOINCHAR = " "
+    identifier = "SY"
+    
+    single = ("ID", "AC", "SY")
+    multi_row = ()
+    multi_value = "SY"
+    
+    og_mapping = {"AC":"original_id", "SY":"term"}
+
 
 class Record(dict):
     """
@@ -30,10 +55,10 @@ class Record(dict):
     ID         Identifier (keyword)            Once; starts a keyword entry.
     AC         Accession (KW-xxxx)             Once.
     """
-    def __init__(self, ontogene = True):
+    def __init__(self, rectypes, ontogene = True):
         dict.__init__(self)
-        for keyword in UniProtRecType.multi:
-            key = mapping(keyword, ontogene)
+        for keyword in rectypes.multi_row:
+            key = mapping(keyword, rectypes, ontogene)
             self[key] = []
     
 class RecordSet(dict):
@@ -41,32 +66,31 @@ class RecordSet(dict):
     Parses UniProt KeyList records into dictionary-like Record objects and stores these Records
     in a dictionary with the key-value structure record["ID"]:record.
     """
-    def __init__(self, infile, ontogene = True):
+    def __init__(self, infile, rectypes, ontogene = True):
         dict.__init__(self)
         self.handle = open(infile, "r")
+        self.rectypes = rectypes
         self.build_dict(ontogene)
         
     def build_dict(self, ontogene):
         for record in self.parse(self.handle, ontogene):
-            if ontogene:
-                key = mapping("AC", ontogene)
-                self[record[key]] = record
-            else:
-                self[record["ID"]] = record
+            key = mapping(self.rectypes.identifier, self.rectypes, ontogene)
+            self[record[key]] = record
         
     def parse(self, handle, ontogene): # The parameter handle is the UniProt KeyList file.
-        record = Record(ontogene)
-        mode = UniProtRecType.SINGLE_RECORD
-            
+        record = Record(self.rectypes, ontogene)
+        mode = SINGLE_RECORD
+        multi_value_list = []
+        
         # Now parse the records
         for line in handle:
             key = line[:2]
             
             if key=="//": # The last line of the current record has been reached.
-                for rectype in UniProtRecType.multi:
-                    reckey = mapping(rectype, ontogene)
+                for m_rectype in self.rectypes.multi_row:
+                    reckey = mapping(m_rectype, self.rectypes, ontogene)
                     if len(record[reckey]) > 1:
-                        record[reckey] = UniProtRecType.JOINCHAR.join(record[reckey])
+                        record[reckey] = JOINCHAR.join(record[reckey])
                     elif len(record[reckey]) == 1:
                         record[reckey] = record[reckey][0]
                     else:
@@ -75,58 +99,62 @@ class RecordSet(dict):
                     if reckey == "term":
                         record["preferred_term"] = record[reckey]
                         
-                if mode == UniProtRecType.MULTI_RECORD:
+                if mode == MULTI_RECORD:
                     record_list = [record]
-                    for element in range(len(value_list) - 1):
+                
+                    # copy record approriate times
+                    for element in range(len(multi_value_list) - 1):
                         additional_record = deepcopy(record)
                         record_list.append(additional_record)  
-                    record_value_pairs = zip(record_list, value_list)
+                    
+                    record_value_pairs = zip(record_list, multi_value_list)
                     for record, value in record_value_pairs:
-                        ac_key = mapping("AC", ontogene)
-                        record[ac_key] = value
-                        
+                        mapped_multival_key = mapping(self.rectypes.multi_value, self.rectypes, ontogene)
+                        print mapped_multival_key
+                        record[mapped_multival_key] = value
                         yield record
                 else:
                     yield record     # So we output the record and pass to other one. 
-                record = Record(ontogene)
-                mode = UniProtRecType.SINGLE_RECORD
+                record = Record(self.rectypes, ontogene)
+                mode = SINGLE_RECORD
+                multi_value_list = []
             
             elif line[2:5]=="   ": # If not, we continue recruiting the information. 
                 value = line[5:].strip()
                 
                 if not key == "ID":
-                    mkey = mapping(key, ontogene)
+                    mkey = mapping(key, self.rectypes, ontogene)
                 else:
                     mkey = None
                     
-                if key in UniProtRecType.single:
+                if key in self.rectypes.single:
                     if key == "ID" and not ontogene:
                         value = value.split()[0]
                         value = value.rstrip(";").rstrip(".")
                         record[key] = value
                         
-                    elif key == "AC":
-                        value_list = value.split()
-                        value_list_len = len(value_list)
+                    elif key == self.rectypes.multi_value:
+                        value_list = value.rstrip(";").split(";")
                         if len(value_list) > 1:
-                            mode = UniProtRecType.MULTI_RECORD
+                            mode = MULTI_RECORD
+                        
                         # Generate OID
                         if ontogene:
                             record["oid"] = OID.get()
-                            record["resource"] = "Uniprot"
-                            record["entity_type"] = "protein"
+                            record["resource"] = self.rectypes.resource
+                            record["entity_type"] = self.rectypes.entity_type
                         
-                    if key != "ID" and (mode == UniProtRecType.SINGLE_RECORD or key != "AC"):
+                    if key != "ID" and (mode == SINGLE_RECORD or key != self.rectypes.multi_value):
                         value = value.rstrip(";").rstrip(".")
                         record[mkey] = value
                         if ontogene and key == "OS":
                             record["preferred_term"] = value
                         
-                    elif mode == UniProtRecType.MULTI_RECORD and key == "AC":
+                    elif mode == MULTI_RECORD and key == self.rectypes.multi_value:
                         for idx, value in enumerate(value_list):
-                            value_list[idx] = value.rstrip(";").rstrip(".")
+                            multi_value_list.append(value.strip().rstrip("."))
                             
-                elif key in UniProtRecType.multi:
+                elif key in self.rectypes.multi_row:
                     record[mkey].append(value) 
                 
                 else:
@@ -139,9 +167,9 @@ class RecordSet(dict):
     def get_rowlist(self):
         return self.values()
 
-def mapping(rectype, ontogene):
-        if ontogene and rectype in UniProtRecType.og_mapping:
-            return UniProtRecType.og_mapping[rectype]
+def mapping(rectype, rectypes, ontogene):
+        if ontogene and rectype in rectypes.og_mapping:
+            return rectypes.og_mapping[rectype]
         else:
             return rectype
 

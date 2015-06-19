@@ -14,5 +14,8 @@ dpath = "data/"
 force = False
 
 # Behavior when the change date of a file cannot be retrieved remotely
-# Possible values: ask, force, skip
+# Possible values: ask, force, force-fallback, skip
+#
+# (force-fallback: Don't attempt download from url with date placeholders 
+# if remote change date check fails, fall back to previous year instead )
 rd_fail = "ask"

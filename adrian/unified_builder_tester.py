@@ -1,19 +1,21 @@
 from unified_builder import RecordSetContainer, UnifiedBuilder
 
-test_rsc = RecordSetContainer("data/BIOGRID-IDENTIFIERS-3.4.125.tab.txt",
-                              "data/uniprot_sprot.dat",
-                              None #"data/gene_info"
-                              )
-
-#~ test_rsc = RecordSetContainer("1k_snippets/BIOGRID-IDENTIFIERS-1k",
-                              #~ #"1k_snippets/BIOGRID-ALL-1k",
-                              #~ None, #"1k_snippets/uniprot_sprot-1k",
-                              #~ None #"1k_snippets/gene_info_10k"
+#~ test_rsc = RecordSetContainer("data/BIOGRID-IDENTIFIERS-3.4.125.tab.txt",
+                              #~ "data/uniprot_sprot.dat",
+                              #~ None #"data/gene_info"
                               #~ )
+
+test_rsc = RecordSetContainer("1k_snippets/BIOGRID-IDENTIFIERS-1k",
+                              #"1k_snippets/BIOGRID-ALL-1k",
+                              "1k_snippets/uniprot_sprot-1k",
+                              "1k_snippets/cellosaurus-1k",
+                              "1k_snippets/gene_info_10k"
+                              )
 
 biogrid_idents = test_rsc.biogrid_idents
 #biogrid_records = test_rsc.biogrid_records
 uniprot_records = test_rsc.uniprot_records
+cellosaurus_records = test_rsc.cellosaurus_records
 #entrezgene_records = test_rsc.entrezgene_records
 
 counter_ent = 0
@@ -55,19 +57,17 @@ missing_u.close()
 #~ print biogrid_records[0:5]
 #~ print "..."
 #~ print biogrid_records[-1]
-#~ print "\nUniprot Records"
-#~ print uniprot_records[0:5]
-#~ print "..."
-#~ print uniprot_records[-1]
+print "\nBIOGRID IDs"
+print biogrid_idents.items()[0:5]
+print "\nUniprot Records"
+print uniprot_records.items()[0:5]
+print "\nCellosaurus Records"
+print cellosaurus_records.items()[0:5]
 #~ print "\nEntrezgene Records"
 #~ print entrezgene_records[0:5]
 #~ print "..."
 #~ print entrezgene_records[-1]
-#~ print "\nBIOGRID IDs"
-#~ print biogrid_idents[0:5]
-#~ print "..."
-#~ print biogrid_idents [-1]
 
 print "Processing ..."
 
-UnifiedBuilder(test_rsc, "output.csv")
+# UnifiedBuilder(test_rsc, "output.csv")
