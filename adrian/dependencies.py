@@ -82,9 +82,6 @@ def getdeps(dpath, force = False, rd_fail="ask"):
     except IOError:
         pass
         
-    # Initialize dictionary for resolved sources
-    res_dependencies = {}
-    
     # Iterate through raw sources 
     for dfile in dependencies:
         
@@ -95,11 +92,8 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         
         # Resolve date substitution strings if present
         
-        res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies[dfile])
+        res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies, dfile)
         
-        # Store resolved url in resolved dependencies
-        res_dependencies[res_dfile] = res_dfile_url
-
         if not force and dfile in dependencies_log_dict:
             print "%-35s\tChecking for a newer version ... " % res_dfile, 
         else:
@@ -149,11 +143,9 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             # Force download if check still fails
             elif rd_fail == "force-fallback":
                 try:
-                    del res_dependencies[res_dfile]
                     res_dfile, res_dfile_url, _ = resolveurl(dependencies[dfile], yearoffset = 1)
                     print "Attempting to fetch timestamp from previous year...",
                     changedate = fetch_changedate(res_dfile_url)
-                    res_dependencies[res_dfile] = res_dfile_url
                 except RemoteCDateCheckFailed:
                     force_file = True
             
@@ -362,7 +354,7 @@ def unixtimestamp(date):
     '''
     return (date - datetime.date(1970,1,1)).total_seconds()
     
-def resolveurl(url, yearoffset = 0):
+def resolveurl(dependencies, dfile, yearoffset = 0):
     '''
     Substitute datetime.datetime.strftime-compatible date formatting
     strings with the present date.
@@ -370,6 +362,7 @@ def resolveurl(url, yearoffset = 0):
     yearoffset: year value to subtract from the output of strftime if
     the format string is %Y or %y (4- or 2-digit year)
     '''
+    url = dependencies[dfile]
     date_tag = re.match(".*\{(.+?)\}.*", url)
     if date_tag:
         date_string = date_tag.group(1)
@@ -391,7 +384,8 @@ def resolveurl(url, yearoffset = 0):
         return resolved_file, resolved_url, True
         
     else:
-        return False, url, False
+        nfile = url.split("/")[-1]
+        return dfile, url, False
         
 def fetch_changedate(dfile_url):
     if dfile_url.startswith("http"):
