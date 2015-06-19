@@ -305,15 +305,16 @@ def download_file_http(url, path):
     else:
         dl = 0
         total_length = int(total_length)
+        
+    pbar = generate_pbar(total_length)
+        
     with open(path + filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024): 
             if chunk: # filter out keep-alive new chunks
                 dl += len(chunk)
                 f.write(chunk)
                 f.flush()
-                done = int(50 * dl / total_length)
-                sys.stdout.write("\r[%s%s]" % ('=' * done, ' ' * (50-done)) )    
-                sys.stdout.flush()
+                pbar.update(pbar.currval+len(chunk))
 
 def download_file_ftp(url, path):
         dfile_pathlist = url.split("/")
@@ -326,8 +327,7 @@ def download_file_ftp(url, path):
             filesize = connection.size(dfile_serverpath)
             print "Downloading %s-%d-bytes" % (filename, filesize)
             
-            pbar=ProgressBar(widgets=[FileTransferSpeed(),' ', Bar(marker=RotatingMarker()), ' ', 
-                                                    Percentage(),' ', ETA()], maxval=filesize).start()
+            pbar = generate_pbar(filesize)
             # Closure to access pbar and write localfile
             def handleupload(block):
                 pbar.update(pbar.currval+len(block))
@@ -367,9 +367,7 @@ def resolveurl(dependencies, dfile, yearoffset = 0):
     if date_tag:
         date_string = date_tag.group(1)
         
-        #debug: 
-        dnow = datetime.date(2017, 1, 1)
-        #dnow = datetime.datetime.now()
+        dnow = datetime.datetime.now()
         
         date_subs_string = dnow.strftime(date_string)
         if date_string in ("%Y", "%y") and yearoffset:
@@ -395,6 +393,10 @@ def fetch_changedate(dfile_url):
         changedate = date_modified_ftp(dfile_url)
     
     return changedate
+    
+def generate_pbar(filesize):
+    return ProgressBar(widgets=[FileTransferSpeed(),' ', Bar(marker=RotatingMarker()), ' ', 
+                                                    Percentage(),' ', ETA()], maxval=filesize).start()
 
 if __name__ == "__main__":
     from dependencies_config import *
