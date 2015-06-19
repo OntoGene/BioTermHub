@@ -9,7 +9,6 @@ from optparse import OptionParser
 import codecs
 import sys
 import os
-from Bio import Entrez
 import codecs
 import shutil
 import random
@@ -290,7 +289,7 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
     mesh_trees = {'A' : 'Anatomy', 'B' : 'Organisms', 'C' : 'Diseases', 'D' : 'Chemicals and Drugs', 'E' : 'Analytical,Diagnostic and Therapeutic Techniques and Equipment',
     'F' : 'Psychiatry and Psychology', 'G' : 'Phenomena and Processes', 'H' : 'Disciplines and Occupations', 'I' : 'Anthropology,Education,Sociology and Social Phenomena', 'J' : 'Technology,Industry,Agriculture',
     'K' : 'Humanities', 'L' : 'Information Science', 'M' : 'Named Groups', 'N' : 'Health Care', 'V' : 'Publication Characteristics', 
-    'Z' : 'Geographicals'}
+    'Z' : 'Geographicals', 'empty_branch' : 'missing'}
     
     ontogene_dict_list = []
 
@@ -304,9 +303,13 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
             desc_id = desc_id_raw.lstrip('*')
             #print desc_id, 'DESC ID'
             
-            tree_number_list = desc_tree_dict[desc_id]
-            
-            branch_set = set([one_tree_number[0] for one_tree_number in tree_number_list])
+            try:
+                tree_number_list = desc_tree_dict[desc_id]
+                branch_set = set([one_tree_number[0] for one_tree_number in tree_number_list])
+                
+            except KeyError:
+                print 'NO TREE INFORMATION FOUND FOR DESCRIPTOR ID', desc_id
+                branch_set = set(['empty_branch'])
             
             for entity_type_code in branch_set:
                 ontogene_dict_temp = {}
