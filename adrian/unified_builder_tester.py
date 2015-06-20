@@ -8,18 +8,20 @@ from unified_builder import RecordSetContainer, UnifiedBuilder
 
 test_rsc = RecordSetContainer(#"1k_snippets/BIOGRID-IDENTIFIERS-1k",
                               #"1k_snippets/BIOGRID-ALL-1k",
-                              "1k_snippets/uniprot_sprot-1k",
-                              "1k_snippets/cellosaurus-2",
-                              "1k_snippets/gene_info_10k",
-                              ("1k_snippets/desc-1k", "1k_snippets/supp-1k")
+                              uniprot = "1k_snippets/uniprot_sprot-1k",
+                              cellosaurus = "1k_snippets/cellosaurus-2",
+                              entrezgene = "1k_snippets/gene_info_10k",
+                              mesh = ("1k_snippets/desc-1k", "1k_snippets/supp-1k"),
+                              taxdump = "1k_snippets/names-1k"
                               )
 
 #biogrid_idents = test_rsc.biogrid_idents
 #biogrid_records = test_rsc.biogrid_records
-uniprot_records = test_rsc.uniprot_records
-cellosaurus_records = test_rsc.cellosaurus_records
-mesh_records = test_rsc.mesh_records
-entrezgene_records = test_rsc.entrezgene_records
+#~ uniprot_records = test_rsc.uniprot_records
+#~ cellosaurus_records = test_rsc.cellosaurus_records
+#~ mesh_records = test_rsc.mesh_records
+#~ entrezgene_records = test_rsc.entrezgene_records
+#~ taxdump_records = test_rsc.taxdump_records
 
 #~ counter_ent = 0
 #~ counter_uni = 0
@@ -62,22 +64,26 @@ entrezgene_records = test_rsc.entrezgene_records
 #~ print biogrid_records[-1]
 #~ print "\nBIOGRID IDs"
 #print biogrid_idents.items()[0:5]
-print "\nUniprot Records"
-print uniprot_records.rowdicts[0:5]
-print "..."
-print uniprot_records.rowdicts[-1]
-print "\nCellosaurus Records"
-print cellosaurus_records.rowdicts[0:5]
-print "..."
-print cellosaurus_records.rowdicts[-1]
-print "\nMESH Records"
-print mesh_records.rowdicts[0:5]
-print "..."
-print mesh_records.rowdicts[-1]
-print "\nEntrezgene Records"
-print entrezgene_records.rowdicts[0:5]
-print "..."
-print entrezgene_records.rowdicts[-1]
+#~ print "\nUniprot Records"
+#~ print uniprot_records.rowdicts[0:5]
+#~ print "..."
+#~ print uniprot_records.rowdicts[-1]
+#~ print "\nCellosaurus Records"
+#~ print cellosaurus_records.rowdicts[0:5]
+#~ print "..."
+#~ print cellosaurus_records.rowdicts[-1]
+#~ print "\nMESH Records"
+#~ print mesh_records.rowdicts[0:5]
+#~ print "..."
+#~ print mesh_records.rowdicts[-1]
+#~ print "\nEntrezgene Records"
+#~ print entrezgene_records.rowdicts[0:5]
+#~ print "..."
+#~ print entrezgene_records.rowdicts[-1]
+#~ print "\nTaxdump Records"
+#~ print taxdump_records.rowdicts[0:5]
+#~ print "..."
+#~ print taxdump_records.rowdicts[-1]
 
 print "Processing ..."
 
