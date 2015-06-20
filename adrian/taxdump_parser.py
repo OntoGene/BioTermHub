@@ -10,7 +10,7 @@ class RecordSet(object):
         self.get_rowlist(ontogene)
         
     def get_rowlist(self, ontogene):
-        rowkeys = []
+        previous_rowkey = None
         for rowvalue_dict in self.reader:
             outvalue_dict = {}
             rowkey = rowvalue_dict["tax_id"]
@@ -21,11 +21,11 @@ class RecordSet(object):
             if rowvalue_dict["name_class"] not in ("authority"):
                 if ontogene:
                     outvalue_dict["resource"] = "NCBI Taxonomy"
-                if rowkey in rowkeys:
+                if rowkey == previous_rowkey
                     outvalue_dict["oid"] = OID.last()
                 else:    
                     outvalue_dict["oid"] = OID.get()
-                    rowkeys.append(rowkey)
+                    previous_rowkey = rowkey
                 
                 self.rowdicts.append(outvalue_dict)
 
