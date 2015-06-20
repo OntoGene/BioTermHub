@@ -21,7 +21,7 @@ class RecordSet(object):
             if rowvalue_dict["name_class"] not in ("authority"):
                 if ontogene:
                     outvalue_dict["resource"] = "NCBI Taxonomy"
-                if rowkey == previous_rowkey
+                if rowkey == previous_rowkey:
                     outvalue_dict["oid"] = OID.last()
                 else:    
                     outvalue_dict["oid"] = OID.get()
