@@ -94,7 +94,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         
         res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies, dfile)
         
-        if not force and dfile in dependencies_log_dict:
+        if not force and res_dfile in dependencies_log_dict:
             print "%-35s\tChecking for a newer version ... " % res_dfile, 
         else:
             print "%-35s\tFetching timestamp..." % res_dfile,
@@ -217,14 +217,14 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             # gzip-compressed tarballs
             if dfile.endswith(".tar.gz"):
                 tfile = tarfile.open(download_path, "r:gz")
-                print "\nExtracting compressed tarball %s ..." % dfile
+                print "\nExtracting compressed tarball %s ..." % res_dfile
                 tfile.extractall(dpath)
                 tfile.close()
                 remove(download_path)
             
             # gzip-compressed single files
             elif dfile.endswith(".gz"):
-                print "\nExtracting gzipped file %s ..." % dfile
+                print "\nExtracting gzipped file %s ..." % res_dfile
                 with gzip.open(download_path, "rb") as infile:
                     download_path_stripped = download_path.rstrip(".gz") 
                     with open(download_path_stripped, "w") as outfile:
@@ -234,7 +234,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             
             # ZIP files
             elif dfile.endswith(".zip"):
-                print "\nExtracting zip archive %s ..." %dfile
+                print "\nExtracting zip archive %s ..." %res_dfile
                 zfile = ZipFile(download_path)
                 zfile.extractall(dpath)
                 zfile.close()

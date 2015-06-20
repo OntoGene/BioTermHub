@@ -3,24 +3,44 @@ from mesh_desc_supp2extended_ontogene import parse_desc_file, parse_supp_file, d
 from oid_generator import OID
 from copy import deepcopy
 
-class RecordSet(dict):
+class RecordSet(object):
     """
     Uses the external parser mesh_desc_supp2extended_ontogene to process MESH descriptor and 
     supplement records into dictionaries and stores these dictionaries in a dictionary with 
     the key-value structure record[ncbi_id]:record.
     """
     
-    def __init__(self, desc_file, supp_file, ontogene = True):
-        dict.__init__(self)
-        self.rowlist = self._run_mesh_parser(desc_file, supp_file, ontogene)
-        self = self.build_dict(infile, ontogene)
+    def __init__(self, desc_file, supp_file, rowdicts = True, ontogene = True):
+        self.raw_rowlist = self._run_mesh_parser(desc_file, supp_file, ontogene)
+        self.rowdicts = []
+        self.parsedict = {}
+        if rowdicts:
+            self.get_rowlist(ontogene)
+        else:
+            self.build_dict(ontogene)
     
-    def get_rowlist(self):
-        return self.rowlist
-    
-    def build_dict(self, infile, ontogene):
+    def get_rowlist(self, ontogene):
         # Map the row dictionaries to a nested dictionary structure with ncbi_id as key 
-        for rowdict in self.rowlist:
+        rowkeys = []
+        for rowdict in self.raw_rowlist:
+            
+            rowkey, rowvalue_dict = rowdict['original_id'], rowdict
+            
+            # Change keys strings with ontogene key strings
+            if ontogene:
+                rowvalue_dict["resource"] = "MESH"
+                
+            if rowkey in rowkeys:
+                rowvalue_dict["oid"] = OID.last()
+            else:    
+                rowvalue_dict["oid"] = OID.get()
+                rowkeys.append(rowkey)
+            
+            self.rowdicts.append(rowvalue_dict)
+    
+    def build_dict(self, ontogene):
+        # Map the row dictionaries to a nested dictionary structure with ncbi_id as key 
+        for rowdict in self.raw_rowlist:
             
             rowkey, rowvalue_dict = rowdict['original_id'], rowdict
             
@@ -32,15 +52,15 @@ class RecordSet(dict):
                 rowvalue_dict["oid"] = OID.last()
                 try:
                     # value is already a list
-                    self[rowkey].append(rowvalue_dict)
+                    self.parsedict[rowkey].append(rowvalue_dict)
                 except AttributeError:
                     # encapsulate first rowvalue_dict in list, append second rowvalue_dict
-                    rowvalue_list = [self[rowkey]]
+                    rowvalue_list = [self.parsedict[rowkey]]
                     rowvalue_list.append(rowvalue_dict)
-                    self[rowkey] = rowvalue_list
+                    self.parsedict[rowkey] = rowvalue_list
             else:    
                 rowvalue_dict["oid"] = OID.get()
-                self[rowkey] = rowvalue_dict
+                self.parsedict[rowkey] = rowvalue_dict
                 
     def _run_mesh_parser(self, desc_file, supp_file, ontogene):
         # Using mesh_desc_supp2extended_ontogene to retrieve a list with a dictionary for each row

@@ -9,7 +9,6 @@ from optparse import OptionParser
 import codecs
 import sys
 import os
-#from Bio import Entrez
 import codecs
 import shutil
 import random
@@ -58,16 +57,16 @@ def parse_desc_file(desc_file):
 
     root = tree.getroot()
 
-    print len(root)
+    # print len(root)
     
-    print root
+    # print root
 
     tag_list = []
 
     for i in range(len(root)):
 
-        print i, '-------'
-        print 'Parent number', i, ':', root[i]
+        #~ print i, '-------'
+        #~ print 'Parent number', i, ':', root[i]
         one_child_dict = {}
         # one dictionary per xml entry
         
@@ -92,7 +91,7 @@ def parse_desc_file(desc_file):
                         
                             
                 elif child.tag == 'TreeNumberList':
-                    print len(child), 'TreeNumber Elements'
+                    #~ print len(child), 'TreeNumber Elements'
                     one_child_dict['TreeNumbers'] = []
                     for gchild in child:
                         tree_num = gchild.text
@@ -108,7 +107,7 @@ def parse_desc_file(desc_file):
                     one_child_dict['ConceptUIs'] = []
                 
                     # (for concept in concept list)
-                    print 'NUMBER CONCEPTS:', len(child)
+                    #~ print 'NUMBER CONCEPTS:', len(child)
                     for gchild in child:
                         # (for information in concept)
                         for ggchild in gchild:
@@ -123,19 +122,19 @@ def parse_desc_file(desc_file):
                                    #  print gggchild.tag, gggchild.text, 'GGGCHILD'
 #                                     for ggggchild in gggchild:
 #                                         print ggggchild.tag, ggggchild.text, 'GGGGCHILD'
-                                print 'TERM SET', one_child_dict['term_set']
+                                #~ print 'TERM SET', one_child_dict['term_set']
                                 
                             elif ggchild.tag == 'ConceptName':
-                             print 'ConceptName:', ggchild[0].text
+                             #~ print 'ConceptName:', ggchild[0].text
                              one_child_dict['term_set'].add(ggchild[0].text)                            
                 
                 else: 
                     continue
                     
-        print 'ONE CHILD DICT:', one_child_dict
+        #~ print 'ONE CHILD DICT:', one_child_dict
         desc_dict_list.append(one_child_dict)
             
-    print len(desc_dict_list)
+    #~ print len(desc_dict_list)
     
     return (desc_dict_list, desc_tree_dict)
 
@@ -146,7 +145,7 @@ def parse_supp_file(supp_file):
     
     input_file = supp_file
     
-    print 'PROCESSING SUPP FILE'
+    #~ print 'PROCESSING SUPP FILE'
 
     tree = ET.parse(input_file)
 
@@ -154,14 +153,14 @@ def parse_supp_file(supp_file):
 
     root = tree.getroot()
 
-    print len(root), 'ENTRIES IN SUPP FILE'
+    #~ print len(root), 'ENTRIES IN SUPP FILE'
 
     tag_list = []
 
     for i in range(len(root)):
 
-        print i, '-------'
-        print 'Parent number', i, ':', root[i]
+        #~ print i, '-------'
+        #~ print 'Parent number', i, ':', root[i]
         one_child_dict = {}
         
         one_child_dict['term_set'] = set([])
@@ -181,18 +180,18 @@ def parse_supp_file(supp_file):
                         if not 'SupplementalRecordName' in one_child_dict:
                             one_child_dict['SupplementalRecordName'] = gchild.text
                         else: 
-                            print 'ERROR: More than one SupplementalRecordName'
+                            #~ print 'ERROR: More than one SupplementalRecordName'
                             raise KeyError
                             
                 elif child.tag == 'HeadingMappedToList':
                     #print len(child), 'Mapped Elements'
                     one_child_dict['Mapping:ReferredDescriptors'] = []
                     for gchild in child:
-                        print gchild.tag, 'GCHILD TAG1'
+                        #~ print gchild.tag, 'GCHILD TAG1'
                         for ggchild in gchild:
                             if ggchild.tag == 'DescriptorReferredTo':
                                 for gggchild in ggchild:
-                                    print gggchild.tag, 'GGGCHILD TAG1'
+                                    #~ print gggchild.tag, 'GGGCHILD TAG1'
                                     if gggchild.tag == 'DescriptorUI':
                                         one_child_dict['Mapping:ReferredDescriptors'].append(gggchild.text)
                         
@@ -213,7 +212,7 @@ def parse_supp_file(supp_file):
                                     one_child_dict['term_set'].add(gggchild[1].text)
                                     for ggggchild in gggchild:
                                         pass
-                                print 'TERM SET', one_child_dict['term_set']
+                                #~ print 'TERM SET', one_child_dict['term_set']
                                 
                             elif ggchild.tag == 'ConceptName':
                              #print 'ConceptName:', ggchild[0].text
@@ -223,10 +222,10 @@ def parse_supp_file(supp_file):
                 else: 
                     continue
                     
-        print 'ONE CHILD DICT:', one_child_dict
+        #~ print 'ONE CHILD DICT:', one_child_dict
         supp_dict_list.append(one_child_dict)
             
-    print len(supp_dict_list)
+    #~ print len(supp_dict_list)
     
     return supp_dict_list
     
@@ -275,9 +274,10 @@ def desc2ontogene_headers(desc_dict_list):
                     ontogene_dict_list.append(ontogene_dict_temp2)
                     
         except KeyError:
-            print one_dict, 'NO TREE NUMBERS'
+            pass
+            #~ print one_dict, 'NO TREE NUMBERS'
                 
-    print 'DESC OG DICT LIST', ontogene_dict_list
+    #~ print 'DESC OG DICT LIST', ontogene_dict_list
                 
     return ontogene_dict_list
     
@@ -290,7 +290,7 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
     mesh_trees = {'A' : 'Anatomy', 'B' : 'Organisms', 'C' : 'Diseases', 'D' : 'Chemicals and Drugs', 'E' : 'Analytical,Diagnostic and Therapeutic Techniques and Equipment',
     'F' : 'Psychiatry and Psychology', 'G' : 'Phenomena and Processes', 'H' : 'Disciplines and Occupations', 'I' : 'Anthropology,Education,Sociology and Social Phenomena', 'J' : 'Technology,Industry,Agriculture',
     'K' : 'Humanities', 'L' : 'Information Science', 'M' : 'Named Groups', 'N' : 'Health Care', 'V' : 'Publication Characteristics', 
-    'Z' : 'Geographicals'}
+    'Z' : 'Geographicals', 'empty_branch' : 'missing'}
     
     ontogene_dict_list = []
 
@@ -304,9 +304,13 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
             desc_id = desc_id_raw.lstrip('*')
             #print desc_id, 'DESC ID'
             
-            tree_number_list = desc_tree_dict[desc_id]
-            
-            branch_set = set([one_tree_number[0] for one_tree_number in tree_number_list])
+            try:
+                tree_number_list = desc_tree_dict[desc_id]
+                branch_set = set([one_tree_number[0] for one_tree_number in tree_number_list])
+                
+            except KeyError:
+                #~ print 'NO TREE INFORMATION FOUND FOR DESCRIPTOR ID', desc_id
+                branch_set = set(['empty_branch'])
             
             for entity_type_code in branch_set:
                 ontogene_dict_temp = {}
@@ -330,7 +334,7 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
                     
                     ontogene_dict_list.append(ontogene_dict_temp2)
                 
-    print 'SUPP OG DICT LIST', ontogene_dict_list
+    #~ print 'SUPP OG DICT LIST', ontogene_dict_list
                 
     return ontogene_dict_list
     
@@ -344,7 +348,7 @@ def dict_to_file(dict_list, output_file):
     fieldnames = ['original_id', 'term', 'entity_type','preferred_term', 'resource', 'oid']
     #fieldnames = ['T_LABEL','W_TEXT','W_LEMMA']
 
-    print >> sys.stderr, '# STATUS: fieldnames', " ".join(fieldnames)
+    #~ print >> sys.stderr, '# STATUS: fieldnames', " ".join(fieldnames)
 
 
     try:
@@ -378,7 +382,7 @@ def process(options=None, args=None):
 
     #print sys.stdin, 'test'
 
-    print 'OPTIONS:', options
+    #~ print 'OPTIONS:', options
 
     desc_file = args[0]
 
@@ -420,7 +424,7 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    if options.debug: print >> sys.stderr, '# Starting processing'
+    #~ if options.debug: print >> sys.stderr, '# Starting processing'
 
     process(options=options,args=args)
 

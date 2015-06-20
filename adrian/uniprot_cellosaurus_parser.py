@@ -5,9 +5,13 @@ from copy import deepcopy
 from numpy import prod
 from oid_generator import OID
 
-
+# Property concatenation
 SINGLE_RECORD = 1
 MULTI_RECORD = 2
+
+# Property split
+MVAL_PERMUTATION = (1, 0)
+MVAL_ADDITION = (0, 1)
 
 JOINCHAR = " "
 
@@ -19,11 +23,17 @@ class UniProtRecTypes(object):
     resource = "Uniprot"
     entity_type = "protein"
     
-    identifier = "AC"
+    accession = "AC"
+    
+    identifier = "ID"
+    
+    main_term = "OS"
     
     single = ("ID", "AC")
     multi_row = ("OS", )
     multi_value = "AC"
+    mv_neg_offset = MVAL_PERMUTATION[0]
+    mv_pos_offset = MVAL_PERMUTATION[1]
     
     og_mapping = {"AC":"original_id", "OS":"term"}
     
@@ -32,15 +42,21 @@ class CellosaurusRecTypes(object):
     Container class containing constants and constant tuples
     """
     resource = "Cellosaurus"
-    entity_type = "undefined" #TODO
+    entity_type = "cell_line"
     
-    identifier = "SY"
+    identifier = None
+    
+    accession = "ID"
+    
+    main_term = "ID"
     
     single = ("ID", "AC", "SY")
     multi_row = ()
     multi_value = "SY"
+    mv_neg_offset = MVAL_ADDITION[0]
+    mv_pos_offset = MVAL_ADDITION[1]
     
-    og_mapping = {"AC":"original_id", "SY":"term"}
+    og_mapping = {"AC":"original_id", "ID":"term", "SY":"term"}
 
 
 class Record(dict):
@@ -61,22 +77,34 @@ class Record(dict):
             key = mapping(keyword, rectypes, ontogene)
             self[key] = []
     
-class RecordSet(dict):
+class RecordSet(object):
     """
     Parses UniProt KeyList records into dictionary-like Record objects and stores these Records
     in a dictionary with the key-value structure record["ID"]:record.
     """
-    def __init__(self, infile, rectypes, ontogene = True):
-        dict.__init__(self)
+    def __init__(self, infile, rectypes, rowdicts = True, ontogene = True):
         self.handle = open(infile, "r")
         self.rectypes = rectypes
-        self.build_dict(ontogene)
+        self.rowdicts = []
+        self.parsedict = {}
+        
+        if rowdicts:
+            self.get_rowlist(ontogene)
+            
+        else:
+            self.build_dict(ontogene)
+            
+    def get_rowlist(self, ontogene):
+        self.record_gen = self.parse(self.handle, ontogene)
+        for record in self.record_gen:
+            self.rowdicts.append(record)
         
     def build_dict(self, ontogene):
-        for record in self.parse(self.handle, ontogene):
-            key = mapping(self.rectypes.identifier, self.rectypes, ontogene)
-            self[record[key]] = record
-        
+        self.record_gen = self.parse(self.handle, ontogene)
+        for record in self.record_gen:
+            key = mapping(self.rectypes.accession, self.rectypes, ontogene)
+            self.parsedict[record[key]] = record
+            
     def parse(self, handle, ontogene): # The parameter handle is the UniProt KeyList file.
         record = Record(self.rectypes, ontogene)
         mode = SINGLE_RECORD
@@ -102,15 +130,21 @@ class RecordSet(dict):
                 if mode == MULTI_RECORD:
                     record_list = [record]
                 
-                    # copy record approriate times
-                    for element in range(len(multi_value_list) - 1):
+                    # copy record. Permutations: copy record len(multi_value_list) - 1, Additions: copy record len(multi_value_list)
+                    for element in range(len(multi_value_list) - self.rectypes.mv_neg_offset):
                         additional_record = deepcopy(record)
                         record_list.append(additional_record)  
                     
-                    record_value_pairs = zip(record_list, multi_value_list)
+                    # Offset if the multiple records are additions (not just permutations)
+                    record_value_pairs = zip(record_list[self.rectypes.mv_pos_offset:], multi_value_list)
+                    
+                    # In case of additions, yield first record before zipping and yielding the remaining records
+                    if self.rectypes.mv_pos_offset:
+                        yield record
+                    
+                    # Zip record list with value list for multi-value entry, yield records iteratively
                     for record, value in record_value_pairs:
                         mapped_multival_key = mapping(self.rectypes.multi_value, self.rectypes, ontogene)
-                        print mapped_multival_key
                         record[mapped_multival_key] = value
                         yield record
                 else:
@@ -122,32 +156,31 @@ class RecordSet(dict):
             elif line[2:5]=="   ": # If not, we continue recruiting the information. 
                 value = line[5:].strip()
                 
-                if not key == "ID":
-                    mkey = mapping(key, self.rectypes, ontogene)
-                else:
-                    mkey = None
+                mkey = mapping(key, self.rectypes, ontogene)
                     
                 if key in self.rectypes.single:
-                    if key == "ID" and not ontogene:
+                    
+                    if key == self.rectypes.identifier and not ontogene:
                         value = value.split()[0]
                         value = value.rstrip(";").rstrip(".")
-                        record[key] = value
-                        
-                    elif key == self.rectypes.multi_value:
-                        value_list = value.rstrip(";").split(";")
-                        if len(value_list) > 1:
-                            mode = MULTI_RECORD
-                        
+                        record[mkey] = value
+                    
+                    elif key == self.rectypes.accession:
                         # Generate OID
                         if ontogene:
                             record["oid"] = OID.get()
                             record["resource"] = self.rectypes.resource
                             record["entity_type"] = self.rectypes.entity_type
                         
-                    if key != "ID" and (mode == SINGLE_RECORD or key != self.rectypes.multi_value):
+                    if key == self.rectypes.multi_value:
+                        value_list = value.rstrip(";").split(";")
+                        if len(value_list) > 1:
+                            mode = MULTI_RECORD
+
+                    if key != self.rectypes.identifier and (mode == SINGLE_RECORD or key != self.rectypes.multi_value):
                         value = value.rstrip(";").rstrip(".")
                         record[mkey] = value
-                        if ontogene and key == "OS":
+                        if ontogene and key == self.rectypes.main_term:
                             record["preferred_term"] = value
                         
                     elif mode == MULTI_RECORD and key == self.rectypes.multi_value:
@@ -156,16 +189,13 @@ class RecordSet(dict):
                             
                 elif key in self.rectypes.multi_row:
                     record[mkey].append(value) 
-                
+                    
                 else:
                     pass
                 
         # Read the footer and throw it away
         for line in handle:
             pass
-            
-    def get_rowlist(self):
-        return self.values()
 
 def mapping(rectype, rectypes, ontogene):
         if ontogene and rectype in rectypes.og_mapping:
