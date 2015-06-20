@@ -25,7 +25,7 @@ class RecordSet(object):
             
     def get_rowlist(self, ontogene):
         # Map the row dictionaries to a nested dictionary structure with ncbi_id as key 
-        rowkeys = []
+        previous_rowkey = None
         for rowdict in self.raw_rowlist:
             
             rowkey, rowvalue_dict = int(rowdict[mapping('ncbi_id', ontogene)]), rowdict
@@ -34,11 +34,11 @@ class RecordSet(object):
             if ontogene:
                 rowvalue_dict["resource"] = "Entrezgene"
                 
-            if rowkey in rowkeys:
+            if rowkey == previous_rowkey:
                 rowvalue_dict["oid"] = OID.last()
             else:    
                 rowvalue_dict["oid"] = OID.get()
-                rowkeys.append(rowkey)
+                previous_rowkey = rowkey
             
             self.rowdicts.append(rowvalue_dict)
     
