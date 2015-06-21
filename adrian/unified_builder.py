@@ -1,3 +1,4 @@
+from __future__ import division
 import codecs
 import csv
 import sys
@@ -9,7 +10,7 @@ import entrezgene_n2o3_wrapper
 import mesh_wrapper
 import taxdump_parser
 from unicode_csv import UnicodeDictWriter
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Counter
 
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
@@ -24,10 +25,24 @@ class RecordSetContainer(object):
                       "mesh":{"module":mesh_wrapper, "arguments":self.dkwargs["mesh"]},
                       "taxdump":{"module":taxdump_parser, "arguments":(self.dkwargs["taxdump"], )}
                       }
-                      
+        self.stats = {}
+    
     def recordsets(self):
         for resource, infile in self.okwargs.iteritems():
-            yield self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"]).rowdicts
+            recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
+            self.stats[resource] = recordset.stats
+            yield recordset.rowdicts
+            
+    def calcstats(self):
+        total = Counter({"terms":0, "ids":0})
+        for recordset, stats in self.stats.iteritems():
+            self.stats[recordset]['term_per_id'] = stats["terms"]/stats["ids"]
+            total["terms"] += stats["terms"]
+            total["ids"] += stats["ids"]
+            total['term_per_id'] += self.stats[recordset]['term_per_id']
+        total['term_per_id'] /= len(self.stats.keys())
+        self.stats["total"] = total
+        
 
 class UnifiedBuilder(dict):
     def __init__(self, rsc, filename):

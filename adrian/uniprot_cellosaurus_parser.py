@@ -4,6 +4,7 @@
 from copy import deepcopy
 from numpy import prod
 from oid_generator import OID
+from collections import Counter
 
 # Property concatenation
 SINGLE_RECORD = 1
@@ -32,6 +33,8 @@ class UniProtRecTypes(object):
     single = ("ID", "AC")
     multi_row = ("OS", )
     multi_value = "AC"
+    
+    mode = "permutation"
     mv_neg_offset = MVAL_PERMUTATION[0]
     mv_pos_offset = MVAL_PERMUTATION[1]
     
@@ -53,6 +56,8 @@ class CellosaurusRecTypes(object):
     single = ("ID", "AC", "SY")
     multi_row = ()
     multi_value = "SY"
+    
+    mode = "addition"
     mv_neg_offset = MVAL_ADDITION[0]
     mv_pos_offset = MVAL_ADDITION[1]
     
@@ -87,6 +92,7 @@ class RecordSet(object):
         self.rectypes = rectypes
         self.rowdicts = []
         self.parsedict = {}
+        self.stats = Counter({"ids":0, "terms":0})
         
         if rowdicts:
             self.get_rowlist(ontogene)
@@ -131,23 +137,27 @@ class RecordSet(object):
                     record_list = [record]
                 
                     # copy record. Permutations: copy record len(multi_value_list) - 1, Additions: copy record len(multi_value_list)
-                    for element in range(len(multi_value_list) - self.rectypes.mv_neg_offset):
-                        additional_record = deepcopy(record)
+                    rec_range = range(len(multi_value_list) - self.rectypes.mv_neg_offset)
+                    for element in rec_range:
+                        additional_record = record.copy()
                         record_list.append(additional_record)  
+                     
+                    # In case of additions, yield first record before zipping and yielding the remaining records
+                    if self.rectypes.mv_pos_offset:
+                        self.stats["terms"] += 1
+                        yield record
                     
                     # Offset if the multiple records are additions (not just permutations)
                     record_value_pairs = zip(record_list[self.rectypes.mv_pos_offset:], multi_value_list)
-                    
-                    # In case of additions, yield first record before zipping and yielding the remaining records
-                    if self.rectypes.mv_pos_offset:
-                        yield record
                     
                     # Zip record list with value list for multi-value entry, yield records iteratively
                     for record, value in record_value_pairs:
                         mapped_multival_key = mapping(self.rectypes.multi_value, self.rectypes, ontogene)
                         record[mapped_multival_key] = value
+                        self.stats["terms"] += 1
                         yield record
                 else:
+                    self.stats["terms"] += 1
                     yield record     # So we output the record and pass to other one. 
                 record = Record(self.rectypes, ontogene)
                 mode = SINGLE_RECORD
@@ -171,12 +181,14 @@ class RecordSet(object):
                             record["oid"] = OID.get()
                             record["resource"] = self.rectypes.resource
                             record["entity_type"] = self.rectypes.entity_type
+                            self.stats["ids"] += 1
                         
                     if key == self.rectypes.multi_value:
                         value_list = value.rstrip(";").split(";")
-                        if len(value_list) > 1:
-                            mode = MULTI_RECORD
-
+                        if self.rectypes.mode == "permutation" and len(value_list) > 1 \
+                           or self.rectypes.mode == "addition":
+                            mode = MULTI_RECORD  
+                            
                     if key != self.rectypes.identifier and (mode == SINGLE_RECORD or key != self.rectypes.multi_value):
                         value = value.rstrip(";").rstrip(".")
                         record[mkey] = value

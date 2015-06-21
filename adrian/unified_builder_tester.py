@@ -88,3 +88,6 @@ test_rsc = RecordSetContainer(#"1k_snippets/BIOGRID-IDENTIFIERS-1k",
 print "Processing ..."
 
 UnifiedBuilder(test_rsc, "output.csv")
+
+test_rsc.calcstats()
+print test_rsc.stats

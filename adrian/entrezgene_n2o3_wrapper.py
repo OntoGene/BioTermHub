@@ -1,7 +1,7 @@
 from optparse import OptionParser
 from ncbi2ontogene3 import process_file, transform_input
 from oid_generator import OID
-from copy import deepcopy
+from collections import Counter
 
 class RecType(object):
     
@@ -18,6 +18,7 @@ class RecordSet(object):
         self.raw_rowlist = self._run_ncbi2ontogene3(infile, "default", ontogene)
         self.rowdicts = []
         self.parsedict = {}
+        self.stats = Counter({"ids":0, "terms":0})
         if rowdicts:
             self.get_rowlist(ontogene)
         else:
@@ -29,6 +30,7 @@ class RecordSet(object):
         for rowdict in self.raw_rowlist:
             
             rowkey, rowvalue_dict = int(rowdict[mapping('ncbi_id', ontogene)]), rowdict
+            self.stats["terms"] += 1
             
             # Change keys strings with ontogene key strings
             if ontogene:
@@ -38,6 +40,7 @@ class RecordSet(object):
                 rowvalue_dict["oid"] = OID.last()
             else:    
                 rowvalue_dict["oid"] = OID.get()
+                self.stats["ids"] += 1
                 previous_rowkey = rowkey
             
             self.rowdicts.append(rowvalue_dict)
