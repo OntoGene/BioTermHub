@@ -30,11 +30,9 @@ def process_file(csv_file, options=None, args=None):
     '''Reads a csv file and produces a list of dictionaries with one dictionary per line using UnicodeDictReader; Headers are used as keys.'''
 
     # Generate proper header from first line
-
     infile = codecs.open(csv_file, 'r')
-    header_line = infile.readline()
-    header_fields = header_line.split(" (")[0].split()[1:]
-    reader = UnicodeDictReader(infile, dialect=csv.excel_tab, quoting=csv.QUOTE_NONE, quotechar=str("\""), fieldnames = header_fields) 
+    
+    reader = UnicodeDictReader(infile, dialect=csv.excel_tab, quoting=csv.QUOTE_NONE, quotechar=str("\"")) 
 
     if options.id_list:
         #Only applies if a list of ids is given; only take ids in list into account 
