@@ -2,6 +2,7 @@ from optparse import OptionParser
 from ncbi2ontogene3 import process_file, transform_input
 from oid_generator import OID
 from collections import Counter
+import ncbi_preprocess
 
 class RecType(object):
     
@@ -15,7 +16,9 @@ class RecordSet(object):
     """
     
     def __init__(self, infile, rowdicts = True, ontogene = True):
-        self.raw_rowlist = self._run_ncbi2ontogene3(infile, "default", ontogene)
+        self.prepfile = infile+".trunc"
+        ncbi_preprocess.preprocess(infile, self.prepfile ,1,2,4)
+        self.raw_rowlist = self._run_ncbi2ontogene3(self.prepfile, "default", ontogene)
         self.rowdicts = []
         self.parsedict = {}
         self.stats = Counter({"ids":0, "terms":0})
