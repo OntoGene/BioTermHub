@@ -14,19 +14,12 @@ class RecordSet(object):
     record[ncbi_id]:record.
     """
     
-    def __init__(self, infile, rowdicts = True, ontogene = True):
+    def __init__(self, infile, ontogene = True):
         self.prepfile = infile+".trunc"
         ncbi_preprocess.preprocess(infile, self.prepfile ,1,2,4)
         self.stats = None
         self.rowdicts = self._run_ncbi2ontogene3(self.prepfile, "default", ontogene)
         self.parsedict = {}
-        if rowdicts:
-            self.get_rowlist(ontogene)
-        else:
-            self.build_dict(ontogene)
-            
-    def get_rowlist(self, ontogene):
-        return self.rowdicts
         
     def build_dict(self, ontogene):
         # Map the row dictionaries to a nested dictionary structure with ncbi_id as key 

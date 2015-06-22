@@ -8,11 +8,11 @@ from unified_builder import RecordSetContainer, UnifiedBuilder
 
 test_rsc = RecordSetContainer(#"1k_snippets/BIOGRID-IDENTIFIERS-1k",
                               #"1k_snippets/BIOGRID-ALL-1k",
-                              uniprot = "1k_snippets/uniprot_sprot-1k",
-                              cellosaurus = "1k_snippets/cellosaurus-2",
+                              #~ uniprot = "1k_snippets/uniprot_sprot-1k",
+                              #~ cellosaurus = "1k_snippets/cellosaurus-2",
                               entrezgene = "1k_snippets/gene_info_10k",
                               mesh = ("1k_snippets/desc-1k", "1k_snippets/supp-1k"),
-                              taxdump = "1k_snippets/names-1k"
+                              #taxdump = "1k_snippets/names-1k"
                               )
 
 #biogrid_idents = test_rsc.biogrid_idents
@@ -91,3 +91,13 @@ UnifiedBuilder(test_rsc, "output.csv")
 
 test_rsc.calcstats()
 print test_rsc.stats
+
+a_normal = test_rsc.bidict_originalid_oid.items()
+a_inverse = test_rsc.bidict_originalid_oid.items(inverse = True)
+print a_normal[:10]
+print a_inverse[:10]
+
+b_normal = test_rsc.bidict_originalid_term.items(to_list = True)
+b_inverse = test_rsc.bidict_originalid_term.items(inverse = True, to_list = True)
+print b_normal[:10]
+print b_inverse[:10]

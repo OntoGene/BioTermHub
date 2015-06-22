@@ -2,6 +2,7 @@ from __future__ import division
 import codecs
 import csv
 import sys
+from collections import defaultdict, OrderedDict, Counter
 sys.path.insert(0, '../lib')
 
 import biogrid_parser
@@ -9,8 +10,10 @@ import uniprot_cellosaurus_parser
 import entrezgene_n2o3_wrapper
 import mesh_wrapper
 import taxdump_parser
+import bdict
+import pickle
+
 from unicode_csv import UnicodeDictWriter
-from collections import defaultdict, OrderedDict, Counter
 
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
@@ -26,6 +29,8 @@ class RecordSetContainer(object):
                       "taxdump":{"module":taxdump_parser, "arguments":(self.dkwargs["taxdump"], )}
                       }
         self.stats = {}
+        self.bidict_originalid_oid = bdict.bidict()
+        self.bidict_originalid_term = bdict.defaultbidict(set)
     
     def recordsets(self):
         for resource, infile in self.okwargs.iteritems():
@@ -49,8 +54,11 @@ class RecordSetContainer(object):
             total['term_per_id'] = 0
         self.stats["total"] = total
         
+    def pickle_bidicts(outfile):
+        
+        
 class UnifiedBuilder(dict):
-    def __init__(self, rsc, filename):
+    def __init__(self, rsc, filename, write_hash = False):
         dict.__init__(self)
         csv_file = codecs.open(filename, 'wt', 'utf-8')
         fieldnames = ["oid", "resource", "original_id", "term", "preferred_term", "entity_type"]
@@ -60,4 +68,7 @@ class UnifiedBuilder(dict):
         for rsc_rowlist in rsc.recordsets():
             for row in rsc_rowlist:
                 writer.writerow(row)
+                if write_hash:
+                    rsc.bidict_originalid_oid[row["original_id"]] = row["oid"]
+                    rsc.bidict_originalid_term.add(row["original_id"], row["term"])
             del rsc_rowlist
