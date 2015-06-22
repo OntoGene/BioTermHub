@@ -47,6 +47,7 @@ class RecordSet(object):
         
         # Using ncbi2ontogene3 to retrieve a list with a dictionary for each row
         processed_input = process_file(infile, options, None)
+        
         if ontogene:
             rowlist, term_count, id_count  = transform_input(processed_input, RecType.og_mapping, unified_build=True)
         else:
