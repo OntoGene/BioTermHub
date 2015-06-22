@@ -130,8 +130,7 @@ def transform_input(file_list, mapping = None, unified_build = False):
 
             for term in list(set(term_list)):
                 output_dict = {}
-                id_count += 1
-                if not unified_build:
+                if not mapping:
                     output_dict['term'] = term
                     output_dict['type'] = 'gene'
                     output_dict['ncbi_id'] = line_dict['GeneID']
@@ -141,6 +140,9 @@ def transform_input(file_list, mapping = None, unified_build = False):
                     output_dict[mapping['type']] = 'gene'
                     output_dict[mapping['ncbi_id']] = line_dict['GeneID']
                     output_dict[mapping['reference']] = line_dict['Symbol']
+                
+                if unified_build:
+                    id_count += 1
                     output_dict["oid"] = current_oid
                     output_dict["resource"] = "Entrezgene"
 
@@ -222,3 +224,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+    #~ from guppy import hpy
+    #~ h = hpy()
+    #~ h.setref()
+    #~ 
+    #~ options, args = OptionParser(option_list=["--id_list"]).parse_args()
+        #~ 
+    #~ processed_input = process_file("1k_snippets/gene_info_10k.trunc", options, None)
+        #~ 
+    #~ rowlist, term_count, id_count = transform_input(processed_input, {'ncbi_id':"original_id", 'term':"term", 'reference':"preferred_term", 'type':"entity_type"}, unified_build=True)
+    #~ 
+    #~ del processed_input
+    #~ 
+    #~ print h.heap()
