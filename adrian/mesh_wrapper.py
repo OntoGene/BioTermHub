@@ -29,8 +29,6 @@ class RecordSet(object):
             self.stats["terms"] += 1
             
             # Change keys strings with ontogene key strings
-            if ontogene:
-                rowvalue_dict["resource"] = "MESH"
                 
             if rowkey == previous_rowkey:
                 rowvalue_dict["oid"] = OID.last()
