@@ -1,6 +1,5 @@
 from optparse import OptionParser
 from mesh_desc_supp2extended_ontogene import parse_desc_file, parse_supp_file, desc2ontogene_headers, supp2ontogene_headers
-from oid_generator import OID
 from collections import Counter
 
 class RecordSet(object):
@@ -11,33 +10,16 @@ class RecordSet(object):
     """
     
     def __init__(self, desc_file, supp_file, rowdicts = True, ontogene = True):
-        self.raw_rowlist = self._run_mesh_parser(desc_file, supp_file, ontogene)
-        self.rowdicts = []
+        self.stats = None
+        self.rowdicts = self._run_mesh_parser(desc_file, supp_file, ontogene)
         self.parsedict = {}
-        self.stats = Counter({"ids":0, "terms":0})
         if rowdicts:
             self.get_rowlist(ontogene)
         else:
             self.build_dict(ontogene)
     
     def get_rowlist(self, ontogene):
-        # Map the row dictionaries to a nested dictionary structure with ncbi_id as key 
-        previous_rowkey = None
-        for rowdict in self.raw_rowlist:
-            
-            rowkey, rowvalue_dict = rowdict['original_id'], rowdict
-            self.stats["terms"] += 1
-            
-            # Change keys strings with ontogene key strings
-                
-            if rowkey == previous_rowkey:
-                rowvalue_dict["oid"] = OID.last()
-            else:    
-                rowvalue_dict["oid"] = OID.get()
-                self.stats["ids"] += 1
-                previous_rowkey = rowkey
-            
-            self.rowdicts.append(rowvalue_dict)
+        return self.rowdicts
     
     def build_dict(self, ontogene):
         # Map the row dictionaries to a nested dictionary structure with ncbi_id as key 
@@ -45,10 +27,6 @@ class RecordSet(object):
             
             rowkey, rowvalue_dict = rowdict['original_id'], rowdict
             
-            # Change keys strings with ontogene key strings
-            if ontogene:
-                rowvalue_dict["resource"] = "MESH"
-                
             if rowkey in self:
                 rowvalue_dict["oid"] = OID.last()
                 try:
@@ -74,5 +52,7 @@ class RecordSet(object):
         supp_ontogene_headers = supp2ontogene_headers(supp_dict_list, desc_tree_dict)
         
         rowlist = desc_ontogene_headers + supp_ontogene_headers
+        
+        self.stats = Counter({"ids":0, "terms":0}) # TODO
             
         return rowlist

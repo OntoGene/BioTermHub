@@ -36,14 +36,19 @@ class RecordSetContainer(object):
     def calcstats(self):
         total = Counter({"terms":0, "ids":0})
         for recordset, stats in self.stats.iteritems():
-            self.stats[recordset]['term_per_id'] = stats["terms"]/stats["ids"]
+            try:
+                self.stats[recordset]['term_per_id'] = stats["terms"]/stats["ids"]
+            except ZeroDivisionError:
+                self.stats[recordset]['term_per_id'] = 0
             total["terms"] += stats["terms"]
             total["ids"] += stats["ids"]
             total['term_per_id'] += self.stats[recordset]['term_per_id']
-        total['term_per_id'] /= len(self.stats.keys())
+        try:
+            total['term_per_id'] /= len(self.stats.keys())
+        except ZeroDivisionError:
+            total['term_per_id'] = 0
         self.stats["total"] = total
         
-
 class UnifiedBuilder(dict):
     def __init__(self, rsc, filename):
         dict.__init__(self)

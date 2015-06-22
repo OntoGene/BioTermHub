@@ -12,6 +12,7 @@ import codecs
 import sys
 import os
 import sys
+from oid_generator import OID
 sys.path.insert(0, '../lib')
 
 #from Bio import Entrez
@@ -91,14 +92,21 @@ def dict_to_file(dict_list, output_file):
 
 
 
-def transform_input(file_list, mapping = None):
+def transform_input(file_list, mapping = None, unified_build = False):
     '''Processes the input in the following ways:
     - Splits lists of synonyms and converts them to different entries; 
     - Processes 'descriptions' fields and 'other designations' fields and finds longest common substrings (additional terms) for high recall (experimental, can be removed)'''
 
     new_file_list = []
+    
+    if unified_build:
+        term_count = len(file_list)
+        id_count = 0
 
     for line_dict in file_list:
+        
+        if unified_build:
+            current_oid = OID.get()
 
         term_list = []
 
@@ -122,7 +130,8 @@ def transform_input(file_list, mapping = None):
 
             for term in list(set(term_list)):
                 output_dict = {}
-                if not mapping:
+                id_count += 1
+                if not unified_build:
                     output_dict['term'] = term
                     output_dict['type'] = 'gene'
                     output_dict['ncbi_id'] = line_dict['GeneID']
@@ -132,15 +141,17 @@ def transform_input(file_list, mapping = None):
                     output_dict[mapping['type']] = 'gene'
                     output_dict[mapping['ncbi_id']] = line_dict['GeneID']
                     output_dict[mapping['reference']] = line_dict['Symbol']
+                    output_dict["oid"] = current_oid
+                    output_dict["resource"] = "Entrezgene"
 
                 # print 'OUTPUT_DICT', output_dict
 
                 new_file_list.append(output_dict)
-
-    return new_file_list
-
-
-
+                
+    if not unified_build:
+        return new_file_list
+    else:
+        return new_file_list, term_count, id_count
 
 def process(options=None, args=None):
     """
