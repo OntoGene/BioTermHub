@@ -34,7 +34,7 @@ sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
 sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
 
 
-def parse_desc_file(desc_file):
+def parse_desc_file(desc_file, options=None, args=None):
     '''Parses mesh desc xml file and returns a list (desc_dict_list) of dictionaries (one_child_dict). The dictionaries have the keys 'DescriptorUI', 
     'term set' (contains terms from DescriptorName, TermList und ConceptName), 'TreeNumbers' (contains list of Mesh Tree Numbers which 
     encode the entity type'''
@@ -88,6 +88,7 @@ def parse_desc_file(desc_file):
                         #print gchild.text, 'gchild text', gchild.tag
                         #print 'DescriptorName found:', gchild.text
                         one_child_dict['term_set'].add(gchild.text)
+                        one_child_dict['DescriptorName'] = gchild.text
                         
                             
                 elif child.tag == 'TreeNumberList':
@@ -139,7 +140,7 @@ def parse_desc_file(desc_file):
     return (desc_dict_list, desc_tree_dict)
 
 
-def parse_supp_file(supp_file):
+def parse_supp_file(supp_file, options=None, args=None):
     '''Parses mesh supp xml file and returns a list (supp_dict_list) of dictionaries (one_child_dict); Dictionaries have the keys 
     'SupplementalRecordUI', 'SupplementalRecordName', 'term_list', 'Mapping:ReferredDescriptors'''
     
@@ -230,7 +231,7 @@ def parse_supp_file(supp_file):
     return supp_dict_list
     
     
-def desc2ontogene_headers(desc_dict_list):
+def desc2ontogene_headers(relevant_trees, desc_dict_list, options=None, args=None):
     '''Converts the information from the parsed xml file to a list of dictionaries containing the ontogene headers as keys.
     Ontogene header: 'oid', 'term', 'original_id', 'resource', 'entity_type', 'preferred_term' '''
     
@@ -239,6 +240,8 @@ def desc2ontogene_headers(desc_dict_list):
     'K' : 'Humanities', 'L' : 'Information Science', 'M' : 'Named Groups', 'N' : 'Health Care', 'V' : 'Publication Characteristics', 
     'Z' : 'Geographicals'}
     
+    new_mesh_dict = {'Diseases' : 'disease', 'Chemicals and Drugs' : 'chemical', 'Organisms' : 'organism'}
+    
     ontogene_dict_list = []
 
     for one_dict in desc_dict_list:
@@ -246,32 +249,37 @@ def desc2ontogene_headers(desc_dict_list):
         try:
     
             branch_set = set([one_tree_number[0] for one_tree_number in one_dict['TreeNumbers']])
+            
+            
+            if branch_set.intersection(relevant_trees):
     
+                for entity_type_code in branch_set:
+                    # adding information for different entity types
         
-            for entity_type_code in branch_set:
-                # adding information for different entity types
-        
-                ontogene_dict_temp = {}
+                    ontogene_dict_temp = {}
                 
-                 # Is this the right place to insert oid? (One per mesh id per entity type)
-                ontogene_dict_temp['oid'] = 'none'
-                # ADD OID
+                     # Is this the right place to insert oid? (One per mesh id per entity type)
+                    ontogene_dict_temp['oid'] = 'none'
+                    # ADD OID
             
-                branch_cat = mesh_trees[entity_type_code]
-                ontogene_dict_temp['entity_type'] = branch_cat
-                # standardize entity type name?
+                    branch_cat = mesh_trees[entity_type_code]
+                    try:
+                        ontogene_dict_temp['entity_type'] = new_mesh_dict[branch_cat]
+                    except KeyError: 
+                        ontogene_dict_temp['entity_type'] = branch_cat
+                    # standardize entity type name?
             
-                term_set = one_dict['term_set']
+                    term_set = one_dict['term_set']
             
-                for one_term in term_set:
-                    # adding all synonyms for all entity types/tree numbers
-                    ontogene_dict_temp2 = ontogene_dict_temp.copy()
-                    ontogene_dict_temp2['term'] = one_term
-                    ontogene_dict_temp2['original_id'] = one_dict['DescriptorUI']
-                    ontogene_dict_temp2['preferred_term'] = one_dict['DescriptorName']
-                    ontogene_dict_temp2['resource'] = 'mesh_desc'
+                    for one_term in term_set:
+                        # adding all synonyms for all entity types/tree numbers
+                        ontogene_dict_temp2 = ontogene_dict_temp.copy()
+                        ontogene_dict_temp2['term'] = one_term
+                        ontogene_dict_temp2['original_id'] = one_dict['DescriptorUI']
+                        ontogene_dict_temp2['preferred_term'] = one_dict['DescriptorName']
+                        ontogene_dict_temp2['resource'] = 'mesh_desc'
                 
-                    ontogene_dict_list.append(ontogene_dict_temp2)
+                        ontogene_dict_list.append(ontogene_dict_temp2)
                     
         except KeyError:
             print one_dict, 'NO TREE NUMBERS'
@@ -282,7 +290,7 @@ def desc2ontogene_headers(desc_dict_list):
     
     
     
-def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
+def supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, options=None, args=None):
     '''Converts the information from the parsed xml file to a list of dictionaries containing the ontogene headers as keys.
     Ontogene header: 'oid', 'term', 'original_id', 'resource', 'entity_type', 'preferred_term' '''
     
@@ -290,6 +298,8 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
     'F' : 'Psychiatry and Psychology', 'G' : 'Phenomena and Processes', 'H' : 'Disciplines and Occupations', 'I' : 'Anthropology,Education,Sociology and Social Phenomena', 'J' : 'Technology,Industry,Agriculture',
     'K' : 'Humanities', 'L' : 'Information Science', 'M' : 'Named Groups', 'N' : 'Health Care', 'V' : 'Publication Characteristics', 
     'Z' : 'Geographicals', 'empty_branch' : 'missing'}
+    
+    new_mesh_dict = {'Diseases' : 'disease', 'Chemicals and Drugs' : 'chemical', 'Organisms' : 'organism'}
     
     ontogene_dict_list = []
 
@@ -310,28 +320,34 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
             except KeyError:
                 print 'NO TREE INFORMATION FOUND FOR DESCRIPTOR ID', desc_id
                 branch_set = set(['empty_branch'])
-            
-            for entity_type_code in branch_set:
-                ontogene_dict_temp = {}
                 
-                # Is this the right place to insert oid? (One per mesh id per entity type)
-                ontogene_dict_temp['oid'] = 'none'
-                # ADD OID
                 
-                branch_cat = mesh_trees[entity_type_code]
-                ontogene_dict_temp['entity_type'] = branch_cat
-                # standardize entity type name?
+            if branch_set.intersection(relevant_trees):
             
-                term_set = one_dict['term_set']
+                for entity_type_code in branch_set:
+                    ontogene_dict_temp = {}
+                
+                    # Is this the right place to insert oid? (One per mesh id per entity type)
+                    ontogene_dict_temp['oid'] = 'none'
+                    # ADD OID
+                
+                    branch_cat = mesh_trees[entity_type_code]
+                    try:
+                        ontogene_dict_temp['entity_type'] = new_mesh_dict[branch_cat]
+                    except KeyError: 
+                        ontogene_dict_temp['entity_type'] = branch_cat
+                        # standardize entity type name?
             
-                for one_term in term_set:
-                    ontogene_dict_temp2 = ontogene_dict_temp.copy()
-                    ontogene_dict_temp2['term'] = one_term
-                    ontogene_dict_temp2['original_id'] = one_dict['SupplementalRecordUI']
-                    ontogene_dict_temp2['preferred_term'] = one_dict['SupplementalRecordName']
-                    ontogene_dict_temp2['resource'] = 'mesh_supp'
+                    term_set = one_dict['term_set']
+            
+                    for one_term in term_set:
+                        ontogene_dict_temp2 = ontogene_dict_temp.copy()
+                        ontogene_dict_temp2['term'] = one_term
+                        ontogene_dict_temp2['original_id'] = one_dict['SupplementalRecordUI']
+                        ontogene_dict_temp2['preferred_term'] = one_dict['SupplementalRecordName']
+                        ontogene_dict_temp2['resource'] = 'mesh_supp'
                     
-                    ontogene_dict_list.append(ontogene_dict_temp2)
+                        ontogene_dict_list.append(ontogene_dict_temp2)
                 
     print 'SUPP OG DICT LIST', ontogene_dict_list
                 
@@ -339,7 +355,7 @@ def supp2ontogene_headers(supp_dict_list, desc_tree_dict):
     
     
     
-def dict_to_file(dict_list, output_file):
+def dict_to_file(dict_list, output_file, options=None, args=None):
     ''' takes a list of dictionaries and writes it to a csv file'''
 
     csv_file = codecs.open(output_file, 'wt', 'utf-8')
@@ -369,7 +385,7 @@ def dict_to_file(dict_list, output_file):
 
 
 
-def process(options=None, args=None):
+def process(relevant_trees, options=None, args=None):
     """
     Do the processing.
 
@@ -389,16 +405,16 @@ def process(options=None, args=None):
     
     output_file = args[2]
     
-    (desc_dict_list, desc_tree_dict) = parse_desc_file(desc_file)
+    (desc_dict_list, desc_tree_dict) = parse_desc_file(desc_file, options=options, args=args)
 
-    supp_dict_list = parse_supp_file(supp_file)
+    supp_dict_list = parse_supp_file(supp_file, options=options, args=args)
     
-    desc_ontogene_headers = desc2ontogene_headers(desc_dict_list)
-    supp_ontogene_headers = supp2ontogene_headers(supp_dict_list, desc_tree_dict)
+    desc_ontogene_headers = desc2ontogene_headers(relevant_trees, desc_dict_list, options=options, args=args)
+    supp_ontogene_headers = supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, options=options, args=args)
     
     output_dict = desc_ontogene_headers + supp_ontogene_headers
     
-    dict_to_file(output_dict, output_file)
+    dict_to_file(output_dict, output_file, options=options, args=args)
 
 
 
@@ -418,14 +434,33 @@ def main():
     parser.add_option('-d', '--debug',
                       action='store_true', dest='debug', default=False,
                       help='print debug information')
+    parser.add_option('-e', '--entity_trees',
+                      dest='entity_trees',default=False,
+                      help='give lists of first letters of tree ids to specify entity types; https://www.nlm.nih.gov/mesh/trees.html')
+                      
 
 
 
     (options, args) = parser.parse_args()
 
     if options.debug: print >> sys.stderr, '# Starting processing'
+    
+    
+    mesh_trees = {'A' : 'Anatomy', 'B' : 'Organisms', 'C' : 'Diseases', 'D' : 'Chemicals and Drugs', 'E' : 'Analytical,Diagnostic and Therapeutic Techniques and Equipment',
+    'F' : 'Psychiatry and Psychology', 'G' : 'Phenomena and Processes', 'H' : 'Disciplines and Occupations', 'I' : 'Anthropology,Education,Sociology and Social Phenomena', 'J' : 'Technology,Industry,Agriculture',
+    'K' : 'Humanities', 'L' : 'Information Science', 'M' : 'Named Groups', 'N' : 'Health Care', 'V' : 'Publication Characteristics', 
+    'Z' : 'Geographicals', 'empty_branch' : 'missing'}
+    
+    if options.entity_trees:
+        tree_list = options.entity_trees.split(',')
+        tree_list.append('empty_branch')
+        print tree_list, 'TREE LIST'
+        relevant_trees = set(tree_list)
+    else: relevant_trees = set(mesh_trees.keys())
+    
+    print relevant_trees, 'REL TREES'
 
-    process(options=options,args=args)
+    process(relevant_trees, options=options,args=args)
 
 
 
