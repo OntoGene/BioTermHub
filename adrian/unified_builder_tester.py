@@ -1,4 +1,7 @@
 from unified_builder import RecordSetContainer, UnifiedBuilder
+#~ from guppy import hpy
+#~ h = hpy()
+#~ h.setref()
 
 #~ test_rsc = RecordSetContainer("data/uniprot_sprot.dat",
                               #~ "data/cellosaurus.txt",
@@ -6,13 +9,12 @@ from unified_builder import RecordSetContainer, UnifiedBuilder
                               #~ ("data/desc2015.xml", "data/supp2015.xml")
                               #~ )
 
-test_rsc = RecordSetContainer(#"1k_snippets/BIOGRID-IDENTIFIERS-1k",
-                              #"1k_snippets/BIOGRID-ALL-1k",
-                              #~ uniprot = "1k_snippets/uniprot_sprot-1k",
-                              #~ cellosaurus = "1k_snippets/cellosaurus-2",
-                              entrezgene = "1k_snippets/gene_info_10k",
+test_rsc = RecordSetContainer(
+                              uniprot = "1k_snippets/uniprot_sprot-3",
+                              cellosaurus = "1k_snippets/cellosaurus-2",
+                              entrezgene = "1k_snippets/gene_info-3",
                               mesh = ("1k_snippets/desc-1k", "1k_snippets/supp-1k"),
-                              #taxdump = "1k_snippets/names-1k"
+                              taxdump = "1k_snippets/names-1k"
                               )
 
 #biogrid_idents = test_rsc.biogrid_idents
@@ -74,7 +76,7 @@ test_rsc = RecordSetContainer(#"1k_snippets/BIOGRID-IDENTIFIERS-1k",
 #~ print cellosaurus_records.rowdicts[-1]
 #~ print "\nMESH Records"
 #~ print mesh_records.rowdicts[0:5]
-#~ print "..."
+#~ print "...
 #~ print mesh_records.rowdicts[-1]
 #~ print "\nEntrezgene Records"
 #~ print entrezgene_records.rowdicts[0:5]
@@ -87,17 +89,21 @@ test_rsc = RecordSetContainer(#"1k_snippets/BIOGRID-IDENTIFIERS-1k",
 
 print "Processing ..."
 
-UnifiedBuilder(test_rsc, "output.csv")
+a = UnifiedBuilder(test_rsc, "output.csv", True, True)
 
 test_rsc.calcstats()
 print test_rsc.stats
 
-a_normal = test_rsc.bidict_originalid_oid.items()
-a_inverse = test_rsc.bidict_originalid_oid.items(inverse = True)
-print a_normal[:10]
-print a_inverse[:10]
+#~ a_normal = test_rsc.bidict_originalid_oid.items()
+#~ a_inverse = test_rsc.bidict_originalid_oid.items(inverse = True)
+#~ print a_normal[:10]
+#~ print a_inverse[:10]
+#~ 
 
-b_normal = test_rsc.bidict_originalid_term.items(to_list = True)
-b_inverse = test_rsc.bidict_originalid_term.items(inverse = True, to_list = True)
-print b_normal[:10]
-print b_inverse[:10]
+#print test_rsc.bidict_originalid_term
+#~ b_normal = test_rsc.bidict_originalid_term.items(to_list = True)
+#~ b_inverse = test_rsc.bidict_originalid_term.items(inverse = True, to_list = True)
+#~ print b_normal[:10]
+#~ print b_inverse[:10]
+
+#~ print h.heap()

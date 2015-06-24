@@ -13,9 +13,7 @@ class RecordSet(object):
         self.stats = None
         self.rowdicts = self._run_mesh_parser(desc_file, supp_file, ontogene)
         self.parsedict = {}
-        if rowdicts:
-            self.get_rowlist(ontogene)
-        else:
+        if not rowdicts:
             self.build_dict(ontogene)
     
     def get_rowlist(self, ontogene):
@@ -28,7 +26,6 @@ class RecordSet(object):
             rowkey, rowvalue_dict = rowdict['original_id'], rowdict
             
             if rowkey in self:
-                rowvalue_dict["oid"] = OID.last()
                 try:
                     # value is already a list
                     self.parsedict[rowkey].append(rowvalue_dict)
@@ -38,7 +35,6 @@ class RecordSet(object):
                     rowvalue_list.append(rowvalue_dict)
                     self.parsedict[rowkey] = rowvalue_list
             else:    
-                rowvalue_dict["oid"] = OID.get()
                 self.parsedict[rowkey] = rowvalue_dict
                 
     def _run_mesh_parser(self, desc_file, supp_file, ontogene):
@@ -48,8 +44,12 @@ class RecordSet(object):
 
         supp_dict_list = parse_supp_file(supp_file)
         
-        desc_ontogene_headers = desc2ontogene_headers(desc_dict_list)
-        supp_ontogene_headers = supp2ontogene_headers(supp_dict_list, desc_tree_dict)
+        relevant_trees = set(["B","C","D", "empty_branch"])
+        
+        desc_ontogene_headers = desc2ontogene_headers(relevant_trees, desc_dict_list)
+        supp_ontogene_headers = supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict)
+        
+        print desc_ontogene_headers
         
         rowlist = desc_ontogene_headers + supp_ontogene_headers
         

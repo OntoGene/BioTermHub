@@ -1,4 +1,5 @@
 from __future__ import division
+import os
 import codecs
 import csv
 import sys
@@ -11,8 +12,8 @@ import entrezgene_n2o3_wrapper
 import mesh_wrapper
 import taxdump_parser
 import bdict
-import pickle
-
+import cPickle
+from pprint import pprint 
 from unicode_csv import UnicodeDictWriter
 
 class RecordSetContainer(object):
@@ -47,28 +48,60 @@ class RecordSetContainer(object):
                 self.stats[recordset]['term_per_id'] = 0
             total["terms"] += stats["terms"]
             total["ids"] += stats["ids"]
-            total['term_per_id'] += self.stats[recordset]['term_per_id']
+            total["term_per_id"] += self.stats[recordset]["term_per_id"]
         try:
-            total['term_per_id'] /= len(self.stats.keys())
+            total["term_per_id"] /= len(self.stats.keys())
         except ZeroDivisionError:
-            total['term_per_id'] = 0
+            total["term_per_id"] = 0
         self.stats["total"] = total
         
-    def pickle_bidicts(outfile):
-        
-        
 class UnifiedBuilder(dict):
-    def __init__(self, rsc, filename, write_hash = False):
+    def __init__(self, rsc, filename, compile_hash = False, pickle_hash = False):
         dict.__init__(self)
         csv_file = codecs.open(filename, 'wt', 'utf-8')
         fieldnames = ["oid", "resource", "original_id", "term", "preferred_term", "entity_type"]
         writer = UnicodeDictWriter(csv_file, dialect= csv.excel_tab, fieldnames=fieldnames, quotechar=str("\""), quoting= csv.QUOTE_NONE, restval='__')
         writer.writeheader()
+       
+        if pickle_hash:
+           self.unpickle_bidicts(rsc)
 
         for rsc_rowlist in rsc.recordsets():
             for row in rsc_rowlist:
                 writer.writerow(row)
-                if write_hash:
-                    rsc.bidict_originalid_oid[row["original_id"]] = row["oid"]
+                if compile_hash:
+                    # One oid may have multiple original_ids (e.g. uniprot), one original_id has always one oid
+                    rsc.bidict_originalid_oid[row["oid"]] = row["original_id"]
+                    # One original_id may have multiple terms, one term may have multiple original_ids
                     rsc.bidict_originalid_term.add(row["original_id"], row["term"])
-            del rsc_rowlist
+
+        if pickle_hash:
+            self.pickle_bidicts(rsc)
+        #~ pprint(dict(rsc.bidict_originalid_oid))
+        #~ print
+        #~ pprint(dict(rsc.bidict_originalid_term))
+        #~ print
+        #~ pprint(dict(rsc.bidict_originalid_term.inverse))
+        #~ print
+
+    def pickle_bidicts(self, rsc):
+        with open('data/originalid_oid.pkl', 'wb') as o_originalid_oid:
+            cPickle.dump(dict(rsc.bidict_originalid_oid), o_originalid_oid, -1)
+
+        with open('data/originalid_term_n.pkl', 'wb') as o_originalid_term_n, \
+             open('data/originalid_term_i.pkl', 'wb') as o_originalid_term_i:
+            cPickle.dump(dict(rsc.bidict_originalid_term), o_originalid_term_n, -1)
+            cPickle.dump(dict(rsc.bidict_originalid_term.inverse), o_originalid_term_i, -1)
+            
+    def unpickle_bidicts(self, rsc):
+	if os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term_n.pkl') and os.path.exists('data/originalid_term_i.pkl'):
+            with open('data/originalid_oid.pkl', 'rb') as o_originalid_oid:
+             	rsc.bidict_originalid_oid = cPickle.load(o_originalid_oid)
+
+            with open('data/originalid_term_n.pkl', 'rb') as o_originalid_term_n, \
+                 open('data/originalid_term_i.pkl', 'rb') as o_originalid_term_i:
+                normal = cPickle.load(o_originalid_term_n)
+                inverse = cPickle.load(o_originalid_term_i)
+                rsc.bidict_originalid_term = bdict.defaultbidict(set)
+                rsc.bidict_originalid_term.fromdictpair(normal, inverse)
+                

@@ -16,9 +16,10 @@ class RecordSet(object):
     
     def __init__(self, infile, ontogene = True):
         self.prepfile = infile+".trunc"
-        ncbi_preprocess.preprocess(infile, self.prepfile ,1,2,4)
-        self.stats = None
-        self.rowdicts = self._run_ncbi2ontogene3(self.prepfile, "default", ontogene)
+        ncbi_preprocess.preprocess(infile, self.prepfile, 1, 2, 4)
+        self.options = "default"
+        self.ontogene = ontogene
+        self.stats = Counter({"ids":0, "terms":0})
         self.parsedict = {}
         
     def build_dict(self, ontogene):
@@ -41,21 +42,19 @@ class RecordSet(object):
             else: 
                 self.parsedict[rowkey] = rowvalue_dict
                 
-    def _run_ncbi2ontogene3(self, infile, options, ontogene):
-        if options == "default":
+    @property
+    def rowdicts(self):
+	if self.options == "default":
             options, args = OptionParser(option_list=["--id_list"]).parse_args()
         
         # Using ncbi2ontogene3 to retrieve a list with a dictionary for each row
-        processed_input = process_file(infile, options, None)
+        processed_input = process_file(self.prepfile, options, None)
         
-        if ontogene:
-            rowlist, term_count, id_count  = transform_input(processed_input, RecType.og_mapping, unified_build=True)
-        else:
-            rowlist, term_count, id_count = transform_input(processed_input, None, unified_build= True)
-        
-        self.stats = Counter({"ids":id_count, "terms":term_count})
-        
-        return rowlist
+        for row, new_id in transform_input(processed_input, RecType.og_mapping, unified_build=True):
+            self.stats["terms"] += 1
+            if new_id:
+                self.stats["ids"] += 1
+            yield row
 
 def mapping(rectype, ontogene):
         if ontogene and rectype in RecType.og_mapping:

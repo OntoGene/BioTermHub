@@ -88,36 +88,28 @@ class RecordSet(object):
     in a dictionary with the key-value structure record["ID"]:record.
     """
     def __init__(self, infile, rectypes, rowdicts = True, ontogene = True):
-        self.handle = open(infile, "r")
+        self.infile = open(infile, "r")
         self.rectypes = rectypes
-        self.rowdicts = []
+        self.ontogene = ontogene
         self.parsedict = {}
         self.stats = Counter({"ids":0, "terms":0})
-        
-        if rowdicts:
-            self.get_rowlist(ontogene)
-            
-        else:
+        if not rowdicts:
             self.build_dict(ontogene)
-            
-    def get_rowlist(self, ontogene):
-        self.record_gen = self.parse(self.handle, ontogene)
-        for record in self.record_gen:
-            self.rowdicts.append(record)
-        
+    
     def build_dict(self, ontogene):
         self.record_gen = self.parse(self.handle, ontogene)
         for record in self.record_gen:
             key = mapping(self.rectypes.accession, self.rectypes, ontogene)
             self.parsedict[record[key]] = record
-            
-    def parse(self, handle, ontogene): # The parameter handle is the UniProt KeyList file.
+    @property
+    def rowdicts(self): # The parameter handle is the UniProt KeyList file.
+        ontogene = self.ontogene
         record = Record(self.rectypes, ontogene)
         mode = SINGLE_RECORD
         multi_value_list = []
         
         # Now parse the records
-        for line in handle:
+        for line in self.infile:
             key = line[:2]
             
             if key=="//": # The last line of the current record has been reached.
@@ -206,7 +198,7 @@ class RecordSet(object):
                     pass
                 
         # Read the footer and throw it away
-        for line in handle:
+        for line in self.infile:
             pass
 
 def mapping(rectype, rectypes, ontogene):

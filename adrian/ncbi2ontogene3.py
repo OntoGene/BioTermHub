@@ -56,12 +56,12 @@ def process_file(csv_file, options=None, args=None):
         #file_list = [row for row in reader if row['GeneID'] in id_list]
 
     else: 
-        file_list = [row for row in reader]
+        file_gen = (row for row in reader)
         #Use all lines of the file
         
         #print sys.stderr,'#',file_list[0]
 
-    return file_list
+    return file_gen
 
 
 def dict_to_file(dict_list, output_file):
@@ -100,8 +100,7 @@ def transform_input(file_list, mapping = None, unified_build = False):
     new_file_list = []
     
     if unified_build:
-        term_count = len(file_list)
-        id_count = 0
+        term_count = 0
 
     for line_dict in file_list:
         
@@ -127,7 +126,7 @@ def transform_input(file_list, mapping = None, unified_build = False):
         # print 'TERM LIST', term_list
 
         if not term_list == []:
-
+            new_id = True
             for term in list(set(term_list)):
                 output_dict = {}
                 if not mapping:
@@ -142,19 +141,16 @@ def transform_input(file_list, mapping = None, unified_build = False):
                     output_dict[mapping['reference']] = line_dict['Symbol']
                 
                 if unified_build:
-                    id_count += 1
+                    term_count += 1
                     output_dict["oid"] = current_oid
                     output_dict["resource"] = "Entrezgene"
 
                 # print 'OUTPUT_DICT', output_dict
-
-                new_file_list.append(output_dict)
                 
-    if not unified_build:
-        return new_file_list
-    else:
-        return new_file_list, term_count, id_count
-
+                yield output_dict, new_id
+                
+                new_id = False
+        
 def process(options=None, args=None):
     """
     Do the processing.
@@ -221,19 +217,3 @@ def main():
 
 
     sys.exit(0) # Everything went ok!
-
-if __name__ == '__main__':
-    main()
-    #~ from guppy import hpy
-    #~ h = hpy()
-    #~ h.setref()
-    #~ 
-    #~ options, args = OptionParser(option_list=["--id_list"]).parse_args()
-        #~ 
-    #~ processed_input = process_file("1k_snippets/gene_info_10k.trunc", options, None)
-        #~ 
-    #~ rowlist, term_count, id_count = transform_input(processed_input, {'ncbi_id':"original_id", 'term':"term", 'reference':"preferred_term", 'type':"entity_type"}, unified_build=True)
-    #~ 
-    #~ del processed_input
-    #~ 
-    #~ print h.heap()
