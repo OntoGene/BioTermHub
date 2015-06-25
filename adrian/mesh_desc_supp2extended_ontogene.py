@@ -9,7 +9,6 @@ from optparse import OptionParser
 import codecs
 import sys
 import os
-import codecs
 import shutil
 import random
 import nltk
@@ -29,10 +28,6 @@ from unicode_csv import UnicodeDictWriter
 
 
 
-# Prevent Encoding exceptions in Python 2.x
-sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
-sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
-sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
 
 
 def parse_desc_file(desc_file, options=None, args=None):
@@ -470,6 +465,14 @@ def main():
     sys.exit(0) # Everything went ok!
 
 if __name__ == '__main__':
+    # Prevent Encoding exceptions in Python 2.x
+    # Edit by Lenz: I moved those here because otherwise I get a nasty
+    # double-encoding when importing this script as a module in ipython
+    # (an interactive Python interpreter).
+    sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
+    sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
+    sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
+
     cProfile.run('main()', 'mesh.profile1')
     
     #main()
