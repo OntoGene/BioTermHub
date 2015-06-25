@@ -4,7 +4,9 @@ import codecs
 import csv
 import sys
 from collections import defaultdict, OrderedDict, Counter
-sys.path.insert(0, '../lib')
+
+HERE = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
 
 import biogrid_parser
 import uniprot_cellosaurus_parser
