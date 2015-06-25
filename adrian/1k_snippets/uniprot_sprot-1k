@@ -1197,7 +1197,7 @@ SQ   SEQUENCE   78 AA;  8280 MW;  AB74A887451B977D CRC64;
      DSPVTMTLFV MALSASPE
 //
 ID   019R_FRG3G              Reviewed;         851 AA.
-AC   Q6GZV6;
+AC   Q6GZV6; Q6GDOO; Q6GMOO;
 DT   28-JUN-2011, integrated into UniProtKB/Swiss-Prot.
 DT   19-JUL-2004, sequence version 1.
 DT   01-APR-2015, entry version 65.

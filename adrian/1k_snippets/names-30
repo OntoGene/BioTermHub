@@ -1,0 +1,33 @@
+1	|	all	|		|	synonym	|
+1	|	root	|		|	scientific name	|
+2	|	Bacteria	|	Bacteria <prokaryote>	|	scientific name	|
+2	|	Monera	|	Monera <Bacteria>	|	in-part	|
+2	|	Procaryotae	|	Procaryotae <Bacteria>	|	in-part	|
+2	|	Prokaryota	|	Prokaryota <Bacteria>	|	in-part	|
+2	|	Prokaryotae	|	Prokaryotae <Bacteria>	|	in-part	|
+2	|	bacteria	|	bacteria <blast2>	|	blast name	|
+2	|	eubacteria	|		|	genbank common name	|
+2	|	not Bacteria Haeckel 1894	|		|	synonym	|
+2	|	prokaryote	|	prokaryote <Bacteria>	|	in-part	|
+2	|	prokaryotes	|	prokaryotes <Bacteria>	|	in-part	|
+6	|	Azorhizobium	|		|	scientific name	|
+6	|	Azorhizobium Dreyfus et al. 1988	|		|	authority	|
+6	|	Azotirhizobium	|		|	misspelling	|
+7	|	ATCC 43989	|		|	type material	|
+7	|	Azorhizobium caulinodans	|		|	scientific name	|
+7	|	Azorhizobium caulinodans Dreyfus et al. 1988	|		|	synonym	|
+7	|	Azotirhizobium caulinodans	|		|	equivalent name	|
+7	|	CCUG 26647	|		|	type material	|
+7	|	DSM 5975	|		|	type material	|
+7	|	IFO 14845	|		|	type material	|
+7	|	JCM 20966	|		|	type material	|
+7	|	LMG 6465	|		|	type material	|
+7	|	NBRC 14845	|		|	type material	|
+7	|	ORS 571	|		|	type material	|
+9	|	Acyrthosiphon pisum symbiont P	|		|	includes	|
+9	|	Buchnera aphidicola	|		|	scientific name	|
+9	|	Buchnera aphidicola Munson et al. 1991	|		|	synonym	|
+10	|	"Cellvibrio" Winogradsky 1929	|		|	synonym	|
+10	|	Cellvibrio	|		|	scientific name	|
+10	|	Cellvibrio (ex Winogradsky 1929) Blackall et al. 1986 emend. Humphry et al. 2003	|		|	synonym	|
+11	|	"Cellvibrio gilvus" Hulcher and King 1958	|		|	authority	|
