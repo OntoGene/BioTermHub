@@ -17,6 +17,7 @@ import collections
 import csv
 import cStringIO
 import xml.etree.cElementTree as ET
+import oid_generator
 
 
 import cProfile
@@ -259,7 +260,7 @@ def desc2ontogene_headers(relevant_trees, desc_dict_list, options=None, args=Non
                     ontogene_dict_temp = {}
                 
                      # Is this the right place to insert oid? (One per mesh id per entity type)
-                    ontogene_dict_temp['oid'] = 'none'
+                    ontogene_dict_temp['oid'] = oid_generator.OID.get()
                     # ADD OID
             
                     branch_cat = mesh_trees[entity_type_code]
@@ -297,7 +298,7 @@ def supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, option
     mesh_trees = {'A' : 'Anatomy', 'B' : 'Organisms', 'C' : 'Diseases', 'D' : 'Chemicals and Drugs', 'E' : 'Analytical,Diagnostic and Therapeutic Techniques and Equipment',
     'F' : 'Psychiatry and Psychology', 'G' : 'Phenomena and Processes', 'H' : 'Disciplines and Occupations', 'I' : 'Anthropology,Education,Sociology and Social Phenomena', 'J' : 'Technology,Industry,Agriculture',
     'K' : 'Humanities', 'L' : 'Information Science', 'M' : 'Named Groups', 'N' : 'Health Care', 'V' : 'Publication Characteristics', 
-    'Z' : 'Geographicals', 'empty_branch' : 'missing'}
+    'Z' : 'Geographicals', 'empty_branch' : '-'}
     
     new_mesh_dict = {'Diseases' : 'disease', 'Chemicals and Drugs' : 'chemical', 'Organisms' : 'organism'}
     
@@ -328,7 +329,7 @@ def supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, option
                     ontogene_dict_temp = {}
                 
                     # Is this the right place to insert oid? (One per mesh id per entity type)
-                    ontogene_dict_temp['oid'] = 'none'
+                    ontogene_dict_temp['oid'] = oid_generator.OID.get()
                     # ADD OID
                 
                     branch_cat = mesh_trees[entity_type_code]
@@ -455,6 +456,7 @@ def main():
         tree_list = options.entity_trees.split(',')
         tree_list.append('empty_branch')
         print tree_list, 'TREE LIST'
+        #relevant_trees = set(tree_list)
         relevant_trees = set(tree_list)
     else: relevant_trees = set(mesh_trees.keys())
     

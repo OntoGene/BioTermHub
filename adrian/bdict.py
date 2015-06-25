@@ -164,6 +164,21 @@ class nestedbidict(dict):
         for key, value in super(nestedbidict, self).iteritems():
             self.inverse.setdefault(value[self.primary_value],set()).add(key)
 
+    def fromdictpair(self, normal, inverse):
+        super(nestedbidict, self).__init__(normal)
+        self.inverse = inverse
+
+    def absorb(self, merge_nbd):
+        assert merge_nbd.primary_value == self.primary_value, \
+               "Primary values not identical (self: %s, other: %s)" % \
+               (merge_nbd.primary_value, self.primary_value)
+        new_self = self.copy()
+        new_inverse = self.inverse.copy()
+        new_self.update(merge_nbd)
+        new_inverse.update(merge_nbd.inverse)
+        
+        self.fromdictpair(new_self, new_inverse)
+
 class nestedfullbidict:
     pass
 

@@ -9,7 +9,7 @@ from optparse import OptionParser
 import codecs
 import sys
 import os
-from Bio import Entrez
+#from Bio import Entrez
 import codecs
 import shutil
 import random
