@@ -27,6 +27,10 @@ class bidict(dict):
             items = self.inverse.items()
         
         return items
+
+    def fromdictpair(self, normal, inverse):
+        super(bidict, self).__init__(normal)
+        self.inverse = inverse
     
     # return items iterators    
     def iteritems(self, to_list = False):
@@ -176,7 +180,7 @@ class nestedbidict(dict):
         new_inverse = self.inverse.copy()
         new_self.update(merge_nbd)
         new_inverse.update(merge_nbd.inverse)
-        
+
         self.fromdictpair(new_self, new_inverse)
 
 class nestedfullbidict:
