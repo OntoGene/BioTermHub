@@ -11,7 +11,7 @@ import os
 from cgi import FieldStorage
 import multiprocessing as mp
 import time
-import codecs
+import glob
 
 from lxml import etree
 import cgitb
@@ -21,9 +21,10 @@ HERE = os.path.dirname(__file__)
 libdir = os.path.join(HERE, 'lib')
 
 sys.path.append('/mnt/storage/hex/users/furrer/'
-                'tia2015-biomed-term-res/terminology_tool/adrian')
+                'tia2015-biomed-term-res/terminology_tool')
 sys.path.append(libdir)
-
+import adrian.unified_builder as ub
+ub = reload(ub)  # make sure recent changes take effect
 
 
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
@@ -50,17 +51,29 @@ def application(environ, start_response):
 
     fields = FieldStorage(fp=environ['wsgi.input'], environ=environ,
                           keep_blank_values=1)
-    timekey = fields.getfirst('id')
-    if timekey is None:
-        result = '[no pending request]'
+    download_id = fields.getfirst('dlid')
+    if download_id is not None:
+        result = handle_download_request(download_id)
     else:
-        result = handle_download_request(timekey)
+        requested = fields.getlist('resources')
+        if requested:
+            link = start_resource_creation(
+                {id_: resource_keys[id_] for id_ in requested})
+            result = etree.HTML('<p>The resource is being created.<br/>'
+                                'A download link will be provided '
+                                '<a href="{}" target="blank_">here</a> '
+                                'in a few minutes.</p>'.format(link))
+        else:
+            result = etree.HTML('<p>[no pending request]</p>')
 
-    msg = repr(fields.getlist('resources'))
+    if fields.getfirst('del') == 'all':
+        for fn in glob.iglob('{}/*'.format(DOWNLOADDIR)):
+            os.remove(fn)
 
-    html.find('.//*[@id="div-msg"]').text = msg
+    html.find('.//*[@id="div-result"]').append(result)
 
-    html.find('.//*[@id="div-result"]').text = result
+    # msg = repr(fields.getlist('resources'))
+    # html.find('.//*[@id="div-msg"]').text = msg
 
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True)
@@ -88,33 +101,31 @@ def populate_checkboxes(doc, resources):
 
 
 def start_resource_creation(resources):
-    try:
-        os.makedirs(DOWNLOADDIR)
-    except OSError as e:
-        if e.errno != 17:
-            raise e
-    timekey = int(time.time())
+    timestamp = int(time.time())
+    download_id = '{}-{}'.format(timestamp, '-'.join(sorted(resources)))
+    target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
     # Start the categorisation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
-                   args=(timekey, request_body, DOWNLOADDIR))
+                   args=(resources, target_fn))
     p.start()
-    return '{}?id={}'.format(THISURL, timekey)
+    return '{}?dlid={}'.format(THISURL, download_id)
 
 
-def handle_download_request(timekey):
-    resultfn = os.path.join(DOWNLOADDIR, '{}.result'.format(timekey))
-    try:
-        with codecs.open(resultfn, 'r', 'utf8') as f:
-            return f.read()
-    except IOError as e:
-        if e.errno == 2:
-            return '[noch nicht bereit]'
-        else:
-            return str(e)
+def handle_download_request(download_id):
+    fn = '{}.csv'.format(download_id)
+    if os.path.exists(os.path.join(DOWNLOADDIR, fn)):
+        address = '/'.join((THISURL, 'downloads', fn))
+        link = etree.Element('a', {'href': address})
+        link.text = fn
+        return link
+    else:
+        return etree.HTML('<p>[not ready yet]</p>')
 
 
-def create_resource(timekey, request_body, dldir):
-    pass
+def create_resource(resources, target_fn):
+    rsc = ub.RecordSetContainer(**resources)
+    ub.UnifiedBuilder(rsc, target_fn + '.tmp')
+    os.rename(target_fn + '.tmp', target_fn)
 
 
 PAGE = '''<!doctype html>
