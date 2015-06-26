@@ -11,7 +11,7 @@ import os
 from cgi import FieldStorage
 import multiprocessing as mp
 import time
-import codecs
+import glob
 
 from lxml import etree
 import cgitb
@@ -21,11 +21,13 @@ HERE = os.path.dirname(__file__)
 libdir = os.path.join(HERE, 'lib')
 
 sys.path.append('/mnt/storage/hex/users/furrer/'
-                'tia2015-biomed-term-res/terminology_tool/adrian')
+                'tia2015-biomed-term-res/terminology_tool')
 sys.path.append(libdir)
+import adrian.unified_builder as ub
+ub = reload(ub)  # make sure recent changes take effect
 
 
-
+# Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 THISURL = ('http://localhost:8080/hex/users/furrer/'
            'tia2015-biomed-term-res/terminology_tool/www')
@@ -35,7 +37,7 @@ RESOURCES = [
     ('Cellosaurus', 'cellosaurus', "1k_snippets/cellosaurus-2"),
     ('EntrezGene', 'entrezgene', "1k_snippets/gene_info-3"),
     ('MeSH', 'mesh', ("1k_snippets/desc-1k", "1k_snippets/supp-1k")),
-    ('Taxdump', 'taxdump', "1k_snippets/names-1k)")]
+    ('Taxdump', 'taxdump', "1k_snippets/names-1k")]
 
 # Some shorthands.
 se = etree.SubElement
@@ -43,29 +45,46 @@ NBSP = u'\xA0'
 
 
 def application(environ, start_response):
+    # Build the page.
     html = etree.HTML(PAGE)
-
     populate_checkboxes(html, RESOURCES)
     resource_keys = {id_: loc for _, id_, loc in RESOURCES}
 
+    # Respond to the user requests.
     fields = FieldStorage(fp=environ['wsgi.input'], environ=environ,
                           keep_blank_values=1)
-    timekey = fields.getfirst('id')
-    if timekey is None:
-        result = '[no pending request]'
+    download_id = fields.getfirst('dlid')
+    creation_request = fields.getlist('resources')
+    if download_id is not None:
+        # Creation has started already. Check for the resulting CSV.
+        result = handle_download_request(download_id)
+    elif creation_request:
+        # A creation request has been submitted.
+        link = start_resource_creation(
+            {id_: resource_keys[id_] for id_ in creation_request})
+        result = etree.HTML('<p>The resource is being created.<br/>'
+                            'A download link will be provided '
+                            '<a href="{}" target="blank_">here</a> '
+                            'in a few minutes.</p>'.format(link))
     else:
-        result = handle_download_request(timekey)
+        # Empty form.
+        result = etree.HTML('<p>[no pending request]</p>')
 
-    msg = repr(fields.getlist('resources'))
+    # Hidden functionality: clear the downloads directory with "?del=all".
+    if fields.getfirst('del') == 'all':
+        delfns = glob.glob('{}/*'.format(DOWNLOADDIR))
+        for fn in delfns:
+            os.remove(fn)
+        msg = 'INFO: removed {} files in {}.'.format(len(delfns), DOWNLOADDIR)
+        html.find('.//*[@id="div-msg"]').text = msg
 
-    html.find('.//*[@id="div-msg"]').text = msg
-
-    html.find('.//*[@id="div-result"]').text = result
-
+    # Serialise the complete page.
+    html.find('.//*[@id="div-result"]').append(result)
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True)
-    status = '200 OK'
 
+    # WSGI boilerplate: HTTP response.
+    status = '200 OK'
     response_headers = [('Content-type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
     start_response(status, response_headers)
@@ -88,33 +107,52 @@ def populate_checkboxes(doc, resources):
 
 
 def start_resource_creation(resources):
-    try:
-        os.makedirs(DOWNLOADDIR)
-    except OSError as e:
-        if e.errno != 17:
-            raise e
-    timekey = int(time.time())
-    # Start the categorisation process, but don't wait for its termination.
+    '''
+    Asynchronous initialisation.
+    '''
+    timestamp = int(time.time())
+    download_id = '{}-{}'.format(timestamp, '-'.join(sorted(resources)))
+    target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
+    # Start the creation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
-                   args=(timekey, request_body, DOWNLOADDIR))
+                   args=(resources, target_fn))
     p.start()
-    return '{}?id={}'.format(THISURL, timekey)
+    return '{}?dlid={}'.format(THISURL, download_id)
 
 
-def handle_download_request(timekey):
-    resultfn = os.path.join(DOWNLOADDIR, '{}.result'.format(timekey))
+def handle_download_request(download_id):
+    '''
+    Check if the CSV is ready yet, or if an error occurred.
+    '''
+    msg = etree.Element('p')
+    fn = '{}.csv'.format(download_id)
+    path = os.path.join(DOWNLOADDIR, fn)
+    if os.path.exists(path):
+        address = '/'.join((THISURL, 'downloads', fn))
+        se(msg, 'a', {'href': address}).text = fn
+    elif os.path.exists(path + '.log'):
+        with open(path + '.log') as f:
+            msg.text = 'Runtime error: {}'.format(f.read())
+    else:
+        msg.text = '[not ready yet]'
+    return msg
+
+
+def create_resource(resources, target_fn):
+    '''
+    Call the creation pipeline.
+
+    Since exceptions are not raised to the parent process,
+    write them to a log file.
+    '''
     try:
-        with codecs.open(resultfn, 'r', 'utf8') as f:
-            return f.read()
-    except IOError as e:
-        if e.errno == 2:
-            return '[noch nicht bereit]'
-        else:
-            return str(e)
-
-
-def create_resource(timekey, request_body, dldir):
-    pass
+        rsc = ub.RecordSetContainer(**resources)
+        ub.UnifiedBuilder(rsc, target_fn + '.tmp')
+    except Exception as e:
+        with open(target_fn + '.log') as f:
+            f.write(str(e))
+    else:
+        os.rename(target_fn + '.tmp', target_fn)
 
 
 PAGE = '''<!doctype html>
