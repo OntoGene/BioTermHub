@@ -28,6 +28,9 @@ http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LA
 # NCBI Taxonomy
 ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip
 
+# CHEBI ontology
+ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo
+
 # NLM NIH MeSH (need to be changed once a year)
 ## Descriptor records
 ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc{%Y}.zip

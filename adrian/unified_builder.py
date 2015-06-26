@@ -3,20 +3,24 @@ import os
 import codecs
 import csv
 import sys
+import cPickle
 from collections import defaultdict, OrderedDict, Counter
 
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
 
-import biogrid_parser
+# custom modules
+import bdict
+from unicode_csv import UnicodeDictWriter
+
+# parsers and parser wrappers
 import uniprot_cellosaurus_parser
+import taxdump_parser
 import entrezgene_n2o3_wrapper
 import mesh_wrapper
-import taxdump_parser
-import bdict
-import cPickle
-from pprint import pprint 
-from unicode_csv import UnicodeDictWriter
+import chebi_o2o_wrapper
+
+
 
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
@@ -27,14 +31,22 @@ class RecordSetContainer(object):
         self.okwargs = OrderedDict(sorted(kwargs.items(), key= lambda x: x[0]))
         self.calls = {"uniprot": {"module":uniprot_cellosaurus_parser, "arguments":(self.dkwargs["uniprot"], uniprot_cellosaurus_parser.UniProtRecTypes)},
                       "cellosaurus":{"module":uniprot_cellosaurus_parser, "arguments":(self.dkwargs["cellosaurus"], uniprot_cellosaurus_parser.CellosaurusRecTypes)},
-                      "entrezgene":{"module":entrezgene_n2o3_wrapper, "arguments":(self.dkwargs["entrezgene"], )},
+                      "entrezgene":{"module":entrezgene_n2o3_wrapper, "arguments":(self.dkwargs["entrezgene"],)},
                       "mesh":{"module":mesh_wrapper, "arguments":self.dkwargs["mesh"]},
-                      "taxdump":{"module":taxdump_parser, "arguments":(self.dkwargs["taxdump"], )}
+                      "taxdump":{"module":taxdump_parser, "arguments":(self.dkwargs["taxdump"],)},
+                      "chebi":{"module":chebi_o2o_wrapper, "arguments":(self.dkwargs["chebi"],)}
                       }
+
         self.stats = {}
-        self.bidict_originalid_oid = bdict.bidict()
-        self.bidict_originalid_term = bdict.bidict()
+
+        if not self.pickles_exist:
+            self.bidict_originalid_oid = bdict.bidict()
+            self.bidict_originalid_term = bdict.bidict()
         #self.bidict_originalid_term = bdict.defaultbidict(set)
+
+    @property
+    def pickles_exist(self):
+        return os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term.pkl')
     
     def recordsets(self):
         for resource, infile in self.okwargs.iteritems():
@@ -93,32 +105,47 @@ class UnifiedBuilder(dict):
         #~ print
 
     def pickle_bidicts(self, rsc):
-        with open('data/originalid_oid_n.pkl', 'wb') as o_originalid_oid_n, \
-             open('data/originalid_oid_i.pkl', 'wb') as o_originalid_oid_i:
-            cPickle.dump(dict(rsc.bidict_originalid_oid), o_originalid_oid_n, -1)
-            cPickle.dump(dict(rsc.bidict_originalid_oid.inverse), o_originalid_oid_i, -1)
+        with open('data/originalid_oid.pkl', 'wb') as o_originalid_oid:
+            cPickle.dump(rsc.bidict_originalid_oid, o_originalid_oid, -1)
 
-        with open('data/originalid_term_n.pkl', 'wb') as o_originalid_term_n, \
-             open('data/originalid_term_i.pkl', 'wb') as o_originalid_term_i:
-            cPickle.dump(dict(rsc.bidict_originalid_term), o_originalid_term_n, -1)
-            cPickle.dump(dict(rsc.bidict_originalid_term.inverse), o_originalid_term_i, -1)
-            
+        with open('data/originalid_term.pkl', 'wb') as o_originalid_term:
+            cPickle.dump(rsc.bidict_originalid_term, o_originalid_term, -1)
+
     def unpickle_bidicts(self, rsc):
-        if os.path.exists('data/originalid_oid_n.pkl') and \
-           os.path.exists('data/originalid_oid_i.pkl') and \
-           os.path.exists('data/originalid_term_n.pkl') and \
-           os.path.exists('data/originalid_term_i.pkl'):
+        if rsc.pickles_exist:
+            with open('data/originalid_oid.pkl', 'rb') as o_originalid_oid:
+                rsc.bidict_originalid_oid = cPickle.load(o_originalid_oid)
 
-            with open('data/originalid_oid_n.pkl', 'rb') as o_originalid_oid_n, \
-                 open('data/originalid_oid_i.pkl', 'rb') as o_originalid_oid_i:
-             	normal = cPickle.load(o_originalid_oid_n)
-                inverse = cPickle.load(o_originalid_oid_i)
-                rsc.bidict_originalid_oid = bdict.bidict()
-                rsc.bidict_originalid_oid.fromdictpair(normal, inverse)
+            with open('data/originalid_term.pkl', 'rb') as o_originalid_term:
+                rsc.bidict_originalid_term = cPickle.load(o_originalid_term)
 
-            with open('data/originalid_term_n.pkl', 'rb') as o_originalid_term_n, \
-                 open('data/originalid_term_i.pkl', 'rb') as o_originalid_term_i:
-                normal = cPickle.load(o_originalid_term_n)
-                inverse = cPickle.load(o_originalid_term_i)
-                rsc.bidict_originalid_term = bdict.defaultbidict(set)
-                rsc.bidict_originalid_term.fromdictpair(normal, inverse)
+    # def pickle_bidicts(self, rsc):
+    #     with open('data/originalid_oid_n.pkl', 'wb') as o_originalid_oid_n, \
+    #          open('data/originalid_oid_i.pkl', 'wb') as o_originalid_oid_i:
+    #         cPickle.dump(dict(rsc.bidict_originalid_oid), o_originalid_oid_n, -1)
+    #         cPickle.dump(dict(rsc.bidict_originalid_oid.inverse), o_originalid_oid_i, -1)
+    #
+    #     with open('data/originalid_term_n.pkl', 'wb') as o_originalid_term_n, \
+    #          open('data/originalid_term_i.pkl', 'wb') as o_originalid_term_i:
+    #         cPickle.dump(dict(rsc.bidict_originalid_term), o_originalid_term_n, -1)
+    #         cPickle.dump(dict(rsc.bidict_originalid_term.inverse), o_originalid_term_i, -1)
+    #
+    # def unpickle_bidicts(self, rsc):
+    #     if os.path.exists('data/originalid_oid_n.pkl') and \
+    #        os.path.exists('data/originalid_oid_i.pkl') and \
+    #        os.path.exists('data/originalid_term_n.pkl') and \
+    #        os.path.exists('data/originalid_term_i.pkl'):
+    #
+    #         with open('data/originalid_oid_n.pkl', 'rb') as o_originalid_oid_n, \
+    #              open('data/originalid_oid_i.pkl', 'rb') as o_originalid_oid_i:
+    #          	normal = cPickle.load(o_originalid_oid_n)
+    #             inverse = cPickle.load(o_originalid_oid_i)
+    #             rsc.bidict_originalid_oid = bdict.bidict()
+    #             rsc.bidict_originalid_oid.fromdictpair(normal, inverse)
+    #
+    #         with open('data/originalid_term_n.pkl', 'rb') as o_originalid_term_n, \
+    #              open('data/originalid_term_i.pkl', 'rb') as o_originalid_term_i:
+    #             normal = cPickle.load(o_originalid_term_n)
+    #             inverse = cPickle.load(o_originalid_term_i)
+    #             rsc.bidict_originalid_term = bdict.defaultbidict(set)
+    #             rsc.bidict_originalid_term.fromdictpair(normal, inverse)
