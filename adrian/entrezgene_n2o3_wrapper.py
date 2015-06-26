@@ -44,12 +44,12 @@ class RecordSet(object):
                 
     @property
     def rowdicts(self):
-	if self.options == "default":
+        if self.options == "default":
             options, args = OptionParser(option_list=["--id_list"]).parse_args()
         
-        # Using ncbi2ontogene3 to retrieve a list with a dictionary for each row
+        # Using ncbi2ontogene3 to retrieve a dictionary for each row
         processed_input = process_file(self.prepfile, options, None)
-        
+
         for row, new_id in transform_input(processed_input, RecType.og_mapping, unified_build=True):
             self.stats["terms"] += 1
             if new_id:

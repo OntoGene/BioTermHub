@@ -48,11 +48,9 @@ class RecordSet(object):
         
         desc_ontogene_headers = desc2ontogene_headers(relevant_trees, desc_dict_list)
         supp_ontogene_headers = supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict)
-        
-        print desc_ontogene_headers
-        
+
         rowlist = desc_ontogene_headers + supp_ontogene_headers
         
-        self.stats = Counter({"ids":0, "terms":0}) # TODO
+        self.stats = Counter({"ids":0, "terms":0}) # TODO: Calculate statistics
             
         return rowlist

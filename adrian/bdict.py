@@ -5,20 +5,27 @@ import collections
 class bidict(dict):
     def __init__(self, *args, **kwargs):
         super(bidict, self).__init__(*args, **kwargs)
+        self.identity = True
         self.inverse = {}
         for key, value in super(bidict, self).iteritems():
-            self.inverse.setdefault(value,[]).append(key) 
+            if value not in self.inverse or key not in self.inverse[value]:
+                self.inverse.setdefault(value,[]).append(key)
 
     def __setitem__(self, key, value):
         super(bidict, self).__setitem__(key, value)
-        self.inverse.setdefault(value,[]).append(key)        
+        try:
+            if value not in self.inverse or key not in self.inverse[value]:
+                self.inverse.setdefault(value,[]).append(key)
+        # In case of unpickling, self.inverse has not been instantiated at this point, therefor pass
+        except AttributeError:
+            pass
 
     def __delitem__(self, key):
         self.inverse.setdefault(self[key],[]).remove(key)
         if self[key] in self.inverse and not self.inverse[self[key]]: 
             del self.inverse[self[key]]
         super(bidict, self).__delitem__(key)
-        
+
     # return items tuple lists
     def items(self, inverse = False):
         if not inverse:
