@@ -236,9 +236,8 @@ def desc2ontogene_headers(relevant_trees, desc_dict_list, options=None, args=Non
     
     new_mesh_dict = {'Diseases' : 'disease', 'Chemicals and Drugs' : 'chemical', 'Organisms' : 'organism'}
     
-    ontogene_dict_list = []
-
     for one_dict in desc_dict_list:
+        record = True
     
         try:
     
@@ -273,7 +272,8 @@ def desc2ontogene_headers(relevant_trees, desc_dict_list, options=None, args=Non
                         ontogene_dict_temp2['preferred_term'] = one_dict['DescriptorName']
                         ontogene_dict_temp2['resource'] = 'mesh_desc'
                 
-                        ontogene_dict_list.append(ontogene_dict_temp2)
+                        yield ontogene_dict_temp2, record
+                        record = False
                     
         except KeyError:
             ###print one_dict, 'NO TREE NUMBERS'
@@ -282,7 +282,6 @@ def desc2ontogene_headers(relevant_trees, desc_dict_list, options=None, args=Non
                 
     ##print 'DESC OG DICT LIST', ontogene_dict_list
                 
-    return ontogene_dict_list
     
     
     
@@ -297,9 +296,8 @@ def supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, option
     
     new_mesh_dict = {'Diseases' : 'disease', 'Chemicals and Drugs' : 'chemical', 'Organisms' : 'organism'}
     
-    ontogene_dict_list = []
-
     for one_dict in supp_dict_list:
+        record = True
         
         ref_descs = one_dict['Mapping:ReferredDescriptors']
     
@@ -343,11 +341,11 @@ def supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, option
                         ontogene_dict_temp2['preferred_term'] = one_dict['SupplementalRecordName']
                         ontogene_dict_temp2['resource'] = 'mesh_supp'
                     
-                        ontogene_dict_list.append(ontogene_dict_temp2)
+                        yield ontogene_dict_temp2, record
+                        record = False
                 
     ###print 'SUPP OG DICT LIST', ontogene_dict_list
                 
-    return ontogene_dict_list
     
     
     
@@ -377,9 +375,11 @@ def dict_to_file(dict_list, output_file, options=None, args=None):
     finally: csv_file.close()
 
 
-
-
-
+def yield_outputrows(desc, supp):
+    for row, record in desc:
+        yield row
+    for row, record in supp:
+        yield row
 
 def process(relevant_trees, options=None, args=None):
     """
@@ -408,7 +408,7 @@ def process(relevant_trees, options=None, args=None):
     desc_ontogene_headers = desc2ontogene_headers(relevant_trees, desc_dict_list, options=options, args=args)
     supp_ontogene_headers = supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, options=options, args=args)
     
-    output_dict = desc_ontogene_headers + supp_ontogene_headers
+    output_dict = yield_outputrows(desc_ontogene_headers, supp_ontogene_headers)
     
     dict_to_file(output_dict, output_file, options=options, args=args)
 
