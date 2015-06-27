@@ -1,0 +1,1029 @@
+format-version: 1.2
+data-version: 128
+date: 01:06:2015 01:52
+saved-by: chebi
+default-namespace: chebi_ontology
+remark: ChEBI subsumes and replaces the Chemical Ontology first
+synonymtypedef: IUPAC_NAME "IUPAC NAME"
+synonymtypedef: FORMULA "FORMULA"
+synonymtypedef: SMILES "SMILES"
+synonymtypedef: InChI "InChI"
+synonymtypedef: InChIKey "InChIKey"
+synonymtypedef: BRAND_NAME "BRAND NAME"
+synonymtypedef: INN "INN"
+remark: developed by Michael Ashburner & Pankaj Jaiswal.
+remark: Author: ChEBI curation team 
+remark: ChEBI Release version 127
+remark: For any queries contact chebi-help@ebi.ac.uk 
+ontology: chebi
+
+[Term]
+id: CHEBI:24431
+name: chemical entity
+def: "A chemical entity is a physical entity of interest in chemistry including molecular entities, parts thereof, and chemical substances." []
+synonym: "grouped_by_chemistry" RELATED [ChEBI:]
+synonym: "chemical entity" EXACT [UniProt:]
+synonym: "." RELATED FORMULA [ChEBI:]
+
+[Term]
+id: CHEBI:23367
+name: molecular entity
+def: "Any constitutionally or isotopically distinct atom, molecule, ion, ion pair, radical, radical ion, complex, conformer etc., identifiable as a separately distinguishable entity." []
+synonym: "entidades moleculares" RELATED [IUPAC:]
+synonym: "molekulare Entitaet" RELATED [ChEBI:]
+synonym: "entite moleculaire" RELATED [IUPAC:]
+synonym: "entidad molecular" RELATED [IUPAC:]
+synonym: "molecular entity" EXACT IUPAC_NAME [IUPAC:]
+synonym: "molecular entities" RELATED [IUPAC:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:24431
+
+[Term]
+id: CHEBI:24870
+name: ion
+def: "A molecular entity having a net electric charge." []
+synonym: "ion" EXACT IUPAC_NAME [IUPAC:]
+synonym: "iones" RELATED [ChEBI:]
+synonym: "ions" RELATED [ChEBI:]
+synonym: "Ion" EXACT [ChEBI:]
+synonym: "ion" EXACT [ChEBI:]
+synonym: "Ionen" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:23367
+
+[Term]
+id: CHEBI:24867
+name: monoatomic ion
+synonym: "ionic elements" RELATED [ChEBI:]
+synonym: "monoatomic ions" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:24870
+is_a: CHEBI:33238
+
+[Term]
+id: CHEBI:23905
+name: monoatomic anion
+synonym: "monoatomic anions" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:24867
+is_a: CHEBI:22563
+
+[Term]
+id: CHEBI:33429
+name: monoatomic monoanion
+synonym: "monoatomic monoanions" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+synonym: "[*-]" RELATED SMILES [ChEBI:]
+is_a: CHEBI:23905
+is_a: CHEBI:36830
+
+[Term]
+id: CHEBI:30151
+name: aluminide(1-)
+def: "A monoatomic aluminium that has formula Al." []
+synonym: "Aluminum anion" RELATED [NIST Chemistry WebBook:]
+synonym: "Al(-)" RELATED [IUPAC:]
+synonym: "aluminide(1-)" EXACT IUPAC_NAME [IUPAC:]
+synonym: "aluminide(-I)" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Al" RELATED FORMULA [ChEBI:]
+synonym: "[Al-]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Al/q-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=SBLSYFIUPXRQRY-UHFFFAOYSA-N" RELATED InChIKey [ChEBI:]
+xref: NIST Chemistry WebBook:22325-47-9 "CAS Registry Number"
+is_a: CHEBI:33429
+is_a: CHEBI:33627
+
+[Term]
+id: CHEBI:16042
+name: halide anion
+alt_id: CHEBI:14384
+alt_id: CHEBI:5605
+def: "A monoatomic monoanion resulting from the addition of an electron to any halogen atom." []
+synonym: "HX" RELATED [KEGG COMPOUND:]
+synonym: "halide ions" EXACT IUPAC_NAME [IUPAC:]
+synonym: "halide(1-)" RELATED [ChEBI:]
+synonym: "halogen anion" RELATED [ChEBI:]
+synonym: "halides" RELATED [ChEBI:]
+synonym: "halide anions" RELATED [ChEBI:]
+synonym: "Halo acid" RELATED [KEGG COMPOUND:]
+synonym: "Hydrogen halide" RELATED [KEGG COMPOUND:]
+synonym: "halide" RELATED [UniProt:]
+synonym: "Halide" RELATED [KEGG COMPOUND:]
+synonym: "X" RELATED FORMULA [KEGG COMPOUND:]
+xref: KEGG COMPOUND:C00462 "KEGG COMPOUND"
+is_a: CHEBI:33429
+is_a: CHEBI:79389
+
+[Term]
+id: CHEBI:17051
+name: fluoride
+alt_id: CHEBI:14271
+alt_id: CHEBI:49593
+alt_id: CHEBI:5113
+def: "A monoatomic fluorine that has formula F." []
+synonym: "fluoride(1-)" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Fluorine anion" RELATED [NIST Chemistry WebBook:]
+synonym: "fluoride" EXACT [UniProt:]
+synonym: "Fluoride ion" RELATED [KEGG COMPOUND:]
+synonym: "fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "F(-)" RELATED [IUPAC:]
+synonym: "FLUORIDE ION" RELATED [PDBeChem:]
+synonym: "fluoride" EXACT [PDBeChem:]
+synonym: "Fluoride" EXACT [KEGG COMPOUND:]
+synonym: "F-" RELATED [KEGG COMPOUND:]
+synonym: "F" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "[F-]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/FH/h1H/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=KRHYYFGTRYWZRS-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: Gmelin:14905 "Gmelin Registry Number"
+xref: NIST Chemistry WebBook:16984-48-8 "CAS Registry Number"
+xref: ChemIDplus:16984-48-8 "CAS Registry Number"
+xref: PDBeChem:F "PDBeChem"
+xref: KEGG COMPOUND:C00742 "KEGG COMPOUND"
+is_a: CHEBI:16042
+is_a: CHEBI:36895
+relationship: is_conjugate_base_of CHEBI:29228
+
+[Term]
+id: CHEBI:24060
+name: fluoride salt
+synonym: "fluorides" RELATED [ChEBI:]
+synonym: "fluoride salts" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:33958
+is_a: CHEBI:24062
+relationship: has_part CHEBI:17051
+
+[Term]
+id: CHEBI:28741
+name: sodium fluoride
+alt_id: CHEBI:26713
+alt_id: CHEBI:9178
+def: "A metal fluoride salt with a Na(+) counterion." []
+synonym: "sodium fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "NaF" RELATED [IUPAC:]
+synonym: "Sodium fluoride" EXACT [KEGG COMPOUND:]
+synonym: "FNa" RELATED FORMULA [ChEBI:]
+synonym: "Na.F" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "[F-].[Na+]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/FH.Na/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=PUZPDOWCWNUUKD-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: ChemIDplus:7681-49-4 "CAS Registry Number"
+xref: KEGG DRUG:D00943 "KEGG DRUG"
+xref: Wikipedia:Sodium_Fluoride "Wikipedia"
+xref: KEGG COMPOUND:7681-49-4 "CAS Registry Number"
+xref: KEGG COMPOUND:C08142 "KEGG COMPOUND"
+is_a: CHEBI:24060
+relationship: has_role CHEBI:25435
+
+[Term]
+id: CHEBI:32129
+name: diamminesilver(1+) fluoride
+def: "A fluoride salt that has formula Ag.F.2H3N." []
+synonym: "Silver diammine fluoride" RELATED [KEGG COMPOUND:]
+synonym: "diamminesilver(I) fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "diamminefluorosilver" RELATED [ChemIDplus:]
+synonym: "diamminesilver(1+) fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "diammine silver fluoride" RELATED [ChemIDplus:]
+synonym: "[Ag(NH3)2]F" RELATED [IUPAC:]
+synonym: "Ag.F.2H3N" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "AgFH6N2" RELATED FORMULA [ChEBI:]
+synonym: "[F-].[H][N]([H])([H])[Ag+][N]([H])([H])[H]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Ag.FH.2H3N/h;1H;2*1H3/q+1;;;/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=FJKGRAZQBBWYLG-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: KEGG COMPOUND:34445-07-3 "CAS Registry Number"
+xref: KEGG DRUG:D01502 "KEGG DRUG"
+xref: ChemIDplus:34445-07-3 "CAS Registry Number"
+is_a: CHEBI:24060
+relationship: has_part CHEBI:33049
+
+[Term]
+id: CHEBI:30340
+name: silver monofluoride
+def: "A silver salt that has formula AgF." []
+synonym: "AgF" RELATED [IUPAC:]
+synonym: "silver monofluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "silver(1+) fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "argentous fluoride" RELATED [NIST Chemistry WebBook:]
+synonym: "silver(I) fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "AgF" RELATED FORMULA [ChEBI:]
+synonym: "[F-].[Ag+]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Ag.FH/h;1H/q+1;/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=REYHXKZHIMGNSE-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: NIST Chemistry WebBook:7775-41-9 "CAS Registry Number"
+xref: ChemIDplus:7775-41-9 "CAS Registry Number"
+xref: Gmelin:122625 "Gmelin Registry Number"
+is_a: CHEBI:33968
+is_a: CHEBI:24060
+
+[Term]
+id: CHEBI:51990
+name: tetrabutylammonium fluoride
+def: "A tetrabutylammonium salt that has formula C16H36FN." []
+synonym: "N,N,N-tributylbutan-1-aminium fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "C16H36FN" RELATED FORMULA [ChEBI:]
+synonym: "[F-].CCCC[N+](CCCC)(CCCC)CCCC" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/C16H36N.FH/c1-5-9-13-17(14-10-6-2,15-11-7-3)16-12-8-4;/h5-16H2,1-4H3;1H/q+1;/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=FPGGTKZVZWFYPV-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: CiteXplore:21517057 "PubMed citation"
+xref: Beilstein:3570522 "Beilstein Registry Number"
+xref: CiteXplore:15074950 "PubMed citation"
+xref: ChemIDplus:429-41-4 "CAS Registry Number"
+xref: CiteXplore:21142041 "PubMed citation"
+xref: CiteXplore:22229781 "PubMed citation"
+xref: Reaxys:3570522 "Reaxys Registry Number"
+is_a: CHEBI:24060
+is_a: CHEBI:51992
+relationship: has_role CHEBI:63060
+
+[Term]
+id: CHEBI:49499
+name: beryllium difluoride
+def: "The fluoride salt of beryllium (+2 oxidation state). In the solid state it exists as a glass, with four-coordinate Be(2+) tetrahedral centres and two-coordinate fluoride centres. As a gas it adopts a linear triatomic structure and in the liquid state a fluctuating tetrahedral structure. In protein crystallography it is used as a mimic of phosphate." []
+synonym: "beryllium difluoride" EXACT [PDBeChem:]
+synonym: "BERYLLIUM DIFLUORIDE" EXACT [PDBeChem:]
+synonym: "BeF2" RELATED [ChemIDplus:]
+synonym: "Be2F4" RELATED [ChemIDplus:]
+synonym: "Beryllium fluoride" RELATED [ChemIDplus:]
+synonym: "Berylliumfluorid" RELATED [ChEBI:]
+synonym: "BeF2" RELATED FORMULA [ChEBI:]
+synonym: "F[Be]F" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Be.2FH/h;2*1H/q+2;;/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=JZKFIPKXQBZXMW-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: PDBeChem:BF2 "PDBeChem"
+xref: CiteXplore:1551879 "PubMed citation"
+xref: CiteXplore:16223284 "PubMed citation"
+xref: CiteXplore:2808407 "PubMed citation"
+xref: CiteXplore:8800204 "PubMed citation"
+xref: NIST Chemistry WebBook:7787-49-7 "CAS Registry Number"
+xref: Gmelin:95146 "Gmelin Registry Number"
+xref: CiteXplore:20529842 "PubMed citation"
+xref: MetaCyc:CPD0-1230 "MetaCyc"
+xref: ChemIDplus:7787-49-7 "CAS Registry Number"
+xref: CiteXplore:17963376 "PubMed citation"
+xref: CiteXplore:19561071 "PubMed citation"
+xref: CiteXplore:16771420 "PubMed citation"
+xref: CiteXplore:17979355 "PubMed citation"
+xref: CiteXplore:18651739 "PubMed citation"
+xref: CiteXplore:11897645 "PubMed citation"
+xref: CiteXplore:16771419 "PubMed citation"
+xref: Reaxys:14667390 "Reaxys Registry Number"
+xref: CiteXplore:21141831 "PubMed citation"
+xref: CiteXplore:20572721 "PubMed citation"
+is_a: CHEBI:33780
+is_a: CHEBI:24060
+
+[Term]
+id: CHEBI:66871
+name: ammonium fluoride
+def: "A fluoride salt having ammonium (NH4+) as the counterion." []
+synonym: "Fluorure d'ammonium" RELATED [ChEBI:]
+synonym: "Ammonium fluorure" RELATED [ChEBI:]
+synonym: "ammonium fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Fluoruro amonico" RELATED [ChEBI:]
+synonym: "NH4F" RELATED [ChEBI:]
+synonym: "FH4N" RELATED FORMULA [ChEBI:]
+synonym: "[F-].[H][N+]([H])([H])[H]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/FH.H3N/h1H;1H3" RELATED InChI [ChEBI:]
+synonym: "InChIKey=LDDQLRUQCUTJBB-UHFFFAOYSA-N" RELATED InChIKey [ChEBI:]
+xref: Reaxys:13192588 "Reaxys Registry Number"
+xref: Wikipedia:Ammonium_fluoride "Wikipedia"
+xref: ChemIDplus:12125-01-8 "CAS Registry Number"
+is_a: CHEBI:47704
+is_a: CHEBI:24060
+
+[Term]
+id: CHEBI:66872
+name: potassium fluoride
+def: "A fluoride salt having K+ as the counterion." []
+synonym: "Potassium fluorure" RELATED [ChemIDplus:]
+synonym: "potassium fluoride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Fluorure de potassium" RELATED [ChemIDplus:]
+synonym: "FK" RELATED FORMULA [ChEBI:]
+synonym: "[F-].[K+]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/FH.K/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=NROKBHXJSPEDAR-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: Reaxys:3902818 "Reaxys Registry Number"
+xref: ChemIDplus:7789-23-3 "CAS Registry Number"
+xref: SUBMITTER:3902818 "Beilstein Registry Number"
+xref: CiteXplore:22721409 "PubMed citation"
+xref: CiteXplore:22700337 "PubMed citation"
+xref: CiteXplore:22359362 "PubMed citation"
+xref: CiteXplore:21486073 "PubMed citation"
+xref: CiteXplore:22013284 "PubMed citation"
+xref: CiteXplore:21636316 "PubMed citation"
+xref: NIST Chemistry WebBook:7789-23-3 "CAS Registry Number"
+xref: CiteXplore:22169214 "PubMed citation"
+xref: Wikipedia:Potassium_fluoride "Wikipedia"
+xref: CiteXplore:22777777 "PubMed citation"
+xref: CiteXplore:21412559 "PubMed citation"
+xref: CiteXplore:21863787 "PubMed citation"
+xref: Reaxys:11339017 "Reaxys Registry Number"
+is_a: CHEBI:24060
+is_a: CHEBI:26218
+relationship: has_role CHEBI:64909
+
+[Term]
+id: CHEBI:17996
+name: chloride
+alt_id: CHEBI:13970
+alt_id: CHEBI:48804
+alt_id: CHEBI:3616
+alt_id: CHEBI:13291
+alt_id: CHEBI:3731
+def: "A halide anion formed when chlorine picks up an electron to form an an anion." []
+synonym: "Chloride ion" RELATED [KEGG COMPOUND:]
+synonym: "Chloride(1-)" RELATED [ChemIDplus:]
+synonym: "Chloride" EXACT [KEGG COMPOUND:]
+synonym: "Cl(-)" RELATED [IUPAC:]
+synonym: "chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "chloride(1-)" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Chlorine anion" RELATED [NIST Chemistry WebBook:]
+synonym: "chloride" EXACT [UniProt:]
+synonym: "chloride" EXACT [PDBeChem:]
+synonym: "CHLORIDE ION" RELATED [PDBeChem:]
+synonym: "Chloride" EXACT [KEGG COMPOUND:]
+synonym: "Cl-" RELATED [KEGG COMPOUND:]
+synonym: "Cl" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "[Cl-]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH/h1H/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=VEXZGXHMUGYJMC-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: Gmelin:14910 "Gmelin Registry Number"
+xref: KEGG COMPOUND:16887-00-6 "CAS Registry Number"
+xref: UM-BBD:c0884 "UM-BBD compID"
+xref: Beilstein:3587171 "Beilstein Registry Number"
+xref: ChemIDplus:16887-00-6 "CAS Registry Number"
+xref: NIST Chemistry WebBook:16887-00-6 "CAS Registry Number"
+xref: PDBeChem:CL "PDBeChem"
+xref: KEGG COMPOUND:C00115 "KEGG COMPOUND"
+xref: KEGG COMPOUND:C00698 "KEGG COMPOUND"
+is_a: CHEBI:16042
+is_a: CHEBI:33432
+relationship: is_conjugate_base_of CHEBI:17883
+relationship: has_role CHEBI:77746
+
+[Term]
+id: CHEBI:23114
+name: chloride salt
+synonym: "chlorides" RELATED [ChEBI:]
+synonym: "chloride salts" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:33958
+relationship: has_part CHEBI:17996
+is_a: CHEBI:23117
+
+[Term]
+id: CHEBI:36093
+name: inorganic chloride
+synonym: "inorganic chlorides" RELATED [ChEBI:]
+synonym: "inorganic chloride salts" RELATED [ChEBI:]
+synonym: "inorganic chloride salt" RELATED [ChEBI:]
+synonym: "." RELATED FORMULA [ChEBI:]
+is_a: CHEBI:23114
+is_a: CHEBI:24839
+
+[Term]
+id: CHEBI:6636
+name: magnesium dichloride
+def: "A magnesium salt comprising of two chlorine atoms bound to a magnesium atom." []
+synonym: "[MgCl2]" RELATED [MolBase:]
+synonym: "Magnesium chloride" RELATED [KEGG COMPOUND:]
+synonym: "MgCl2" RELATED [IUPAC:]
+synonym: "Magnesium chloride anhydrous" RELATED [KEGG COMPOUND:]
+synonym: "magnesium dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Magnesiumchlorid" RELATED [ChEBI:]
+synonym: "Cl2Mg" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "[Mg++].[Cl-].[Cl-]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Mg/h2*1H;/q;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=TWRXJAOTZQYOKJ-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: Reaxys:8128169 "Reaxys Registry Number"
+xref: Gmelin:9305 "Gmelin Registry Number"
+xref: NIST Chemistry WebBook:7786-30-3 "CAS Registry Number"
+xref: ChemIDplus:7786-30-3 "CAS Registry Number"
+xref: KEGG COMPOUND:7786-30-3 "CAS Registry Number"
+xref: KEGG COMPOUND:C07755 "KEGG COMPOUND"
+xref: MolBase:1868 "MolBase"
+is_a: CHEBI:33975
+is_a: CHEBI:36093
+is_a: CHEBI:51234
+
+[Term]
+id: CHEBI:31206
+name: ammonium chloride
+def: "An inorganic chloride that has formula ClH4N." []
+synonym: "Ammoniumchlorid" RELATED [NIST Chemistry WebBook:]
+synonym: "NH4Cl" RELATED [IUPAC:]
+synonym: "[NH4]Cl" RELATED [IUPAC:]
+synonym: "ammonium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Ammonium chloride" EXACT [KEGG COMPOUND:]
+synonym: "ClH4N" RELATED FORMULA [ChEBI:]
+synonym: "Cl.H4N" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "[Cl-].[H][N+]([H])([H])[H]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.H3N/h1H;1H3" RELATED InChI [ChEBI:]
+synonym: "InChIKey=NLXLAEXVIDQMFP-UHFFFAOYSA-N" RELATED InChIKey [ChEBI:]
+xref: KEGG DRUG:D01139 "KEGG DRUG"
+xref: Gmelin:10120 "Gmelin Registry Number"
+xref: KEGG COMPOUND:12125-02-9 "CAS Registry Number"
+xref: NIST Chemistry WebBook:12125-02-9 "CAS Registry Number"
+xref: KEGG COMPOUND:C12538 "KEGG COMPOUND"
+xref: ChemIDplus:12125-02-9 "CAS Registry Number"
+xref: Wikipedia:Ammonium_Chloride "Wikipedia"
+is_a: CHEBI:36093
+is_a: CHEBI:47704
+
+[Term]
+id: CHEBI:3312
+name: calcium dichloride
+def: "A calcium salt that has formula CaCl2." []
+synonym: "Calcium chloride anhydrous" RELATED [KEGG COMPOUND:]
+synonym: "[CaCl2]" RELATED [MolBase:]
+synonym: "CaCl2" RELATED [IUPAC:]
+synonym: "calcium chloride anhydrous" RELATED [ChemIDplus:]
+synonym: "calcium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "calcium dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "CaCl2" RELATED FORMULA [KEGG COMPOUND:]
+synonym: "[Cl-].[Cl-].[Ca++]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Ca.2ClH/h;2*1H/q+2;;/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=UXVMQQNJUSDDNG-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: MolBase:1869 "MolBase"
+xref: KEGG COMPOUND:10043-52-4 "CAS Registry Number"
+xref: NIST Chemistry WebBook:10043-52-4 "CAS Registry Number"
+xref: Wikipedia:Calcium_Chloride "Wikipedia"
+xref: KEGG COMPOUND:C08130 "KEGG COMPOUND"
+xref: DrugBank:DB01164 "DrugBank"
+xref: ChemIDplus:10043-52-4 "CAS Registry Number"
+is_a: CHEBI:35156
+is_a: CHEBI:36093
+
+[Term]
+id: CHEBI:26710
+name: sodium chloride
+def: "An inorganic chloride salt having sodium(1+) as the counterion." []
+synonym: "common salt" RELATED [ChemIDplus:]
+synonym: "chlorure de sodium" RELATED [ChEBI:]
+synonym: "table salt" RELATED [ChemIDplus:]
+synonym: "sodium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "sodium chloride" EXACT [ChEBI:]
+synonym: "halite" RELATED [NIST Chemistry WebBook:]
+synonym: "rock salt" RELATED [ChemIDplus:]
+synonym: "Kochsalz" RELATED [ChEBI:]
+synonym: "salt" RELATED [ChemIDplus:]
+synonym: "NaCl" RELATED [IUPAC:]
+synonym: "Natriumchlorid" RELATED [NIST Chemistry WebBook:]
+synonym: "natrii chloridum" RELATED [ChEBI:]
+synonym: "cloruro sodico" RELATED [ChEBI:]
+synonym: "ClNa" RELATED FORMULA [NIST Chemistry WebBook:]
+synonym: "[Na+].[Cl-]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.Na/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=FAPWRFPIFSIZLT-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: Wikipedia:Sodium_Chloride "Wikipedia"
+xref: KEGG COMPOUND:C13563 "KEGG COMPOUND"
+xref: Gmelin:13673 "Gmelin Registry Number"
+xref: Reaxys:3534976 "Reaxys Registry Number"
+xref: NIST Chemistry WebBook:7647-14-5 "CAS Registry Number"
+xref: KEGG COMPOUND:7647-14-5 "CAS Registry Number"
+xref: MetaCyc:NACL "MetaCyc"
+xref: ChemIDplus:7647-14-5 "CAS Registry Number"
+xref: Beilstein:3534976 "Beilstein Registry Number"
+xref: KEGG DRUG:D02056 "KEGG DRUG"
+is_a: CHEBI:36093
+is_a: CHEBI:38702
+
+[Term]
+id: CHEBI:46715
+name: halite
+synonym: "Halit" RELATED [ChEBI:]
+synonym: "Steinsalz" RELATED [ChEBI:]
+synonym: "halite" EXACT [ChemIDplus:]
+synonym: "ClNa" RELATED FORMULA [ChEBI:]
+xref: NIST Chemistry WebBook:14762-51-7 "CAS Registry Number"
+xref: Gmelin:74542 "Gmelin Registry Number"
+xref: Gmelin:339371 "Gmelin Registry Number"
+is_a: CHEBI:46714
+is_a: CHEBI:26710
+
+[Term]
+id: CHEBI:30341
+name: silver monochloride
+def: "A silver salt that has formula AgCl." []
+synonym: "AgCl" RELATED [IUPAC:]
+synonym: "Silver chloride" RELATED [NIST Chemistry WebBook:]
+synonym: "silver monochloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "silver(1+) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "silver(I) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "[AgCl]" RELATED [MolBase:]
+synonym: "AgCl" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Ag+]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Ag.ClH/h;1H/q+1;/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=HKZLPVFGJNLROG-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: ChemIDplus:7783-90-6 "CAS Registry Number"
+xref: NIST Chemistry WebBook:7783-90-6 "CAS Registry Number"
+xref: MolBase:739 "MolBase"
+xref: Gmelin:122614 "Gmelin Registry Number"
+is_a: CHEBI:33968
+is_a: CHEBI:36093
+
+[Term]
+id: CHEBI:32588
+name: potassium chloride
+def: "A metal chloride salt with a K(+) counterion." []
+synonym: "Klor-con" RELATED BRAND_NAME [KEGG DRUG:]
+synonym: "Klotrix" RELATED BRAND_NAME [KEGG DRUG:]
+synonym: "potassium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "[KCl]" RELATED [MolBase:]
+synonym: "Monopotassium chloride" RELATED [DrugBank:]
+synonym: "KCl" RELATED [IUPAC:]
+synonym: "sylvite" RELATED [ChEBI:]
+synonym: "muriate of potash" RELATED [NIST Chemistry WebBook:]
+synonym: "Kaliumchlorid" RELATED [ChEBI:]
+synonym: "Kaon-Cl 10" RELATED BRAND_NAME [KEGG DRUG:]
+synonym: "ClK" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[K+]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.K/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=WCUXLLCKKVVCTQ-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: Reaxys:3534978 "Reaxys Registry Number"
+xref: DrugBank:DB00761 "DrugBank"
+xref: Wikipedia:Potassium_Chloride "Wikipedia"
+xref: MolBase:881 "MolBase"
+xref: KEGG DRUG:D02060 "KEGG DRUG"
+xref: MetaCyc:KCL "MetaCyc"
+xref: NIST Chemistry WebBook:7447-40-7 "CAS Registry Number"
+xref: ChemIDplus:7447-40-7 "CAS Registry Number"
+is_a: CHEBI:26218
+is_a: CHEBI:36093
+
+[Term]
+id: CHEBI:35696
+name: cobalt dichloride
+def: "A cobalt salt in which the cobalt metal is in the +2 oxidation state and the counter-anion is chloride. It is used as an indicator for water in desiccants." []
+synonym: "cobalt(2+) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "cobaltous chloride anhydrous" RELATED [NIST Chemistry WebBook:]
+synonym: "cobaltous dichloride" RELATED [ChemIDplus:]
+synonym: "cobalt dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "cobalt muriate" RELATED [ChemIDplus:]
+synonym: "cobalt chloride" RELATED [ChEBI:]
+synonym: "Kobaltdichlorid" RELATED [ChEBI:]
+synonym: "Kobalt chlorid" RELATED [ChemIDplus:]
+synonym: "cobaltous chloride" RELATED [ChemIDplus:]
+synonym: "CoCl2" RELATED [IUPAC:]
+synonym: "Kobalt(II)-chlorid" RELATED [ChEBI:]
+synonym: "cobalt(II) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "dichlorocobalt" RELATED [ChemIDplus:]
+synonym: "Cl2Co" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cl-].[Co++]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Co/h2*1H;/q;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=GVPFVAHMJGGAJG-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: CiteXplore:11207315 "PubMed citation"
+xref: CiteXplore:23651544 "PubMed citation"
+xref: CiteXplore:23568501 "PubMed citation"
+xref: Reaxys:3902826 "Reaxys Registry Number"
+xref: Gmelin:9298 "Gmelin Registry Number"
+xref: CiteXplore:8566016 "PubMed citation"
+xref: CiteXplore:16848139 "PubMed citation"
+xref: CiteXplore:16229947 "PubMed citation"
+xref: CiteXplore:16426290 "PubMed citation"
+xref: CiteXplore:1108802 "PubMed citation"
+xref: Beilstein:3902826 "Beilstein Registry Number"
+xref: CiteXplore:23065176 "PubMed citation"
+xref: NIST Chemistry WebBook:7646-79-9 "CAS Registry Number"
+xref: CiteXplore:18837732 "PubMed citation"
+xref: CiteXplore:7615984 "PubMed citation"
+xref: CiteXplore:23542142 "PubMed citation"
+xref: Wikipedia:Cobalt(II)_chloride "Wikipedia"
+xref: CiteXplore:21616561 "PubMed citation"
+xref: CiteXplore:16623025 "PubMed citation"
+xref: CiteXplore:23420403 "PubMed citation"
+xref: CiteXplore:23566873 "PubMed citation"
+xref: CiteXplore:23694759 "PubMed citation"
+xref: ChemIDplus:7646-79-9 "CAS Registry Number"
+relationship: has_part CHEBI:48828
+is_a: CHEBI:35698
+is_a: CHEBI:36093
+relationship: has_role CHEBI:50412
+relationship: has_role CHEBI:50904
+relationship: has_role CHEBI:38215
+
+[Term]
+id: CHEBI:53503
+name: cobalt chloride hexahydrate
+def: "A hydrate of cobalt chloride containing cobalt (in +2 oxidation state), chloride and water moieties in the ratio 1:2:6." []
+synonym: "cobalt chloride hydrate" RELATED [ChEBI:]
+synonym: "Cobalt(II) chloride--water (1/7)" EXACT IUPAC_NAME [IUPAC:]
+synonym: "cobalt (II) chloride hexahydrate" RELATED [ChEBI:]
+synonym: "Cobalt(II) chloride hexahydrate" RELATED [ChemIDplus:]
+synonym: "Cobalt chloride hexahydrate" EXACT [ChemIDplus:]
+synonym: "Cobalt dichloride hexahydrate" RELATED [ChemIDplus:]
+synonym: "cobalt(2+) dichloride hexahydrate" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Cl2CoH12O6" RELATED FORMULA [ChEBI:]
+synonym: "O.O.O.O.O.O.[Cl-].[Cl-].[Co++]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Co.6H2O/h2*1H;;6*1H2/q;;+2;;;;;;/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=GFHNAMRJFCEERV-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: CiteXplore:11207315 "PubMed citation"
+xref: CiteXplore:8404951 "PubMed citation"
+xref: Gmelin:16833 "Gmelin Registry Number"
+xref: CiteXplore:9106780 "PubMed citation"
+xref: CiteXplore:8857117 "PubMed citation"
+xref: Reaxys:11403444 "Reaxys Registry Number"
+xref: CiteXplore:21721333 "PubMed citation"
+xref: ChemIDplus:7791-13-1 "CAS Registry Number"
+xref: CiteXplore:2025398 "PubMed citation"
+xref: CiteXplore:16870561 "PubMed citation"
+xref: Patent:CN101077120 "Patent"
+is_a: CHEBI:35505
+relationship: has_part CHEBI:35696
+
+[Term]
+id: CHEBI:36383
+name: strontium dichloride
+def: "A strontium salt that has formula Cl2Sr." []
+synonym: "SrCl2" RELATED [IUPAC:]
+synonym: "strontium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "strontium dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Cl2Sr" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cl-].[Sr++]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Sr/h2*1H;/q;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=AHBGXTDRMVNFER-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: Gmelin:463924 "Gmelin Registry Number"
+xref: NIST Chemistry WebBook:10476-85-4 "CAS Registry Number"
+xref: ChemIDplus:10476-85-4 "CAS Registry Number"
+is_a: CHEBI:36093
+is_a: CHEBI:36384
+
+[Term]
+id: CHEBI:36385
+name: strontium dichloride hexahydrate
+def: "A strontium salt that has formula Cl2H12O6Sr." []
+synonym: "strontium dichloride hexahydrate" EXACT IUPAC_NAME [IUPAC:]
+synonym: "strontium dichloride--water (1/6)" EXACT IUPAC_NAME [IUPAC:]
+synonym: "SrCl2.6H2O" RELATED [IUPAC:]
+synonym: "strontium chloride hexahydrate" RELATED [ChemIDplus:]
+synonym: "Cl2H12O6Sr" RELATED FORMULA [ChEBI:]
+synonym: "[H]O[H].[H]O[H].[H]O[H].[H]O[H].[H]O[H].[H]O[H].Cl[Sr]Cl" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.6H2O.Sr/h2*1H;6*1H2;/q;;;;;;;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=AMGRXJSJSONEEG-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: ChemIDplus:10025-70-4 "CAS Registry Number"
+is_a: CHEBI:36384
+relationship: has_part CHEBI:36383
+is_a: CHEBI:35505
+
+[Term]
+id: CHEBI:37117
+name: thallium monochloride
+def: "A thallium molecular entity that has formula ClTl." []
+synonym: "Thallous chloride" RELATED [KEGG COMPOUND:]
+synonym: "thallium(I) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "TlCl" RELATED [IUPAC:]
+synonym: "[TlCl]" RELATED [ChEBI:]
+synonym: "thallium(1+) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "chloridothallium" EXACT IUPAC_NAME [IUPAC:]
+synonym: "thallous chloride" RELATED [NIST Chemistry WebBook:]
+synonym: "thallium chloride" RELATED [ChemIDplus:]
+synonym: "thallium monochloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "ClTl" RELATED FORMULA [ChEBI:]
+synonym: "Cl[Tl]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.Tl/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=GBECUEIQVRDUKB-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: KEGG COMPOUND:C15226 "KEGG COMPOUND"
+xref: Gmelin:25486 "Gmelin Registry Number"
+xref: KEGG COMPOUND:7791-12-0 "CAS Registry Number"
+xref: NIST Chemistry WebBook:7791-12-0 "CAS Registry Number"
+xref: ChemIDplus:7791-12-0 "CAS Registry Number"
+xref: Gmelin:13669 "Gmelin Registry Number"
+is_a: CHEBI:37110
+is_a: CHEBI:36093
+
+[Term]
+id: CHEBI:32213
+name: ((201)Tl)thallium monochloride
+def: "A thallium monochloride that has formula ClTl." []
+synonym: "thallium-201 chloride" RELATED [ChemIDplus:]
+synonym: "(201)TlCl" RELATED [IUPAC:]
+synonym: "((201)Tl)thallium(I) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "((201)Tl)thallium(1+) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "ClTl" RELATED FORMULA [ChEBI:]
+synonym: "Tl.Cl" RELATED FORMULA [KEGG DRUG:]
+synonym: "Cl[201Tl]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.Tl/h1H;/q;+1/p-1/i;1-3" RELATED InChI [ChEBI:]
+synonym: "InChIKey=GBECUEIQVRDUKB-RYDPDVNUSA-M" RELATED InChIKey [ChEBI:]
+xref: KEGG DRUG:D02402 "KEGG DRUG"
+xref: ChemIDplus:55172-29-7 "CAS Registry Number"
+is_a: CHEBI:37117
+relationship: has_part CHEBI:37804
+
+[Term]
+id: CHEBI:48607
+name: lithium chloride
+def: "A metal chloride salt with a Li(+) counterion." []
+synonym: "chlorure de lithium" RELATED [NIST Chemistry WebBook:]
+synonym: "LiCl" RELATED [IUPAC:]
+synonym: "lithii chloridum" RELATED [ChEBI:]
+synonym: "Lithiumchlorid" RELATED [ChEBI:]
+synonym: "lithium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "cloruro de litio" RELATED [ChEBI:]
+synonym: "ClLi" RELATED FORMULA [ChEBI:]
+synonym: "[Li+].[Cl-]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.Li/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=KWGKDLIKAYFUFQ-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: ChemIDplus:7447-41-8 "CAS Registry Number"
+xref: NIST Chemistry WebBook:7447-41-8 "CAS Registry Number"
+is_a: CHEBI:36093
+relationship: has_role CHEBI:35477
+is_a: CHEBI:35478
+
+[Term]
+id: CHEBI:49976
+name: zinc dichloride
+def: "A compound of zinc and chloride ions in the ratio 1:2. It exists in four crystalline forms, in each of which the Zn(2+) ions are trigonal planar coordinated to four chloride ions." []
+synonym: "Zinkchlorid" RELATED [ChemIDplus:]
+synonym: "butter of zinc" RELATED [ChemIDplus:]
+synonym: "ZnCl2" RELATED [IUPAC:]
+synonym: "zinc dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "zinc(2+) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "chlorure de zinc" RELATED [ChemIDplus:]
+synonym: "zinc(II) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "zinc chloride, anhydrous" RELATED [NIST Chemistry WebBook:]
+synonym: "zinc chloride" RELATED [ChemIDplus:]
+synonym: "dichlorozinc" RELATED [NIST Chemistry WebBook:]
+synonym: "Cl2Zn" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cl-].[Zn++]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Zn/h2*1H;/q;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=JIAARYAFYJHUJI-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: Gmelin:430396 "Gmelin Registry Number"
+xref: CiteXplore:23471775 "PubMed citation"
+xref: CiteXplore:23514640 "PubMed citation"
+xref: CiteXplore:23739012 "PubMed citation"
+xref: CiteXplore:23763136 "PubMed citation"
+xref: CiteXplore:23574241 "PubMed citation"
+xref: CiteXplore:23546181 "PubMed citation"
+xref: ChemIDplus:7646-85-7 "CAS Registry Number"
+xref: CiteXplore:23399499 "PubMed citation"
+xref: KEGG DRUG:D02058 "KEGG DRUG"
+xref: CiteXplore:23761032 "PubMed citation"
+xref: MolBase:1125 "MolBase"
+xref: CiteXplore:23021350 "PubMed citation"
+xref: CiteXplore:7615984 "PubMed citation"
+xref: Wikipedia:Zinc_Chloride "Wikipedia"
+xref: NIST Chemistry WebBook:7646-85-7 "CAS Registry Number"
+is_a: CHEBI:36093
+is_a: CHEBI:27364
+relationship: has_role CHEBI:39143
+relationship: has_role CHEBI:48219
+relationship: has_role CHEBI:74783
+
+[Term]
+id: CHEBI:49553
+name: copper(II) chloride
+def: "Chloride of copper in which the metal is in the +2 oxidation state." []
+synonym: "Cupric chloride" RELATED [ChemIDplus:]
+synonym: "copper(2+) dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Copper bichloride" RELATED [ChemIDplus:]
+synonym: "Copper(2+)chloride" RELATED [ChemIDplus:]
+synonym: "copper dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Copper dichloride" RELATED [ChemIDplus:]
+synonym: "Cupric dichloride" RELATED [ChemIDplus:]
+synonym: "copper(II) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Cupric chloride anhydrous" RELATED [ChemIDplus:]
+synonym: "Copper chloride" RELATED [ChemIDplus:]
+synonym: "Copper chloride (CuCl2)" RELATED [ChemIDplus:]
+synonym: "Coclor" RELATED [NIST Chemistry WebBook:]
+synonym: "Copper(II) chloride (1:2)" RELATED [ChemIDplus:]
+synonym: "Copper(II) chloride dihydrate" RELATED [NIST Chemistry WebBook:]
+synonym: "COPPER (II) CHLORIDE" RELATED [PDBeChem:]
+synonym: "Copper(II) chloride" EXACT [ChemIDplus:]
+synonym: "Copper(2+) chloride" RELATED [NIST Chemistry WebBook:]
+synonym: "CuCl2" RELATED [NIST Chemistry WebBook:]
+synonym: "Coppertrace" RELATED [NIST Chemistry WebBook:]
+synonym: "Cupric chloride dihydrate" RELATED [NIST Chemistry WebBook:]
+synonym: "Cl2Cu" RELATED FORMULA [ChEBI:]
+synonym: "Cl[Cu]Cl" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Cu/h2*1H;/q;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=ORTQZVOHEJQUHG-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: Gmelin:9300 "Gmelin Registry Number"
+xref: ChemIDplus:7447-39-4 "CAS Registry Number"
+xref: Reaxys:8128168 "Reaxys Registry Number"
+xref: CiteXplore:10444249 "PubMed citation"
+xref: Beilstein:8128168 "Beilstein Registry Number"
+xref: PDBeChem:CUL "PDBeChem"
+xref: Wikipedia:Cupric_Chloride "Wikipedia"
+xref: NIST Chemistry WebBook:7447-39-4 "CAS Registry Number"
+is_a: CHEBI:36093
+relationship: has_part CHEBI:29036
+
+[Term]
+id: CHEBI:53472
+name: copper(I) chloride
+def: "Chloride of copper in which the metal is in the +1 oxidation state." []
+synonym: "Dicopper dichloride" RELATED [ChemIDplus:]
+synonym: "CuCl" RELATED [NIST Chemistry WebBook:]
+synonym: "Cuprous chloride" RELATED [ChemIDplus:]
+synonym: "Copper monochloride" RELATED [ChemIDplus:]
+synonym: "Cu-lyt" RELATED [NIST Chemistry WebBook:]
+synonym: "copper(1+) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Copper chloride" RELATED [ChemIDplus:]
+synonym: "Copper(I) chloride" EXACT [ChemIDplus:]
+synonym: "Cuproid" RELATED [NIST Chemistry WebBook:]
+synonym: "Copper(1+) chloride" RELATED [ChemIDplus:]
+synonym: "copper(I) chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Copper chloride (CuCl)" RELATED [ChemIDplus:]
+synonym: "ClCu" RELATED FORMULA [ChEBI:]
+synonym: "Cl[Cu]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.Cu/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=OXBLHERUFWYNTN-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: ChemIDplus:7758-89-6 "CAS Registry Number"
+xref: Gmelin:13676 "Gmelin Registry Number"
+xref: NIST Chemistry WebBook:7758-89-6 "CAS Registry Number"
+xref: CiteXplore:10444249 "PubMed citation"
+xref: Beilstein:8127933 "Beilstein Registry Number"
+xref: Reaxys:8127933 "Reaxys Registry Number"
+is_a: CHEBI:36093
+relationship: has_part CHEBI:49552
+relationship: has_role CHEBI:33904
+relationship: has_role CHEBI:33286
+
+[Term]
+id: CHEBI:62843
+name: beryllium dichloride
+def: "A compound of beryllium (+2 oxidation state) and chloride in the ratio 1:2." []
+synonym: "beryllium dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "BeCl2" RELATED [ChEBI:]
+synonym: "Beryllium chloride" RELATED [ChemIDplus:]
+synonym: "BeCl2" RELATED FORMULA [ChEBI:]
+synonym: "Cl[Be]Cl" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Be.2ClH/h;2*1H/q+2;;/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=LWBPNIJBHRISSS-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: CiteXplore:21210824 "PubMed citation"
+xref: CiteXplore:18217749 "PubMed citation"
+xref: CiteXplore:20981383 "PubMed citation"
+xref: CiteXplore:17567115 "PubMed citation"
+xref: CiteXplore:1723493 "PubMed citation"
+xref: ChemIDplus:7787-47-5 "CAS Registry Number"
+xref: NIST Chemistry WebBook:7787-47-5 "CAS Registry Number"
+xref: CiteXplore:18373946 "PubMed citation"
+xref: CiteXplore:3438228 "PubMed citation"
+xref: CiteXplore:7770008 "PubMed citation"
+xref: CiteXplore:18651739 "PubMed citation"
+xref: CiteXplore:1287261 "PubMed citation"
+xref: Wikipedia:Beryllium_chloride "Wikipedia"
+xref: CiteXplore:4549042 "PubMed citation"
+xref: CiteXplore:21196457 "PubMed citation"
+xref: Reaxys:10773355 "Reaxys Registry Number"
+xref: CiteXplore:2109906 "PubMed citation"
+xref: CiteXplore:8720934 "PubMed citation"
+is_a: CHEBI:33780
+is_a: CHEBI:36093
+relationship: has_role CHEBI:50903
+relationship: has_role CHEBI:50902
+
+[Term]
+id: CHEBI:63020
+name: yttrium chloride
+def: "The inorganic chloride salt of yttrium(III)" []
+synonym: "yttrium(III) chloride" RELATED [SUBMITTER:]
+synonym: "yttrium trichloride" RELATED [ChEBI:]
+synonym: "YCl3" RELATED [ChEBI:]
+synonym: "Cl3Y" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cl-].[Cl-].[Y+3]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/3ClH.Y/h3*1H;/q;;;+3/p-3" RELATED InChI [ChEBI:]
+synonym: "InChIKey=PCMOZDDGXKIOLL-UHFFFAOYSA-K" RELATED InChIKey [ChEBI:]
+xref: Reaxys:3660161 "Reaxys Registry Number"
+xref: ChemIDplus:10361-92-9 "CAS Registry Number"
+xref: Wikipedia:Yttrium(III)_chloride "Wikipedia"
+is_a: CHEBI:36093
+is_a: CHEBI:37203
+relationship: has_role CHEBI:35223
+
+[Term]
+id: CHEBI:63039
+name: caesium chloride
+def: "The inorganic chloride salt of caesium; each caesium ion is coordinated by eight chlorine ions." []
+synonym: "caesium monochloride" RELATED [ChEBI:]
+synonym: "cesium(I) chloride" RELATED [ChEBI:]
+synonym: "cesium chloride" RELATED [SUBMITTER:]
+synonym: "Cesium monochloride" RELATED [ChemIDplus:]
+synonym: "caesium(I) chloride" RELATED [ChEBI:]
+synonym: "caesium chloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Tricesium trichloride" RELATED [ChemIDplus:]
+synonym: "ClCs" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cs+]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/ClH.Cs/h1H;/q;+1/p-1" RELATED InChI [ChEBI:]
+synonym: "InChIKey=AIYUHDOJVYHVIT-UHFFFAOYSA-M" RELATED InChIKey [ChEBI:]
+xref: CiteXplore:11058836 "PubMed citation"
+xref: Reaxys:3534981 "Reaxys Registry Number"
+xref: Wikipedia:Cesium_chloride "Wikipedia"
+xref: ChemIDplus:7647-17-8 "CAS Registry Number"
+xref: NIST Chemistry WebBook:7647-17-8 "CAS Registry Number"
+xref: CiteXplore:698485 "PubMed citation"
+is_a: CHEBI:36093
+is_a: CHEBI:37128
+relationship: has_role CHEBI:63060
+relationship: has_role CHEBI:50514
+
+[Term]
+id: CHEBI:63041
+name: manganese(II) chloride
+def: "An inorganic chloride in which manganese(II) is coordinated to two chloride ions. In its anhydrous state manganese(II) chloride is a polymeric solid, which adopts a layered cadmium chloride-like structure." []
+synonym: "Manganese(II) chloride (1:2)" RELATED [ChemIDplus:]
+synonym: "manganese(II) dichloride" RELATED [ChEBI:]
+synonym: "manganous dichloride" RELATED [NIST Chemistry WebBook:]
+synonym: "manganese(2+) dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "manganous chloride" RELATED [SUBMITTER:]
+synonym: "Manganous chloride" RELATED [ChemIDplus:]
+synonym: "dichlorure de manganese" RELATED [ChEBI:]
+synonym: "Mangandichlorid" RELATED [ChEBI:]
+synonym: "Manganese bichloride" RELATED [ChemIDplus:]
+synonym: "Cl2Mn" RELATED FORMULA [ChEBI:]
+synonym: "Cl[Mn]Cl" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/2ClH.Mn/h2*1H;/q;;+2/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=GLFNIEUTAYBVOC-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: Reaxys:8128170 "Reaxys Registry Number"
+xref: ChemIDplus:7773-01-5 "CAS Registry Number"
+xref: CiteXplore:4476198 "PubMed citation"
+xref: CiteXplore:146543 "PubMed citation"
+xref: CiteXplore:19801673 "PubMed citation"
+xref: NIST Chemistry WebBook:7773-01-5 "CAS Registry Number"
+xref: CiteXplore:98204 "PubMed citation"
+xref: Wikipedia:Manganese(II)_chloride "Wikipedia"
+xref: CiteXplore:101555 "PubMed citation"
+xref: CiteXplore:4771199 "PubMed citation"
+xref: CiteXplore:3143594 "PubMed citation"
+is_a: CHEBI:35117
+is_a: CHEBI:36093
+
+[Term]
+id: CHEBI:63317
+name: barium chloride
+def: "The inorganic dichloride salt of barium." []
+synonym: "BaCl2" RELATED [MetaCyc:]
+synonym: "barium dichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "BaCl2" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cl-].[Ba++]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/Ba.2ClH/h;2*1H/q+2;;/p-2" RELATED InChI [ChEBI:]
+synonym: "InChIKey=WDIHJSXYQDMJHN-UHFFFAOYSA-L" RELATED InChIKey [ChEBI:]
+xref: Wikipedia:Barium_chloride "Wikipedia"
+xref: ChemIDplus:10361-37-2 "CAS Registry Number"
+xref: CiteXplore:21601246 "PubMed citation"
+xref: Reaxys:1209229 "Reaxys Registry Number"
+xref: NIST Chemistry WebBook:10361-37-2 "CAS Registry Number"
+xref: Reaxys:8128158 "Reaxys Registry Number"
+xref: MetaCyc:CPD0-1592 "MetaCyc"
+is_a: CHEBI:36093
+is_a: CHEBI:63320
+relationship: has_role CHEBI:50509
+
+[Term]
+id: CHEBI:67096
+name: ytterbium(III) chloride
+def: "The trichloride salt of ytterbium(III)." []
+synonym: "ytterbium(3+) trichloride" EXACT IUPAC_NAME [IUPAC:]
+synonym: "Ytterbium chloride" RELATED [ChemIDplus:]
+synonym: "Ytterbium trichloride" RELATED [ChemIDplus:]
+synonym: "Cl3Yb" RELATED FORMULA [ChEBI:]
+synonym: "[Cl-].[Cl-].[Cl-].[Yb+3]" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/3ClH.Yb/h3*1H;/q;;;+3/p-3" RELATED InChI [ChEBI:]
+synonym: "InChIKey=CKLHRQNQYIJFFX-UHFFFAOYSA-K" RELATED InChIKey [ChEBI:]
+xref: Wikipedia:Ytterbium(III)_chloride "Wikipedia"
+xref: Reaxys:16120858 "Reaxys Registry Number"
+xref: NIST Chemistry WebBook:10361-91-8 "CAS Registry Number"
+xref: ChemIDplus:10361-91-8 "CAS Registry Number"
+is_a: CHEBI:36093
+relationship: has_part CHEBI:49980
+relationship: has_role CHEBI:67137
+
+[Term]
+id: CHEBI:74856
+name: antimony trichloride
+def: "An inorganic chloride salt with formula SbCl3. It is used as a reagent for detecting vitamin A and related carotenoids, reacting with the carotenoid to form a blue complex that can be measured by colorimetry (the Carr-Price test). Solutions of antimony trichloride were formerly used for dissolving and removing horn stubs from calves and goats." []
+synonym: "Trichlorostibine" RELATED [KEGG COMPOUND:]
+synonym: "antimony chloride" RELATED [ChemIDplus:]
+synonym: "antimony(III) chloride" RELATED [ChemIDplus:]
+synonym: "Antimontrichlorid" RELATED [ChemIDplus:]
+synonym: "Sb2Cl6" RELATED [ChemIDplus:]
+synonym: "trichlorostibine" EXACT IUPAC_NAME [IUPAC:]
+synonym: "chlorure antimonieux" RELATED [ChemIDplus:]
+synonym: "Antimony(III) chloride" RELATED [KEGG COMPOUND:]
+synonym: "SbCl3" RELATED [ChemIDplus:]
+synonym: "trichlorure d'antimoine" RELATED [ChemIDplus:]
+synonym: "antimony(III) trichloride" RELATED [ChEBI:]
+synonym: "Cl3Sb" RELATED FORMULA [ChEBI:]
+synonym: "Cl[Sb](Cl)Cl" RELATED SMILES [ChEBI:]
+synonym: "InChI=1S/3ClH.Sb/h3*1H;/q;;;+3/p-3" RELATED InChI [ChEBI:]
+synonym: "InChIKey=FAPDDOBMIUGHIN-UHFFFAOYSA-K" RELATED InChIKey [ChEBI:]
+xref: KEGG COMPOUND:10025-91-9 "CAS Registry Number"
+xref: ChemIDplus:10025-91-9 "CAS Registry Number"
+xref: CiteXplore:15423457 "PubMed citation"
+xref: CiteXplore:1021287 "PubMed citation"
+xref: KEGG COMPOUND:C15235 "KEGG COMPOUND"
+xref: CiteXplore:1451533 "PubMed citation"
+xref: CiteXplore:663961 "PubMed citation"
+xref: CiteXplore:1021254 "PubMed citation"
+xref: CiteXplore:9772090 "PubMed citation"
+xref: CiteXplore:4338731 "PubMed citation"
+xref: Reaxys:3600276 "Reaxys Registry Number"
+xref: CiteXplore:5924140 "PubMed citation"
+xref: CiteXplore:9657841 "PubMed citation"
+xref: NIST Chemistry WebBook:10025-91-9 "CAS Registry Number"
+is_a: CHEBI:36919
+is_a: CHEBI:36093
+relationship: has_role CHEBI:39143
+relationship: has_role CHEBI:68495
+relationship: has_role CHEBI:67126
