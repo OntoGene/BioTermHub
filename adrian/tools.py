@@ -35,7 +35,7 @@ class DefaultOrderedDict(OrderedDict):
         return self.__copy__()
 
     def __copy__(self):
-        return type(self)(self.default_factory, self)
+        return DefaultOrderedDict(self.default_factory, self)
 
 class StatDict(DefaultOrderedDict):
     def __init__(self):

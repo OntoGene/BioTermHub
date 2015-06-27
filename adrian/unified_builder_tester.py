@@ -1,5 +1,6 @@
 from unified_builder import RecordSetContainer, UnifiedBuilder
 import statplot
+import statoutput
 #~ from guppy import hpy
 #~ h = hpy()
 #~ h.setref()
@@ -95,7 +96,11 @@ a = UnifiedBuilder(test_rsc, "output.csv", True, True)
 
 test_rsc.calcstats()
 print test_rsc.stats
+
+statoutput.write2tsv(test_rsc)
 statplot.plotstats(test_rsc)
+
+
 
 #~ a_normal = test_rsc.bidict_originalid_oid.items()
 #~ a_inverse = test_rsc.bidict_originalid_oid.items(inverse = True)

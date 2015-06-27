@@ -1,4 +1,6 @@
+from __future__ import division
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 from collections import OrderedDict
 
@@ -23,22 +25,38 @@ def plotstats(rsc):
             for statdict in ratio_dicts:
                 X = np.arange(len(statdict))
                 setlog = True if resource == "total" and label == "overall" else False
-                plt.bar(X, statdict.values(), align='center', width=0.5, log=setlog)
+                try:
+                    statdict_keys = [count for count, label in statdict]
+                    fig = plt.bar(statdict_keys, statdict.values(), align='center', width=0.5, log=setlog)
+                except:
+                    fig = plt.bar(X, statdict.values(), align='center', width=0.5, log=setlog)
+
                 try:
                     statdict_keys = [count for count, label in statdict]
                 except ValueError:
                     statdict_keys = statdict.keys()
-                plt.xticks(X, statdict_keys)
-                ymax = max(statdict.values()) + 1
+
+                #plt.xticks(X, statdict_keys)
+                plt.gca().xaxis.set_major_locator(MaxNLocator(20))
+
+                ymax_val = max(statdict.values())
+                ymax = ymax_val + ymax_val / 100 if ymax_val > 20 else ymax_val + 2
+                xmax= len(statdict)
+
                 plt.ylim(0, ymax)
-                plt.figtext(0.5, 0.85, resource + " - %s" % label, color='black', weight='roman', size='x-large')
+                plt.grid(True)
+                plt.xlabel(label)
+                plt.ylabel('count')
+                # plt.xlim(xmax - 0.5, xmax + 0.5)
+                # plt.figtext(0.5, 0.85, resource + " - %s" % label, color='black', weight='roman', size='x-large')
+                # plt.autoscale(tight=False)
 
-                # try:
-                #     plt.show()
-                # except TypeError:
-                #     print "No display available."
+                try:
+                    plt.show()
+                except TypeError:
+                    print "No display available."
 
-                plt.savefig(str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
+                # plt.savefig(str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
                 plt.clf()
                 file_counter += 1
 
