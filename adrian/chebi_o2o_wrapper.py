@@ -13,6 +13,7 @@ class RecordSet(object):
         self.infile = infile
         self.ontogene = ontogene
         self.stats = StatDict()
+        self.ambig_unit = "terms"
 
     @property
     def rowdicts(self):
