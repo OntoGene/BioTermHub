@@ -1,5 +1,6 @@
 from oid_generator import OID
-from collections import Counter, defaultdict
+from collections import defaultdict
+from tools import DefaultOrderedDict, StatDict
 import re
 
 class RecordSet(object):
@@ -8,7 +9,7 @@ class RecordSet(object):
         self.reader = (dict(zip(header_fields, line.rstrip("\t|\n").split("\t|\t"))) for line in open(infile, "r"))
         self.infile = infile
         self.ontogene = ontogene
-        self.stats = Counter({"ids":0, "terms":0})
+        self.stats = StatDict()
         
     @property
     def rowdicts(self):
@@ -20,6 +21,8 @@ class RecordSet(object):
             if tax_id and tax_id != previous_tax_id:
                 if previous_tax_id:
                     self.stats["ids"] += 1
+                    statkey = (terms_per_id, "terms/id")
+                    self.stats["ratios"][statkey] += 1
                     pref_term = record_dict["scientific name"][0][0] if record_dict["scientific name"] else "-"
                     oid = OID.get()
                     for category, value_list in record_dict.iteritems():
@@ -44,6 +47,7 @@ class RecordSet(object):
                             yield outvalue_dict
                         
                 record_dict = defaultdict(list)
+                terms_per_id = 0
                 
             name_class = rowvalue_dict["name_class"]
             name_txt = rowvalue_dict["name_txt"]
@@ -65,6 +69,7 @@ class RecordSet(object):
                         name_txt = match_author_year
 
                 record_dict[name_class].append((name_txt, unique_name))
+                terms_per_id += 1
             previous_tax_id = tax_id
 
 def mapping(rectype, ontogene):

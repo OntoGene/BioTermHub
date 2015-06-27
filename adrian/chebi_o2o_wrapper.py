@@ -1,5 +1,6 @@
+from collections import defaultdict
 from chebi_obo2ontogene import parse_obo, obodict2ontogene_headers
-from collections import Counter
+from tools import DefaultOrderedDict, StatDict
 
 class RecordSet(object):
     """
@@ -11,7 +12,7 @@ class RecordSet(object):
     def __init__(self, infile, ontogene = True):
         self.infile = infile
         self.ontogene = ontogene
-        self.stats = Counter({"ids":0, "terms":0})
+        self.stats = StatDict()
 
     @property
     def rowdicts(self):
@@ -19,9 +20,17 @@ class RecordSet(object):
         # Using chebi_obo2ontogene to retrieve a dictionary for each row
         processed_input = parse_obo(self.infile)
 
-        for row in obodict2ontogene_headers(processed_input):
+        terms_per_id = 0
+        for row, new_id in obodict2ontogene_headers(processed_input):
             self.stats["terms"] += 1
-            # TODO: IDs
+            terms_per_id += 1
+
+            if new_id:
+                self.stats["ids"] += 1
+                statkey = (terms_per_id, "terms/id")
+                self.stats["ratios"][statkey] += 1
+                terms_per_id = 1
+
             yield row
 
 def mapping(rectype, ontogene):

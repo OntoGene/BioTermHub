@@ -1,6 +1,7 @@
+from collections import defaultdict
 from optparse import OptionParser
 from ncbi2ontogene3 import process_file, transform_input
-from collections import Counter
+from tools import DefaultOrderedDict, StatDict
 import ncbi_preprocess
 
 class RecType(object):
@@ -19,7 +20,7 @@ class RecordSet(object):
         ncbi_preprocess.preprocess(infile, self.prepfile, 1, 2, 4)
         self.options = "default"
         self.ontogene = ontogene
-        self.stats = Counter({"ids":0, "terms":0})
+        self.stats = StatDict()
         self.parsedict = {}
         
     def build_dict(self, ontogene):
@@ -50,10 +51,17 @@ class RecordSet(object):
         # Using ncbi2ontogene3 to retrieve a dictionary for each row
         processed_input = process_file(self.prepfile, options, None)
 
+        terms_per_id = 0
         for row, new_id in transform_input(processed_input, RecType.og_mapping, unified_build=True):
             self.stats["terms"] += 1
+            terms_per_id += 1
+
             if new_id:
                 self.stats["ids"] += 1
+                statkey = (terms_per_id, "terms/id")
+                self.stats["ratios"][statkey] += 1
+                terms_per_id = 1
+
             yield row
 
 def mapping(rectype, ontogene):

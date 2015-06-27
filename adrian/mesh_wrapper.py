@@ -1,6 +1,6 @@
-from optparse import OptionParser
+from collections import defaultdict
 from mesh_desc_supp2extended_ontogene import parse_desc_file, parse_supp_file, desc2ontogene_headers, supp2ontogene_headers
-from collections import Counter
+from tools import DefaultOrderedDict, StatDict
 
 class RecordSet(object):
     """
@@ -51,6 +51,6 @@ class RecordSet(object):
 
         rowlist = desc_ontogene_headers + supp_ontogene_headers
         
-        self.stats = Counter({"ids":0, "terms":0}) # TODO: Calculate statistics
+        self.stats = StatDict() # TODO: Calculate statistics
             
         return rowlist

@@ -83,10 +83,10 @@ def obodict2ontogene_headers(dict_list):
             for syn in term_dict['synonym_list']:
                 onto_dict_cp = onto_dict.copy()
                 onto_dict_cp['term'] = syn
-                yield onto_dict_cp
+                yield onto_dict_cp, False
 
         onto_dict['term'] = term_dict['term']
-        yield onto_dict
+        yield onto_dict, True
 
 def dict_to_file(dict_list, output_file):
     ''' takes a list of dictionaries and writes it to a csv file'''
@@ -119,7 +119,7 @@ def process(options=None, args=None):
     
     obo_dict_list = parse_obo(input_file)
     
-    output_dict_list = obodict2ontogene_headers(obo_dict_list)
+    output_dict_list, _ = obodict2ontogene_headers(obo_dict_list)
     
     dict_to_file(output_dict_list, output_file)
 

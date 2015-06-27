@@ -37,7 +37,7 @@ class RecordSetContainer(object):
                       "chebi":{"module":chebi_o2o_wrapper, "arguments":(self.dkwargs["chebi"],)}
                       }
 
-        self.stats = {}
+        self.stats = OrderedDict()
 
         if not self.pickles_exist:
             self.bidict_originalid_oid = bdict.bidict()
@@ -58,16 +58,16 @@ class RecordSetContainer(object):
         total = Counter({"terms":0, "ids":0})
         for recordset, stats in self.stats.iteritems():
             try:
-                self.stats[recordset]['term_per_id'] = stats["terms"]/stats["ids"]
+                self.stats[recordset]['avg. terms/id'] = stats["terms"]/stats["ids"]
             except ZeroDivisionError:
-                self.stats[recordset]['term_per_id'] = 0
+                self.stats[recordset]['avg. terms/id'] = 0
             total["terms"] += stats["terms"]
             total["ids"] += stats["ids"]
-            total["term_per_id"] += self.stats[recordset]["term_per_id"]
+            total["avg. terms/id"] += self.stats[recordset]["avg. terms/id"]
         try:
-            total["term_per_id"] /= len(self.stats.keys())
+            total["avg. terms/id"] /= len(self.stats.keys())
         except ZeroDivisionError:
-            total["term_per_id"] = 0
+            total["avg. terms/id"] = 0
         self.stats["total"] = total
         
 class UnifiedBuilder(dict):

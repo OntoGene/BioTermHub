@@ -1,10 +1,9 @@
 # Adapted from http://mannheimiagoesprogramming.blogspot.ch/2012/04/uniprot-keylist-file-parser-in-python.html
 # Extended with cellosaurus functionality
 
-from copy import deepcopy
-from numpy import prod
+from collections import defaultdict
 from oid_generator import OID
-from collections import Counter
+from tools import DefaultOrderedDict, StatDict
 
 # Property concatenation
 SINGLE_RECORD = 1
@@ -33,12 +32,17 @@ class UniProtRecTypes(object):
     single = ("ID", "AC")
     multi_row = ("OS", )
     multi_value = "AC"
+    synonym = None
     
     mode = "permutation"
     mv_neg_offset = MVAL_PERMUTATION[0]
     mv_pos_offset = MVAL_PERMUTATION[1]
     
     og_mapping = {"AC":"original_id", "OS":"term"}
+
+    rec_unit = "terms"
+    ambig_unit = "ids"
+
     
 class CellosaurusRecTypes(object):
     """
@@ -49,13 +53,15 @@ class CellosaurusRecTypes(object):
     
     identifier = None
     
-    accession = "ID"
+    accession = "AC"
     
     main_term = "ID"
     
     single = ("ID", "AC", "SY")
     multi_row = ()
     multi_value = "SY"
+
+    synonym = "SY"
     
     mode = "addition"
     mv_neg_offset = MVAL_ADDITION[0]
@@ -63,6 +69,8 @@ class CellosaurusRecTypes(object):
     
     og_mapping = {"AC":"original_id", "ID":"term", "SY":"term"}
 
+    rec_unit = "ids"
+    ambig_unit = "terms"
 
 class Record(dict):
     """
@@ -92,7 +100,7 @@ class RecordSet(object):
         self.rectypes = rectypes
         self.ontogene = ontogene
         self.parsedict = {}
-        self.stats = Counter({"ids":0, "terms":0})
+        self.stats = StatDict()
         if not rowdicts:
             self.build_dict(ontogene)
     
@@ -136,7 +144,7 @@ class RecordSet(object):
                      
                     # In case of additions, yield first record before zipping and yielding the remaining records
                     if self.rectypes.mv_pos_offset:
-                        self.stats["terms"] += 1
+                        self.stats[self.rectypes.ambig_unit] += 1
                         yield record
                     
                     # Offset if the multiple records are additions (not just permutations)
@@ -146,10 +154,10 @@ class RecordSet(object):
                     for record, value in record_value_pairs:
                         mapped_multival_key = mapping(self.rectypes.multi_value, self.rectypes, ontogene)
                         record[mapped_multival_key] = value
-                        self.stats["terms"] += 1
+                        self.stats[self.rectypes.ambig_unit] += 1
                         yield record
                 else:
-                    self.stats["terms"] += 1
+                    self.stats[self.rectypes.ambig_unit] += 1
                     yield record     # So we output the record and pass to other one. 
                 record = Record(self.rectypes, ontogene)
                 mode = SINGLE_RECORD
@@ -173,10 +181,16 @@ class RecordSet(object):
                             record["oid"] = OID.get()
                             record["resource"] = self.rectypes.resource
                             record["entity_type"] = self.rectypes.entity_type
-                            self.stats["ids"] += 1
+                            self.stats[self.rectypes.rec_unit] += 1
                         
                     if key == self.rectypes.multi_value:
                         value_list = value.rstrip(";").split(";")
+                        if key == self.rectypes.accession or key == self.rectypes.synonym:
+                            # ambiguous units per record
+                            statkey_value = len(value_list)
+                            statkey_string = "%s/%s" % (self.rectypes.ambig_unit, self.rectypes.rec_unit[:-1])
+                            statkey = (statkey_value, statkey_string)
+                            self.stats["ratios"][statkey] += 1
                         if self.rectypes.mode == "permutation" and len(value_list) > 1 \
                            or self.rectypes.mode == "addition":
                             mode = MULTI_RECORD  
