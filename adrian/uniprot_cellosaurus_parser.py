@@ -101,6 +101,7 @@ class RecordSet(object):
         self.ontogene = ontogene
         self.parsedict = {}
         self.stats = StatDict()
+        self.ambig_unit = rectypes.ambig_unit
         if not rowdicts:
             self.build_dict(ontogene)
     

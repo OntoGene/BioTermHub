@@ -13,6 +13,8 @@ class RecordSet(object):
         self.stats = None
         self.rowdicts = self._run_mesh_parser(desc_file, supp_file, ontogene)
         self.parsedict = {}
+        self.stats = StatDict()
+        self.ambig_unit = "terms"
         if not rowdicts:
             self.build_dict(ontogene)
     
@@ -45,12 +47,20 @@ class RecordSet(object):
         supp_dict_list = parse_supp_file(supp_file)
         
         relevant_trees = set(["B","C","D", "empty_branch"])
-        
-        desc_ontogene_headers = desc2ontogene_headers(relevant_trees, desc_dict_list)
-        supp_ontogene_headers = supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict)
 
-        rowlist = desc_ontogene_headers + supp_ontogene_headers
-        
-        self.stats = StatDict() # TODO: Calculate statistics
-            
-        return rowlist
+        generators = (desc2ontogene_headers(relevant_trees, desc_dict_list),
+                      supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict))
+
+        terms_per_id = 0
+        for generator in generators:
+            for row, new_record in generator:
+                self.stats["terms"] += 1
+                terms_per_id += 1
+
+                if new_record:
+                    self.stats["ids"] += 1
+                    statkey = (terms_per_id, "terms/id")
+                    self.stats["ratios"][statkey] += 1
+                    terms_per_id = 1
+
+                yield row

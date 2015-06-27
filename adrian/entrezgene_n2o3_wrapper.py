@@ -21,6 +21,7 @@ class RecordSet(object):
         self.options = "default"
         self.ontogene = ontogene
         self.stats = StatDict()
+        self.ambig_unit = "terms"
         self.parsedict = {}
         
     def build_dict(self, ontogene):

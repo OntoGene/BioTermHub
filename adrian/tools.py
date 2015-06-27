@@ -1,6 +1,6 @@
 __author__ = 'vicawil'
 
-from collections import OrderedDict, Callable, defaultdict
+from collections import OrderedDict, Callable, Counter
 
 class DefaultOrderedDict(OrderedDict):
     # http://stackoverflow.com/a/6190500
@@ -35,8 +35,8 @@ class DefaultOrderedDict(OrderedDict):
         return self.__copy__()
 
     def __copy__(self):
-        return type(self)(self.default_factory, self)
+        return DefaultOrderedDict(self.default_factory, self)
 
 class StatDict(DefaultOrderedDict):
     def __init__(self):
-        super(StatDict, self).__init__(int, {"ids":0, "terms":0, "avg. terms/id":0, "ratios":defaultdict(int)})
+        super(StatDict, self).__init__(int, {"ids":0, "terms":0, "avg. terms/id":0, "avg. ids/term":0, "ratios":Counter()})

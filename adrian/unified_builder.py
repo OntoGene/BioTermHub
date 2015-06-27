@@ -5,6 +5,7 @@ import csv
 import sys
 import cPickle
 from collections import defaultdict, OrderedDict, Counter
+from tools import StatDict
 
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
@@ -38,6 +39,7 @@ class RecordSetContainer(object):
                       }
 
         self.stats = OrderedDict()
+        self.ambig_units = {}
 
         if not self.pickles_exist:
             self.bidict_originalid_oid = bdict.bidict()
@@ -52,22 +54,46 @@ class RecordSetContainer(object):
         for resource, infile in self.okwargs.iteritems():
             recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
             self.stats[resource] = recordset.stats
+            self.ambig_units[resource] = recordset.ambig_unit
             yield recordset.rowdicts, resource
             
     def calcstats(self):
-        total = Counter({"terms":0, "ids":0})
+        total = StatDict()
+        total["ratios"]["terms/id"] = Counter()
+        total["ratios"]["ids/term"] = Counter()
         for recordset, stats in self.stats.iteritems():
-            try:
-                self.stats[recordset]['avg. terms/id'] = stats["terms"]/stats["ids"]
-            except ZeroDivisionError:
-                self.stats[recordset]['avg. terms/id'] = 0
+
+            if self.ambig_units[recordset] == "terms":
+                try:
+                    self.stats[recordset]['avg. terms/id'] = stats["terms"]/stats["ids"]
+                except ZeroDivisionError:
+                    self.stats[recordset]['avg. terms/id'] = 0
+
+                total["ratios"]["terms/id"] += self.stats[recordset]["ratios"]
+
+            elif self.ambig_units[recordset] == "ids":
+                try:
+                    self.stats[recordset]['avg. ids/term'] = stats["ids"]/stats["terms"]
+                except ZeroDivisionError:
+                    self.stats[recordset]['avg. ids/term'] = 0
+
+                total["ratios"]["ids/term"] += self.stats[recordset]["ratios"]
+
             total["terms"] += stats["terms"]
             total["ids"] += stats["ids"]
             total["avg. terms/id"] += self.stats[recordset]["avg. terms/id"]
+            total["avg. ids/term"] += self.stats[recordset]["avg. ids/term"]
+
         try:
             total["avg. terms/id"] /= len(self.stats.keys())
         except ZeroDivisionError:
             total["avg. terms/id"] = 0
+        try:
+            total["avg. ids/term"] /= len(self.stats.keys())
+        except ZeroDivisionError:
+            total["avg. ids/term"] = 0
+
+
         self.stats["total"] = total
         
 class UnifiedBuilder(dict):
