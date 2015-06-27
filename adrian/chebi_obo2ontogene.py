@@ -81,9 +81,11 @@ def obodict2ontogene_headers(dict_list):
 
         if term_dict['synonym_list']:
             for syn in term_dict['synonym_list']:
-                onto_dict_cp = onto_dict.copy()
-                onto_dict_cp['term'] = syn
-                yield onto_dict_cp, False
+
+                if not syn == '.':
+                    onto_dict_cp = onto_dict.copy()
+                    onto_dict_cp['term'] = syn
+                    yield onto_dict_cp, False
 
         onto_dict['term'] = term_dict['term']
         yield onto_dict, True

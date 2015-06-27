@@ -27,6 +27,7 @@ import adrian.unified_builder as ub
 ub = reload(ub)  # make sure recent changes take effect
 
 
+# Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 THISURL = ('http://localhost:8080/hex/users/furrer/'
            'tia2015-biomed-term-res/terminology_tool/www')
@@ -36,7 +37,7 @@ RESOURCES = [
     ('Cellosaurus', 'cellosaurus', "1k_snippets/cellosaurus-2"),
     ('EntrezGene', 'entrezgene', "1k_snippets/gene_info-3"),
     ('MeSH', 'mesh', ("1k_snippets/desc-1k", "1k_snippets/supp-1k")),
-    ('Taxdump', 'taxdump', "1k_snippets/names-1k)")]
+    ('Taxdump', 'taxdump', "1k_snippets/names-1k")]
 
 # Some shorthands.
 se = etree.SubElement
@@ -44,41 +45,46 @@ NBSP = u'\xA0'
 
 
 def application(environ, start_response):
+    # Build the page.
     html = etree.HTML(PAGE)
-
     populate_checkboxes(html, RESOURCES)
     resource_keys = {id_: loc for _, id_, loc in RESOURCES}
 
+    # Respond to the user requests.
     fields = FieldStorage(fp=environ['wsgi.input'], environ=environ,
                           keep_blank_values=1)
     download_id = fields.getfirst('dlid')
+    creation_request = fields.getlist('resources')
     if download_id is not None:
+        # Creation has started already. Check for the resulting CSV.
         result = handle_download_request(download_id)
+    elif creation_request:
+        # A creation request has been submitted.
+        link = start_resource_creation(
+            {id_: resource_keys[id_] for id_ in creation_request})
+        result = etree.HTML('<p>The resource is being created.<br/>'
+                            'A download link will be provided '
+                            '<a href="{}" target="blank_">here</a> '
+                            'in a few minutes.</p>'.format(link))
     else:
-        requested = fields.getlist('resources')
-        if requested:
-            link = start_resource_creation(
-                {id_: resource_keys[id_] for id_ in requested})
-            result = etree.HTML('<p>The resource is being created.<br/>'
-                                'A download link will be provided '
-                                '<a href="{}" target="blank_">here</a> '
-                                'in a few minutes.</p>'.format(link))
-        else:
-            result = etree.HTML('<p>[no pending request]</p>')
+        # Empty form.
+        result = etree.HTML('<p>[no pending request]</p>')
 
+    # Hidden functionality: clear the downloads directory with "?del=all".
     if fields.getfirst('del') == 'all':
-        for fn in glob.iglob('{}/*'.format(DOWNLOADDIR)):
+        delfns = glob.glob('{}/*'.format(DOWNLOADDIR))
+        for fn in delfns:
             os.remove(fn)
+        msg = 'INFO: removed {} files in {}.'.format(len(delfns), DOWNLOADDIR)
+        html.find('.//*[@id="div-msg"]').text = msg
 
+    # Serialise the complete page.
     html.find('.//*[@id="div-result"]').append(result)
-
-    # msg = repr(fields.getlist('resources'))
-    # html.find('.//*[@id="div-msg"]').text = msg
-
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True)
-    status = '200 OK'
 
+    # WSGI boilerplate: HTTP response.
+    status = '200 OK'
     response_headers = [('Content-type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
     start_response(status, response_headers)
@@ -101,10 +107,13 @@ def populate_checkboxes(doc, resources):
 
 
 def start_resource_creation(resources):
+    '''
+    Asynchronous initialisation.
+    '''
     timestamp = int(time.time())
     download_id = '{}-{}'.format(timestamp, '-'.join(sorted(resources)))
     target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
-    # Start the categorisation process, but don't wait for its termination.
+    # Start the creation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
                    args=(resources, target_fn))
     p.start()
@@ -112,20 +121,38 @@ def start_resource_creation(resources):
 
 
 def handle_download_request(download_id):
+    '''
+    Check if the CSV is ready yet, or if an error occurred.
+    '''
+    msg = etree.Element('p')
     fn = '{}.csv'.format(download_id)
-    if os.path.exists(os.path.join(DOWNLOADDIR, fn)):
+    path = os.path.join(DOWNLOADDIR, fn)
+    if os.path.exists(path):
         address = '/'.join((THISURL, 'downloads', fn))
-        link = etree.Element('a', {'href': address})
-        link.text = fn
-        return link
+        se(msg, 'a', {'href': address}).text = fn
+    elif os.path.exists(path + '.log'):
+        with open(path + '.log') as f:
+            msg.text = 'Runtime error: {}'.format(f.read())
     else:
-        return etree.HTML('<p>[not ready yet]</p>')
+        msg.text = '[not ready yet]'
+    return msg
 
 
 def create_resource(resources, target_fn):
-    rsc = ub.RecordSetContainer(**resources)
-    ub.UnifiedBuilder(rsc, target_fn + '.tmp')
-    os.rename(target_fn + '.tmp', target_fn)
+    '''
+    Call the creation pipeline.
+
+    Since exceptions are not raised to the parent process,
+    write them to a log file.
+    '''
+    try:
+        rsc = ub.RecordSetContainer(**resources)
+        ub.UnifiedBuilder(rsc, target_fn + '.tmp')
+    except Exception as e:
+        with open(target_fn + '.log') as f:
+            f.write(str(e))
+    else:
+        os.rename(target_fn + '.tmp', target_fn)
 
 
 PAGE = '''<!doctype html>
