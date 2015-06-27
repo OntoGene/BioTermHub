@@ -39,18 +39,12 @@ class ResourceStats(object):
         self.ids_dict = {}
         # counts number of occurrences of ids per original resource
         # Key: ID, Value: counter
+        # included: calculates number of ids per original resource (types) = length of ids_dict
     
         self.terms_dict = {}
         # counts number of occurrences of term per original resource
         # Key: term, Value: counter
-    
-        self.terms_total = len(self.terms_dict)
-        # calculates total number of terms per original resource (types)
-        # IS THIS UPDATED?
-    
-        self.ids_total = len(self.ids_dict)
-        # calculates number of ids per original resource (types)
-        # IS THIS UPDATED?
+        # included: calculate total number of terms per original resource (types) = length of term_dict
     
         self.ambiguous_term_dict = {}
         # counts ids per term type for each resource (how many different ids are associated to one term (types)?)
@@ -80,9 +74,10 @@ class ResourceStats(object):
         if not one_id in self.synonyms_dict:
             self.synonyms_dict[one_id] = set([one_term])
         else: self.synonyms_dict[one_id].add(one_term)
-            
         
-        
+    def display_resource_stats(self):
+        pass
+        #still to be completed
 
 
 class OverallStats(object):
@@ -103,10 +98,6 @@ class OverallStats(object):
         self.terms_total_types_dict = {}
         # counts the total number of terms (unique) in the whole term file
         # Key: Term, Value: counter
-    
-        self.terms_total = len(self.terms_total_types_dict)
-        # calculates total number of terms (types)
-        # IS THIS UPDATED?
     
         self.ambiguous_terms = {}
         # counts number of ids per terms (unique) in the whole term file
@@ -137,12 +128,12 @@ class OverallStats(object):
         one_term = line_dict['term']
         one_id = line_dict['original_id']
         one_term_lw = one_term.lower()
-        one_term_nws = re.sub(r'([^\w]|_)+','', one_term)
-        # removes all non-alphabetical characters and whitespace
+        one_term_nws = re.sub(r'([^\w]|_)+','', one_term_lw)
+        # removes all non-alphabetical characters and whitespace from lowercase term
         
         if not one_term in self.terms_total_types_dict:
-            self.terms_total_types_dict['term'] = 1
-        else: self.terms_total_types_dict['term'] += 1
+            self.terms_total_types_dict[one_term] = 1
+        else: self.terms_total_types_dict[one_term] += 1
         
         if not one_term in self.ambiguous_terms:
             self.ambiguous_terms[one_term] = set([one_id])
@@ -158,8 +149,12 @@ class OverallStats(object):
         
     def calculate_dict_avg(self, one_dict):
         total_count = 0
+        
         for entry, count in one_dict.items():
-            total_count += count
+            if type(count) is int:
+                total_count += count
+            if type(count) is set:
+                total_count += len(count)
             
         avg = float(total_count)/float(len(one_dict))
         
@@ -169,10 +164,13 @@ class OverallStats(object):
         
     def display_stats(self):
         print 'Number of lines/terms:', self.all_lines_counter
-        print 'Resources:', self.resource_dict.keys()
+        print 'Resources:', ', '.join(self.resource_dict.keys())
         print 'Number Resources:', len(self.resource_dict)
         print 'Total number of unique terms (types) in the term file:', len(self.terms_total_types_dict)
         print 'Average of tokens per type:', self.calculate_dict_avg(self.terms_total_types_dict)
+        print 'Average of ids per term:', self.calculate_dict_avg(self.ambiguous_terms)
+        print 'Average of ids per term with lowercased terms:', self.calculate_dict_avg(self.ambiguous_terms_lower)
+        print 'Average of ids per term with lowercased terms:', self.calculate_dict_avg(self.ambiguous_terms_nows)
         
         
         
@@ -187,7 +185,6 @@ def process_file(csv_file, options=None, args=None):
     infile = codecs.open(csv_file, 'r')
     
     reader = UnicodeDictReader(infile, dialect=csv.excel_tab, quoting=csv.QUOTE_NONE, quotechar=str("\"")) 
-    print reader
     
     
     #fieldnames = 'oid','resource', 'original_id', 'term', 'preferred_term', 'entity_type'
