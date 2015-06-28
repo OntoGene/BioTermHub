@@ -5,7 +5,7 @@ import statoutput
 #~ h = hpy()
 #~ h.setref()
 
-#~ test_rsc = RecordSetContainer("data/uniprot_sprot.dat",
+# test_rsc = RecordSetContainer(uniprot = "../data/uniprot_sprot.dat")
                               #~ "data/cellosaurus.txt",
                               #~ "data/gene_info",
                               #~ ("data/desc2015.xml", "data/supp2015.xml")
@@ -14,7 +14,7 @@ import statoutput
 test_rsc = RecordSetContainer(
                               uniprot = "1k_snippets/uniprot_sprot-3",
                               cellosaurus = "1k_snippets/cellosaurus-2",
-                              entrezgene = "1k_snippets/gene_info-3",
+                              #entrezgene = "1k_snippets/gene_info-3",
                               mesh = ("1k_snippets/desc-1k", "1k_snippets/supp-1k"),
                               taxdump = "1k_snippets/names-30",
                               chebi = "1k_snippets/chebi-1k"

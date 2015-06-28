@@ -249,7 +249,7 @@ class RecordSet(object):
         for line in self.infile:
             pass
 
-        print self.ambiguous_count
+        # print "Ambiguous count",  self.ambiguous_count
 
 def mapping(rectype, rectypes, ontogene):
         if ontogene and rectype in rectypes.og_mapping:
