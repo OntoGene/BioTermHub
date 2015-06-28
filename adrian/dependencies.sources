@@ -1,11 +1,15 @@
 # Supported protocols: HTTP, FTP
 #
-# Source format: <full path to file with protocol scheme (e.g. http://)>
+# Source format: <full path to file with protocol scheme (e.g. http://)> | <preprocessor> (optional)
+#
+# Available preprocessors: ncbi, taxdump
 #
 # Note: Disable sources by prepending `#`
 # Date placeholders must be formatting directives readable by Python
 # `datetime.strftime()`, enclosed in curly braces
 # (See https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior)
+#
+# If the file(s) need preprocessing, add
 #
 # Recommendation: Put links with date placeholders *last*
 
@@ -19,19 +23,19 @@ ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/comple
 ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
 
 # EntrezGene
-ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz
+ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz | ncbi
 
 # BIOGRID
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-ALL-LATEST.tab2.zip
 http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LATEST.tab.zip
 
 # NCBI Taxonomy
-ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip | taxdump
 
 # CHEBI ontology
 ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo
 
-# NLM NIH MeSH (need to be changed once a year)
+# NLM NIH MeSH
 ## Descriptor records
 ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc{%Y}.zip
 
