@@ -23,6 +23,7 @@ import nltk
 import collections
 import csv
 import re
+import cProfile
 
 import difflib
 from unicode_csv import UnicodeCsvReader, UnicodeDictReader, UnicodeDictWriter
@@ -61,7 +62,7 @@ class ResourceStats(object):
         
         if not one_id in self.ids_dict:
             self.ids_dict[one_id] = 1
-        else: self.ids_dict += 1
+        else: self.ids_dict[one_id] += 1
         
         if not one_term in self.terms_dict:
             self.terms_dict[one_term] = 1
@@ -75,9 +76,32 @@ class ResourceStats(object):
             self.synonyms_dict[one_id] = set([one_term])
         else: self.synonyms_dict[one_id].add(one_term)
         
+        
+    def calculate_dict_avg(self, one_dict):
+        total_count = 0
+        
+        for entry, count in one_dict.items():
+            if type(count) is int:
+                total_count += count
+            if type(count) is set:
+                total_count += len(count)
+            
+        avg = float(total_count)/float(len(one_dict))
+        
+        return avg
+        
     def display_resource_stats(self):
-        pass
-        #still to be completed
+    
+        
+        print '\n'
+        
+        print 'Statistics for', self.resource
+        print 'Number of original IDs:', len(self.ids_dict)
+        #print self.ids_dict
+        print 'Number or original terms:', len(self.terms_dict)
+        print 'Average of IDs associated to one term ("ambiguous terms"):', self.calculate_dict_avg(self.ambiguous_term_dict)
+        print 'Average of Terms associated to one ID ("synonyms"):', self.calculate_dict_avg(self.synonyms_dict)
+        
 
 
 class OverallStats(object):
@@ -123,7 +147,9 @@ class OverallStats(object):
         if not resource in self.resource_dict:
             resource_stats = ResourceStats(resource)
             self.resource_dict[resource] = resource_stats
-            resource_stats.update_resource_stats(line_dict)
+            self.resource_dict[resource].update_resource_stats(line_dict)
+            #resource_stats.update_resource_stats(line_dict)
+        else: self.resource_dict[resource].update_resource_stats(line_dict)
             
         one_term = line_dict['term']
         one_id = line_dict['original_id']
@@ -163,6 +189,8 @@ class OverallStats(object):
         
         
     def display_stats(self):
+        print '\n'
+        print 'STATS FOR WHOLE TERM FILE'
         print 'Number of lines/terms:', self.all_lines_counter
         print 'Resources:', ', '.join(self.resource_dict.keys())
         print 'Number Resources:', len(self.resource_dict)
@@ -170,9 +198,12 @@ class OverallStats(object):
         print 'Average of tokens per type:', self.calculate_dict_avg(self.terms_total_types_dict)
         print 'Average of ids per term:', self.calculate_dict_avg(self.ambiguous_terms)
         print 'Average of ids per term with lowercased terms:', self.calculate_dict_avg(self.ambiguous_terms_lower)
-        print 'Average of ids per term with lowercased terms:', self.calculate_dict_avg(self.ambiguous_terms_nows)
+        print 'Average of ids per term with lowercased terms and non-alphabetical characters removed:', self.calculate_dict_avg(self.ambiguous_terms_nows)
         
         
+        for resource, resource_stats in self.resource_dict.items():
+            resource_stats.display_resource_stats()
+            
         
         
             
@@ -251,4 +282,4 @@ def main():
     sys.exit(0) # Everything went ok!
     
 if __name__ == '__main__':
-    main()
+    cProfile.run('main()','calculate_statistics.profile')
