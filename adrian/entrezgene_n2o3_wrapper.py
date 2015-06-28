@@ -16,8 +16,7 @@ class RecordSet(object):
     """
     
     def __init__(self, infile, ontogene = True):
-        self.prepfile = infile+".trunc"
-        ncbi_preprocess.preprocess(infile, self.prepfile, 1, 2, 4)
+        self.infile = infile
         self.options = "default"
         self.ontogene = ontogene
         self.stats = StatDict()
@@ -50,7 +49,7 @@ class RecordSet(object):
             options, args = OptionParser(option_list=["--id_list"]).parse_args()
         
         # Using ncbi2ontogene3 to retrieve a dictionary for each row
-        processed_input = process_file(self.prepfile, options, None)
+        processed_input = process_file(self.infile, options, None)
 
         terms_per_id = 0
         for row, new_id in transform_input(processed_input, RecType.og_mapping, unified_build=True):
