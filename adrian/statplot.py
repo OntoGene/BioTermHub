@@ -4,6 +4,8 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 from collections import OrderedDict
 
+STATSPATH = "stats/"
+
 def plotstats(rsc):
     stats = rsc.stats
 
@@ -57,7 +59,7 @@ def plotstats(rsc):
                 # except TypeError:
                 #     print "No display available."
 
-                plt.savefig(str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
+                plt.savefig(STATSPATH + str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
                 plt.clf()
                 file_counter += 1
 

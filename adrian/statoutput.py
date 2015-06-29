@@ -7,10 +7,12 @@ import tabulate
 from unicode_csv import *
 from collections import OrderedDict
 
+STATSPATH = "stats/"
+
 def write2tsv(rsc, latex = True):
     stats_latex = "stats"
 
-    with open("stats_overall.txt", "w") as statsfile:
+    with open(STATSPATH + "stats_overall.txt", "w") as statsfile:
         fieldnames = ["resource", "ids", "terms", "terms/id", "ids/term", "avg. ids/term", "avg. terms/id"]
         writer = UnicodeDictWriter(statsfile, dialect= csv.excel_tab, quotechar=str("\""), fieldnames = fieldnames,
                                    quoting= csv.QUOTE_NONE, restval='__')
@@ -33,7 +35,7 @@ def write2tsv(rsc, latex = True):
             write2latex(lrows, stats_latex)
 
 
-    with open("stats_ratios_terms_per_id.txt", "w") as statsfile:
+    with open(STATSPATH + "stats_ratios_terms_per_id.txt", "w") as statsfile:
 
         fieldnames = [" ".join((str(count), label)) for count, label
                       in sorted(rsc.stats["total"]["ratios"]["terms/id"].keys(),
@@ -72,7 +74,7 @@ def write2tsv(rsc, latex = True):
         if latex:
             write2latex(lrows, stats_latex)
 
-    with open("stats_ratios_ids_per_term.txt", "w") as statsfile:
+    with open(STATSPATH + "stats_ratios_ids_per_term.txt", "w") as statsfile:
         fieldnames = [" ".join((str(count), label)) for count, label
                       in sorted(rsc.stats["total"]["ratios"]["ids/term"].keys(),
                                 key = lambda x: x[0])]
@@ -102,6 +104,6 @@ def write2tsv(rsc, latex = True):
 
 def write2latex(table, filename):
     tabulate.LATEX_ESCAPE_RULES = {}
-    with open(filename+"_latex_snippet.txt", "a") as texfile:
+    with open(STATSPATH + filename+"_latex_snippet.txt", "a") as texfile:
         texfile.write(tabulate.tabulate(table, tablefmt = "latex"))
         texfile.write("\n\n")
