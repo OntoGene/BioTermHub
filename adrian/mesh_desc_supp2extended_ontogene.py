@@ -270,7 +270,7 @@ def desc2ontogene_headers(relevant_trees, desc_dict_list, options=None, args=Non
                         ontogene_dict_temp2['term'] = one_term
                         ontogene_dict_temp2['original_id'] = one_dict['DescriptorUI']
                         ontogene_dict_temp2['preferred_term'] = one_dict['DescriptorName']
-                        ontogene_dict_temp2['resource'] = 'mesh_desc'
+                        ontogene_dict_temp2['resource'] = 'mesh desc' + '(' + branch_cat + ')'
                 
                         yield ontogene_dict_temp2, record
                         record = False
@@ -339,7 +339,7 @@ def supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict, option
                         ontogene_dict_temp2['term'] = one_term
                         ontogene_dict_temp2['original_id'] = one_dict['SupplementalRecordUI']
                         ontogene_dict_temp2['preferred_term'] = one_dict['SupplementalRecordName']
-                        ontogene_dict_temp2['resource'] = 'mesh_supp'
+                        ontogene_dict_temp2['resource'] = 'mesh supp' + '(' + branch_cat + ')'
                     
                         yield ontogene_dict_temp2, record
                         record = False
