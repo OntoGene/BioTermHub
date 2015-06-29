@@ -10,7 +10,8 @@ def plotstats(rsc):
     file_counter = 0
     for resource in stats:
         overall = stats[resource]
-        ratios_raw = overall.pop("ratios")
+        ratios_raw = overall.copy()
+        ratios_raw.pop("ratios")
         if resource != "total":
             ratios = OrderedDict(sorted(ratios_raw.items(), key = lambda x: x[0][0]))
         else:
