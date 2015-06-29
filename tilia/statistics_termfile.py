@@ -24,11 +24,109 @@ import collections
 import csv
 import re
 import cProfile
+import collections
 
 import difflib
 from unicode_csv import UnicodeCsvReader, UnicodeDictReader, UnicodeDictWriter
 
-
+class EntityTypeStats(object):
+    def __init__(self, entity_type):
+    
+        ###############################################
+        # PER Entity Type
+    
+        self.entity_type = entity_type
+    
+        self.ids_dict = {}
+        # counts number of occurrences of ids per entity type
+        # Key: ID, Value: counter
+        # included: calculates number of ids per original entity type (types) = length of ids_dict
+    
+        self.terms_dict = {}
+        # counts number of occurrences of term per original entity type
+        # Key: term, Value: counter
+        # included: calculate total number of terms per original entity type (types) = length of term_dict
+    
+        self.ambiguous_term_dict = {}
+        # counts ids per term type for each entity type (how many different ids are associated to one term (types)?)
+        # Key: term, Value: list of ids
+    
+        self.synonyms_dict = {}
+        # counts number of synonyms for each id for each entity type ("ambiguous ids")
+        # Key: ID, Value: list of terms
+    
+    def update_entity_type_stats(self, line_dict):
+    
+        one_id = line_dict['original_id']
+        one_term = line_dict['term']
+        
+        if not one_id in self.ids_dict:
+            self.ids_dict[one_id] = 1
+        else: self.ids_dict[one_id] += 1
+        
+        if not one_term in self.terms_dict:
+            self.terms_dict[one_term] = 1
+        else: self.terms_dict[one_term] += 1
+        
+        if not one_term in self.ambiguous_term_dict:
+            self.ambiguous_term_dict[one_term] = set([one_id])
+        else: self.ambiguous_term_dict[one_term].add(one_id)
+        
+        if not one_id in self.synonyms_dict:
+            self.synonyms_dict[one_id] = set([one_term])
+        else: self.synonyms_dict[one_id].add(one_term)
+        
+        
+    def calculate_dict_avg(self, one_dict):
+        total_count = 0
+        
+        for entry, count in one_dict.items():
+            if type(count) is int:
+                total_count += count
+            if type(count) is set:
+                total_count += len(count)
+            
+        avg = float(total_count)/float(len(one_dict))
+        
+        return avg
+        
+    def calculate_dict_freq_dist(self, one_dict):
+        freq_list = [len(set(one_list)) for id, one_list in one_dict.items()]
+        
+        freq_dict = collections.Counter(freq_list)
+        
+        return freq_dict
+        
+        
+    def term_freq_dist(self):
+        # gives a frequency distribution of number of terms per id ("synonyms")
+        
+        term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
+        return term_freq_dict
+        
+    def id_freq_dist(self):
+        # gives a frequency distribution of number of ids per term ("ambiguous terms")
+        
+        id_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_term_dict)
+        return id_freq_dict
+        
+            
+        
+    def display_entity_type_stats(self):
+        print '\n'
+        
+        print 'Entity Type statistics for', self.entity_type
+        print 'Number of original IDs:', len(self.ids_dict)
+        #print self.ids_dict
+        print 'Number or original terms:', len(self.terms_dict)
+        print 'Average of IDs associated to one term ("ambiguous terms"):', self.calculate_dict_avg(self.ambiguous_term_dict)
+        print 'Average of Terms associated to one ID ("synonyms"):', self.calculate_dict_avg(self.synonyms_dict)
+        
+        print 'FREQ DIST number of terms per id', self.id_freq_dist()
+        print 'FREQ DIST number of ids per term', self.term_freq_dist()
+        
+        
+        
 class ResourceStats(object):
     def __init__(self, resource_name):
     
@@ -90,17 +188,40 @@ class ResourceStats(object):
         
         return avg
         
+    def calculate_dict_freq_dist(self, one_dict):
+        freq_list = [len(set(one_list)) for id, one_list in one_dict.items()]
+        
+        freq_dict = collections.Counter(freq_list)
+        
+        return freq_dict
+        
+        
+    def term_freq_dist(self):
+        # gives a frequency distribution of number of terms per id ("synonyms")
+        
+        term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
+        return term_freq_dict
+        
+    def id_freq_dist(self):
+        # gives a frequency distribution of number of ids per term ("ambiguous terms")
+        
+        id_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_term_dict)
+        return id_freq_dict
+        
     def display_resource_stats(self):
     
         
         print '\n'
         
-        print 'Statistics for', self.resource
+        print 'Resource statistics for', self.resource
         print 'Number of original IDs:', len(self.ids_dict)
         #print self.ids_dict
         print 'Number or original terms:', len(self.terms_dict)
         print 'Average of IDs associated to one term ("ambiguous terms"):', self.calculate_dict_avg(self.ambiguous_term_dict)
         print 'Average of Terms associated to one ID ("synonyms"):', self.calculate_dict_avg(self.synonyms_dict)
+        
+        print 'FREQ DIST number of terms per id', self.id_freq_dist()
+        print 'FREQ DIST number of ids per term', self.term_freq_dist()
         
 
 
@@ -116,12 +237,17 @@ class OverallStats(object):
     
         self.resource_dict = {}
         # stores ResourceStats objects for all resources
+        
+        self.entity_type_dict = {}
     
     
     
         self.terms_total_types_dict = {}
         # counts the total number of terms (unique) in the whole term file
         # Key: Term, Value: counter
+        
+        self.synonyms_dict = {}
+        # counts number of ontogene ids (oids) per term in the whole term file
     
         self.ambiguous_terms = {}
         # counts number of ids per terms (unique) in the whole term file
@@ -142,6 +268,7 @@ class OverallStats(object):
         self.all_lines_counter += 1
     
         resource = line_dict['resource']
+        entity_type = line_dict['entity_type']
         
         # Update Resource Stats
         if not resource in self.resource_dict:
@@ -150,9 +277,17 @@ class OverallStats(object):
             self.resource_dict[resource].update_resource_stats(line_dict)
             #resource_stats.update_resource_stats(line_dict)
         else: self.resource_dict[resource].update_resource_stats(line_dict)
+        
+        if not entity_type in self.entity_type_dict:
+            entity_type_stats = EntityTypeStats(entity_type)
+            self.entity_type_dict[entity_type] = entity_type_stats
+            self.entity_type_dict[entity_type].update_entity_type_stats(line_dict)
+            #resource_stats.update_resource_stats(line_dict)
+        else: self.entity_type_dict[entity_type].update_entity_type_stats(line_dict)
             
         one_term = line_dict['term']
         one_id = line_dict['original_id']
+        one_oid = line_dict['oid']
         one_term_lw = one_term.lower()
         one_term_nws = re.sub(r'([^\w]|_)+','', one_term_lw)
         # removes all non-alphabetical characters and whitespace from lowercase term
@@ -160,6 +295,10 @@ class OverallStats(object):
         if not one_term in self.terms_total_types_dict:
             self.terms_total_types_dict[one_term] = 1
         else: self.terms_total_types_dict[one_term] += 1
+        
+        if not one_id in self.synonyms_dict:
+            self.synonyms_dict[one_id] = set([one_term])
+        else: self.synonyms_dict[one_id].add(one_term)
         
         if not one_term in self.ambiguous_terms:
             self.ambiguous_terms[one_term] = set([one_id])
@@ -186,7 +325,34 @@ class OverallStats(object):
         
         return avg
         
+    def calculate_dict_freq_dist(self, one_dict):
+        freq_list = [len(set(one_list)) for id, one_list in one_dict.items()]
         
+        freq_dict = collections.Counter(freq_list)
+        
+        return freq_dict
+        
+        
+    def id_freq_dist(self):
+        #gives a frequency distribution for numbers of terms per id (oids for whole resource)
+        # without mapping oids correspond to original ids
+        
+        id_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
+        return id_freq_dict
+        
+    def term_freq_dist(self):
+        #gives a frequency distribution for numbers of ids per term (original ids)
+        term_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms)
+        return term_freq_dict
+        
+    def term_lw_freq_dist(self):
+        term_lw_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_lower)
+        return term_lw_freq_dict
+        
+    def term_lw_nows_freq_dist(self):
+        term_lw_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_nows)
+        return term_lw_freq_dict
+      
         
     def display_stats(self):
         print '\n'
@@ -200,9 +366,34 @@ class OverallStats(object):
         print 'Average of ids per term with lowercased terms:', self.calculate_dict_avg(self.ambiguous_terms_lower)
         print 'Average of ids per term with lowercased terms and non-alphabetical characters removed:', self.calculate_dict_avg(self.ambiguous_terms_nows)
         
+        print 'FREQ DIST number of terms per id', self.id_freq_dist()
+        print 'FREQ DIST number of ids per term', self.term_freq_dist()
+        print 'FREQ DIST number of ids per term (terms are lowercased)', self.term_lw_freq_dist()
+        print 'FREQ DIST number of ids per term (terms are lowercased and non whitespace characters are removed', self.term_lw_nows_freq_dist()
         
+        
+        print '-----------'
+        print 'RESOURCE STATS'
         for resource, resource_stats in self.resource_dict.items():
             resource_stats.display_resource_stats()
+            
+            #term_freq_dist = resource_stats.term_freq_dist()
+             # gives a frequency distribution of number of terms per id ("synonyms")
+            #id_freq_dist = resource_stats.id_freq_dist()
+            # gives a frequency distribution of number of ids per term ("ambiguous terms")
+            
+            
+        print '-----------'
+        print 'ENTITY TYPE STATS'   
+        for entity_type, entity_type_stats in self.entity_type_dict.items():
+            entity_type_stats.display_entity_type_stats()
+            
+            #term_freq_dist = entity_type_stats.term_freq_dist()
+             # gives a frequency distribution of number of terms per id ("synonyms")
+            #id_freq_dist = entity_type_stats.id_freq_dist()
+            # gives a frequency distribution of number of ids per term ("ambiguous terms")
+            
+            
             
         
         
@@ -227,6 +418,9 @@ def process_file(csv_file, options=None, args=None):
         overall_stats.update_stats(row)
         
     overall_stats.display_stats()
+    
+    if not __name__ == '__main__':
+        return overall_stats
 
 
 
