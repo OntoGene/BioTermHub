@@ -22,7 +22,6 @@ import mesh_wrapper
 import chebi_o2o_wrapper
 
 
-
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
         
@@ -93,8 +92,8 @@ class RecordSetContainer(object):
         except ZeroDivisionError:
             total["avg. ids/term"] = 0
 
-
         self.stats["total"] = total
+
         
 class UnifiedBuilder(dict):
     def __init__(self, rsc, filename, compile_hash = False, pickle_hash = False):
@@ -119,16 +118,8 @@ class UnifiedBuilder(dict):
                     else:
                         rsc.bidict_originalid_term[row["term"]] = row["original_id"]
 
-                    # rsc.bidict_originalid_term.add(row["original_id"], row["term"])
-
         if pickle_hash:
             self.pickle_bidicts(rsc)
-        #~ pprint(dict(rsc.bidict_originalid_oid))
-        #~ print
-        #~ pprint(dict(rsc.bidict_originalid_term))
-        #~ print
-        #~ pprint(dict(rsc.bidict_originalid_term.inverse))
-        #~ print
 
     def pickle_bidicts(self, rsc):
         with open('data/originalid_oid.pkl', 'wb') as o_originalid_oid:
@@ -144,34 +135,3 @@ class UnifiedBuilder(dict):
 
             with open('data/originalid_term.pkl', 'rb') as o_originalid_term:
                 rsc.bidict_originalid_term = cPickle.load(o_originalid_term)
-
-    # def pickle_bidicts(self, rsc):
-    #     with open('data/originalid_oid_n.pkl', 'wb') as o_originalid_oid_n, \
-    #          open('data/originalid_oid_i.pkl', 'wb') as o_originalid_oid_i:
-    #         cPickle.dump(dict(rsc.bidict_originalid_oid), o_originalid_oid_n, -1)
-    #         cPickle.dump(dict(rsc.bidict_originalid_oid.inverse), o_originalid_oid_i, -1)
-    #
-    #     with open('data/originalid_term_n.pkl', 'wb') as o_originalid_term_n, \
-    #          open('data/originalid_term_i.pkl', 'wb') as o_originalid_term_i:
-    #         cPickle.dump(dict(rsc.bidict_originalid_term), o_originalid_term_n, -1)
-    #         cPickle.dump(dict(rsc.bidict_originalid_term.inverse), o_originalid_term_i, -1)
-    #
-    # def unpickle_bidicts(self, rsc):
-    #     if os.path.exists('data/originalid_oid_n.pkl') and \
-    #        os.path.exists('data/originalid_oid_i.pkl') and \
-    #        os.path.exists('data/originalid_term_n.pkl') and \
-    #        os.path.exists('data/originalid_term_i.pkl'):
-    #
-    #         with open('data/originalid_oid_n.pkl', 'rb') as o_originalid_oid_n, \
-    #              open('data/originalid_oid_i.pkl', 'rb') as o_originalid_oid_i:
-    #          	normal = cPickle.load(o_originalid_oid_n)
-    #             inverse = cPickle.load(o_originalid_oid_i)
-    #             rsc.bidict_originalid_oid = bdict.bidict()
-    #             rsc.bidict_originalid_oid.fromdictpair(normal, inverse)
-    #
-    #         with open('data/originalid_term_n.pkl', 'rb') as o_originalid_term_n, \
-    #              open('data/originalid_term_i.pkl', 'rb') as o_originalid_term_i:
-    #             normal = cPickle.load(o_originalid_term_n)
-    #             inverse = cPickle.load(o_originalid_term_i)
-    #             rsc.bidict_originalid_term = bdict.defaultbidict(set)
-    #             rsc.bidict_originalid_term.fromdictpair(normal, inverse)

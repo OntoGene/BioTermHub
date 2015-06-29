@@ -43,6 +43,7 @@ def plotstats(rsc):
                 ymax = ymax_val + ymax_val / 100 if ymax_val > 20 else ymax_val + 2
                 xmax= len(statdict)
 
+                ymin = 0 if ymax_val < 300 else ymax_val/100
                 plt.ylim(0, ymax)
                 plt.grid(True)
                 plt.xlabel(label)
@@ -51,14 +52,13 @@ def plotstats(rsc):
                 # plt.figtext(0.5, 0.85, resource + " - %s" % label, color='black', weight='roman', size='x-large')
                 # plt.autoscale(tight=False)
 
-                try:
-                    plt.show()
-                except TypeError:
-                    print "No display available."
+                # try:
+                #     plt.show()
+                # except TypeError:
+                #     print "No display available."
 
-                # plt.savefig(str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
+                plt.savefig(str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
                 plt.clf()
                 file_counter += 1
-
 
 __author__ = 'vicawil'
