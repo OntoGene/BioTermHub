@@ -71,7 +71,7 @@ def plotstats(rsc):
                     plt.savefig(STATSPATH + str(file_counter) + "_" + resource + "_" + label.replace("/", "_per_"), bbox_inches='tight', dpi=200)
                     plt.clf()
                     file_counter += 1
-    except AttributeError
+    except AttributeError:
         pass
 
 __author__ = 'vicawil'
