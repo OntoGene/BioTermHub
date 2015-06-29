@@ -1,3 +1,4 @@
+import os
 import os.path
 import sys
 HERE = os.path.dirname(__file__)
@@ -11,6 +12,9 @@ STATSPATH = "stats/"
 
 def write2tsv(rsc, latex = True):
     stats_latex = "stats"
+
+    if not os.path.exists(STATSPATH):
+        os.mkdir("stats")
 
     with open(STATSPATH + "stats_overall.txt", "w") as statsfile:
         fieldnames = ["resource", "ids", "terms", "terms/id", "ids/term", "avg. ids/term", "avg. terms/id"]
