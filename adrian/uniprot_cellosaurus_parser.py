@@ -38,7 +38,7 @@ class UniProtRecTypes(object):
     mv_neg_offset = MVAL_PERMUTATION[0]
     mv_pos_offset = MVAL_PERMUTATION[1]
     
-    og_mapping = {"AC":"original_id", "OS":"term"}
+    og_mapping = {"AC":"original_id", "ID":"original_id", "OS":"term"}
 
     rec_unit = "terms"
     ambig_unit = "ids"
@@ -95,13 +95,16 @@ class RecordSet(object):
     Parses UniProt KeyList records into dictionary-like Record objects and stores these Records
     in a dictionary with the key-value structure record["ID"]:record.
     """
-    def __init__(self, infile, rectypes, rowdicts = True, ontogene = True):
+    def __init__(self, infile, rectypes, rowdicts = True, ontogene = True, all_acs = False, include_ids = True):
         self.infile = open(infile, "r")
         self.rectypes = rectypes
         self.ontogene = ontogene
         self.parsedict = {}
         self.stats = StatDict()
+        self.ambiguous_count = 0
         self.ambig_unit = rectypes.ambig_unit
+        self.all_acs = all_acs if not include_ids else False
+        self.include_ids = include_ids if rectypes.identifier else False
         if not rowdicts:
             self.build_dict(ontogene)
     
@@ -115,12 +118,13 @@ class RecordSet(object):
         ontogene = self.ontogene
         record = Record(self.rectypes, ontogene)
         mode = SINGLE_RECORD
+        ac, id = None, None
         multi_value_list = []
         
         # Now parse the records
         for line in self.infile:
             key = line[:2]
-            
+
             if key=="//": # The last line of the current record has been reached.
                 for m_rectype in self.rectypes.multi_row:
                     reckey = mapping(m_rectype, self.rectypes, ontogene)
@@ -133,8 +137,19 @@ class RecordSet(object):
                         
                     if reckey == "term":
                         record["preferred_term"] = record[reckey]
-                        
-                if mode == MULTI_RECORD:
+
+                if self.include_ids:
+                    id_record = record.copy()
+                    ac_key = mapping("AC", self.rectypes, ontogene)
+                    id_key = mapping("ID", self.rectypes, ontogene)
+                    record["resource"] = self.rectypes.resource + " (AC)"
+                    id_record["resource"] = self.rectypes.resource + " (ID)"
+                    record[ac_key] = ac
+                    id_record[id_key] = id
+                    yield id_record
+                    yield record
+
+                elif mode == MULTI_RECORD:
                     record_list = [record]
                 
                     # copy record. Permutations: copy record len(multi_value_list) - 1, Additions: copy record len(multi_value_list)
@@ -163,6 +178,7 @@ class RecordSet(object):
                 record = Record(self.rectypes, ontogene)
                 mode = SINGLE_RECORD
                 multi_value_list = []
+                ac, id = None, None
             
             elif line[2:5]=="   ": # If not, we continue recruiting the information. 
                 value = line[5:].strip()
@@ -171,18 +187,22 @@ class RecordSet(object):
                     
                 if key in self.rectypes.single:
                     
-                    if key == self.rectypes.identifier and not ontogene:
+                    if key == self.rectypes.identifier and self.include_ids:
                         value = value.split()[0]
                         value = value.rstrip(";").rstrip(".")
-                        record[mkey] = value
+                        id = value
+                        record["oid"] = OID.get()
+                        record["entity_type"] = self.rectypes.entity_type
+                        self.stats[self.rectypes.rec_unit] += 1
                     
                     elif key == self.rectypes.accession:
                         # Generate OID
-                        if ontogene:
-                            record["oid"] = OID.get()
+                        record["oid"] = OID.get() if not self.include_ids else OID.last()
+                        record["entity_type"] = self.rectypes.entity_type
+                        if not self.include_ids:
                             record["resource"] = self.rectypes.resource
-                            record["entity_type"] = self.rectypes.entity_type
                             self.stats[self.rectypes.rec_unit] += 1
+
                         
                     if key == self.rectypes.multi_value:
                         value_list = value.rstrip(";").split(";")
@@ -194,13 +214,26 @@ class RecordSet(object):
                             self.stats["ratios"][statkey] += 1
                         if self.rectypes.mode == "permutation" and len(value_list) > 1 \
                            or self.rectypes.mode == "addition":
-                            mode = MULTI_RECORD  
+                            if self.all_acs:
+                                self.ambiguous_count += 1
+                                mode = MULTI_RECORD
+                            else:
+                                if not self.include_ids:
+                                    value = value_list[0]
+                                else:
+                                    ac = value_list[0]
+                        else:
+                            ac = value.rstrip(";").rstrip(".")
                             
-                    if key != self.rectypes.identifier and (mode == SINGLE_RECORD or key != self.rectypes.multi_value):
-                        value = value.rstrip(";").rstrip(".")
-                        record[mkey] = value
-                        if ontogene and key == self.rectypes.main_term:
-                            record["preferred_term"] = value
+                    if (mode == SINGLE_RECORD or key != self.rectypes.multi_value):
+                        if key != self.rectypes.identifier or \
+                                (self.include_ids and
+                                    key != self.rectypes.identifier and key != self.rectypes.accession):
+
+                            value = value.rstrip(";").rstrip(".")
+                            record[mkey] = value
+                            if ontogene and key == self.rectypes.main_term:
+                                record["preferred_term"] = value
                         
                     elif mode == MULTI_RECORD and key == self.rectypes.multi_value:
                         for idx, value in enumerate(value_list):
@@ -215,6 +248,8 @@ class RecordSet(object):
         # Read the footer and throw it away
         for line in self.infile:
             pass
+
+        # print "Ambiguous count",  self.ambiguous_count
 
 def mapping(rectype, rectypes, ontogene):
         if ontogene and rectype in rectypes.og_mapping:

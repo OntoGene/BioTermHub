@@ -9,12 +9,13 @@ class RecordSet(object):
     the key-value structure record[ncbi_id]:record.
     """
     
-    def __init__(self, desc_file, supp_file, rowdicts = True, ontogene = True):
+    def __init__(self, desc_file, supp_file, trees = ["B","C","D"], rowdicts = True, ontogene = True):
         self.stats = None
         self.rowdicts = self._run_mesh_parser(desc_file, supp_file, ontogene)
         self.parsedict = {}
         self.stats = StatDict()
         self.ambig_unit = "terms"
+        self.trees = list(trees)
         if not rowdicts:
             self.build_dict(ontogene)
     
@@ -46,7 +47,7 @@ class RecordSet(object):
 
         supp_dict_list = parse_supp_file(supp_file)
         
-        relevant_trees = set(["B","C","D", "empty_branch"])
+        relevant_trees = set(self.trees + ["empty_branch"])
 
         generators = (desc2ontogene_headers(relevant_trees, desc_dict_list),
                       supp2ontogene_headers(relevant_trees, supp_dict_list, desc_tree_dict))

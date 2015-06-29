@@ -1,6 +1,6 @@
 import codecs
 
-def preprocess(infile, outfile, *fields):
+def preprocess(infile, outfile, fields):
     with codecs.open(infile, 'r') as infile_obj:
         header_line = infile_obj.readline()
         header_fields = header_line.split(" (")[0].split()[1:]

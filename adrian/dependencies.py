@@ -26,6 +26,10 @@ except ImportError:
     print "Error: Modules 'progressbar' and 'requests' (>= 2.7.0) needed to download ressources."
     quit()
 
+# Import preprocessors
+import ncbi_preprocess
+import taxdump_preprocess
+
 class RemoteCDateCheckFailed(Exception):
     '''Raised when a remote change date check (either via FTP or HTTP) fails'''
     
@@ -49,7 +53,12 @@ def getdeps(dpath, force = False, rd_fail="ask"):
     # previous modification dates (if available)
     dependencies = OrderedDict()
     dependencies_log_dict = defaultdict(dict)
-    
+    preproc_jobs = {}
+    preprocessors = {}
+    preprocessors["ncbi"] = {"module": ncbi_preprocess, "args":(dpath+"gene_info", dpath+"gene_info.trunc", [1, 2, 4])}
+    preprocessors["taxdump"] = {"module": taxdump_preprocess, "args":(dpath+"names.dmp", dpath+"nodes.dmp", dpath+"names.dmp.trunc")}
+
+
     # Open and parse sources file
     try:
         dependencies_source = open('dependencies.sources', 'r')
@@ -57,9 +66,16 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             stripped_line = line.strip()
             # Skip lines that are empty or comments (#)
             if stripped_line and stripped_line[0] != "#":
+                try:
+                    line, preprocessor = line.split(" | ")
+                except ValueError:
+                    preprocessor = None
                 adress = line.rstrip("\n")
                 filename_key = line.split("/")[-1].rstrip("\n")
                 dependencies[filename_key] = adress
+                if preprocessor:
+                    preproc_jobs[filename_key] = preprocessor.rstrip()
+
         dependencies_source.close()
     except IOError:
             print "Error: Dependency sources not found"
@@ -202,7 +218,8 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 if res_dfile_url.startswith("http"):
                     download_file_http(res_dfile_url, dpath)
                 elif res_dfile_url.startswith("ftp"):
-                    download_file_ftp(res_dfile_url, dpath)
+                    pass
+                    # download_file_ftp(res_dfile_url, dpath)
                     
                 # Do not insert timestamp or overwrite previous timestamp if download is forced
                 if not force_file:
@@ -223,23 +240,28 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 remove(download_path)
             
             # gzip-compressed single files
-            elif dfile.endswith(".gz"):
-                print "\nExtracting gzipped file %s ..." % res_dfile
-                with gzip.open(download_path, "rb") as infile:
-                    download_path_stripped = download_path.rstrip(".gz") 
-                    with open(download_path_stripped, "w") as outfile:
-                        for line in infile:
-                            outfile.write(line)
-                remove(download_path)
+            # elif dfile.endswith(".gz"):
+            #     print "\nExtracting gzipped file %s ..." % res_dfile
+            #     with gzip.open(download_path, "rb") as infile:
+            #         download_path_stripped = download_path.rstrip(".gz")
+            #         with open(download_path_stripped, "w") as outfile:
+            #             for line in infile:
+            #                 outfile.write(line)
+            #     remove(download_path)
             
             # ZIP files
-            elif dfile.endswith(".zip"):
-                print "\nExtracting zip archive %s ..." %res_dfile
-                zfile = ZipFile(download_path)
-                zfile.extractall(dpath)
-                zfile.close()
-                remove(download_path)
-            print ""
+            # elif dfile.endswith(".zip"):
+            #     print "\nExtracting zip archive %s ..." %res_dfile
+            #     zfile = ZipFile(download_path)
+            #     zfile.extractall(dpath)
+            #     zfile.close()
+            #     remove(download_path)
+            # print ""
+
+        if dfile in preproc_jobs:
+            pproc = preproc_jobs[dfile]
+            print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
+            preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
     
         else:
             print "up-to-date."
