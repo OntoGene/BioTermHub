@@ -13,13 +13,18 @@ sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
 # custom modules
 import bdict
 from unicode_csv import UnicodeDictWriter
+from tools import UnmetDependenciesError
 
 # parsers and parser wrappers
 import uniprot_cellosaurus_parser
 import taxdump_parser
 import entrezgene_n2o3_wrapper
 import mesh_wrapper
-import chebi_o2o_wrapper
+
+try:
+    import chebi_o2o_wrapper
+except UnmetDependenciesError:
+    chebi_o2o_wrapper = None
 
 
 class RecordSetContainer(object):
@@ -51,10 +56,13 @@ class RecordSetContainer(object):
     
     def recordsets(self):
         for resource, infile in self.okwargs.iteritems():
-            recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
-            self.stats[resource] = recordset.stats
-            self.ambig_units[resource] = recordset.ambig_unit
-            yield recordset.rowdicts, resource
+            if self.calls[resource]["module"]:
+                recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
+                self.stats[resource] = recordset.stats
+                self.ambig_units[resource] = recordset.ambig_unit
+                yield recordset.rowdicts, resource
+            else:
+                print "Warning: Skipping %s due to unmet dependencies ..." % resource
             
     def calcstats(self):
         total = StatDict()

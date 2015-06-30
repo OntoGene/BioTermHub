@@ -40,3 +40,6 @@ class DefaultOrderedDict(OrderedDict):
 class StatDict(DefaultOrderedDict):
     def __init__(self):
         super(StatDict, self).__init__(int, {"ids":0, "terms":0, "avg. terms/id":0, "avg. ids/term":0, "ratios":Counter()})
+
+class UnmetDependenciesError(Exception):
+    '''Raised when dependencies are not met'''

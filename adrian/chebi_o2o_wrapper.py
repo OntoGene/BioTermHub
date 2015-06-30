@@ -1,6 +1,10 @@
-from collections import defaultdict
-from chebi_obo2ontogene import parse_obo, obodict2ontogene_headers
-from tools import DefaultOrderedDict, StatDict
+from tools import DefaultOrderedDict, StatDict, UnmetDependenciesError
+
+try:
+    from chebi_obo2ontogene import parse_obo, obodict2ontogene_headers
+except ImportError:
+    print "Warning: Python dependencies for CHEBI OBO parser not met: Orange and/or Orange-Informatics"
+    raise UnmetDependenciesError
 
 class RecordSet(object):
     """
