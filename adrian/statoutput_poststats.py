@@ -25,8 +25,15 @@ def write2tsv(filename, latex = False):
     stats_dict = {}
     stats_dict["Resource"] = {}
     stats_dict["Entity type"] = {}
+
     stats_dict["Resource"]["terms"] = {stats:fdist.term_freq_dist() for stats, fdist in stats.resource_dict.iteritems()}
+    stats_dict["Resource"]["terms_lw"] = {stats:fdist.term_lw_freq_dist() for stats, fdist in stats.resource_dict.iteritems()}
+    stats_dict["Resource"]["terms_lw_nows"] = {stats:fdist.term_lw_nows_freq_dist() for stats, fdist in stats.resource_dict.iteritems()}
+
     stats_dict["Entity type"]["terms"] = {stats:fdist.term_freq_dist() for stats, fdist in stats.entity_type_dict.iteritems()}
+    stats_dict["Entity type"]["terms_lw"] = {stats:fdist.term_lw_freq_dist() for stats, fdist in stats.entity_type_dict.iteritems()}
+    stats_dict["Entity type"]["terms_lw_nows"] = {stats:fdist.term_lw_nows_freq_dist() for stats, fdist in stats.entity_type_dict.iteritems()}
+
     stats_dict["Resource"]["ids"] = {stats:fdist.id_freq_dist() for stats, fdist in stats.resource_dict.iteritems()}
     stats_dict["Entity type"]["ids"] = {stats:fdist.id_freq_dist() for stats, fdist in stats.entity_type_dict.iteritems()}
 
@@ -49,34 +56,27 @@ def write2tsv(filename, latex = False):
     output_tsv("stats_overall_terms_per_id.txt", total_term_freqs, l_overall_term_freqs)
     output_tsv("stats_overall_id_freqs.txt", overall_id_freqs, overall_id_freqs)
 
-    total_term_freqs = Counter()
-    for fdist in stats_dict["Resource"]["terms"]:
-        total_term_freqs += stats_dict["Resource"]["terms"][fdist]
+    args = [["Resource", "terms"],
+            ["Resource", "terms_lw"],
+            ["Resource", "terms_lw_nows"],
+            ["Resource", "ids"],
+            ["Entity type", "terms"],
+            ["Entity type", "terms_lw"],
+            ["Entity type", "terms_lw_nows"],
+            ["Entity type", "ids"],
+           ]
 
-    output_tsv("stats_resource_term_freqs.txt", total_term_freqs, stats_dict["Resource"]["terms"])
+    for (stat_class, stat_type) in args:
+        total_term_freqs = Counter()
+        for fdist in stats_dict[stat_class][stat_type]:
+            total_term_freqs += stats_dict[stat_class][stat_type][fdist]
 
-    total_term_freqs = Counter()
-    for fdist in stats_dict["Resource"]["ids"]:
-        total_term_freqs += stats_dict["Resource"]["ids"][fdist]
-
-    output_tsv("stats_resource_term_freqs.txt", total_term_freqs, stats_dict["Resource"]["ids"])
-
-    total_term_freqs = Counter()
-    for fdist in stats_dict["Entity type"]["terms"]:
-        total_term_freqs += stats_dict["Entity type"]["terms"][fdist]
-
-    output_tsv("stats_entity_term_freqs.txt", total_term_freqs, stats_dict["Entity type"]["terms"])
-
-    total_term_freqs = Counter()
-    for fdist in stats_dict["Entity type"]["ids"]:
-        total_term_freqs += stats_dict["Entity type"]["ids"][fdist]
-
-    output_tsv("stats_entity_term_freqs.txt", total_term_freqs, stats_dict["Entity type"]["ids"])
+        output_tsv("stats_%s_%s_freqs.txt" % (stat_class, stat_type), total_term_freqs, stats_dict[stat_class][stat_type])
 
 def output_tsv(filename, total_term_freqs, l_term_freqs, latex = False):
     with open(STATSPATH + filename, "w") as statsfile:
-
-        fieldnames = sorted([str(key) for key in total_term_freqs.keys()])
+        fieldnames_numeric = sorted(total_term_freqs.keys())
+        fieldnames = [str(key) for key in fieldnames_numeric]
 
         fieldnames.insert(0, "distribution")
 
