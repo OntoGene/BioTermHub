@@ -119,16 +119,18 @@ class EntityTypeStats(object):
         
         
     def id_freq_dist(self):
+        # gives a frequency distribution of number of terms per id ("synonyms")
+        
+        term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
+        return term_freq_dict
+        
+        
+    def term_freq_dist(self):    
         # gives a frequency distribution of number of ids per term ("ambiguous terms")
         
         id_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_term_dict)
         return id_freq_dict
         
-    def term_freq_dist(self):
-        # gives a frequency distribution of number of terms per id ("synonyms")
-        
-        term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
-        return term_freq_dict
         
     def term_lw_freq_dist(self):
         term_lw_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_lower)
@@ -151,7 +153,10 @@ class EntityTypeStats(object):
         print 'Average of Terms associated to one ID ("synonyms"):', self.calculate_dict_avg(self.synonyms_dict)
         
         print 'FREQ DIST number of terms per id', self.id_freq_dist()
+        
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
+        print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dict()
+        print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
     
         
         
@@ -242,20 +247,22 @@ class ResourceStats(object):
         freq_dict = collections.Counter(freq_list)
         
         return freq_dict
+     
+     def id_freq_dist(self):
+        # gives a frequency distribution of number of terms per id ("synonyms")
         
+        term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
+        return term_freq_dict
         
-    def id_freq_dist(self):
+    
+    def term_freq_dist(self):
         # gives a frequency distribution of number of ids per term ("ambiguous terms")
         
         id_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_term_dict)
         return id_freq_dict
         
         
-    def term_freq_dist(self):
-        # gives a frequency distribution of number of terms per id ("synonyms")
-        
-        term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
-        return term_freq_dict
+    
         
         
     def term_lw_freq_dist(self):
@@ -280,6 +287,9 @@ class ResourceStats(object):
         
         print 'FREQ DIST number of terms per id', self.id_freq_dist()
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
+        
+        print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dict()
+        print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
         
 
 
