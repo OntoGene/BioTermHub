@@ -21,7 +21,7 @@ class UniProtRecTypes(object):
     Container class containing constants and constant tuples
     """
     resource = "Uniprot"
-    entity_type = "protein"
+    entity_type = "gene/protein"
     
     accession = "AC"
     
