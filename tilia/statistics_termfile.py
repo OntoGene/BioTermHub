@@ -137,8 +137,8 @@ class EntityTypeStats(object):
         return term_lw_freq_dict
         
     def term_lw_nows_freq_dist(self):
-        term_lw_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_nows)
-        return term_lw_freq_dict
+        term_lw_nows_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_nows)
+        return term_lw_nows_freq_dict
         
             
         
@@ -155,7 +155,7 @@ class EntityTypeStats(object):
         print 'FREQ DIST number of terms per id', self.id_freq_dist()
         
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
-        print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dict()
+        print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dist()
         print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
     
         
@@ -270,8 +270,8 @@ class ResourceStats(object):
         return term_lw_freq_dict
         
     def term_lw_nows_freq_dist(self):
-        term_lw_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_nows)
-        return term_lw_freq_dict
+        term_lw_nows_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_terms_nows)
+        return term_lw_nows_freq_dict
         
     def display_resource_stats(self):
     
@@ -288,7 +288,7 @@ class ResourceStats(object):
         print 'FREQ DIST number of terms per id', self.id_freq_dist()
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
         
-        print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dict()
+        print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dist()
         print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
         
 
