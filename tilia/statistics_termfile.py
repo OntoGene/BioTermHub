@@ -248,7 +248,7 @@ class ResourceStats(object):
         
         return freq_dict
      
-     def id_freq_dist(self):
+    def id_freq_dist(self):
         # gives a frequency distribution of number of terms per id ("synonyms")
         
         term_freq_dict = self.calculate_dict_freq_dist(self.synonyms_dict)
