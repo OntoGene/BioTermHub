@@ -23,12 +23,22 @@ def write2tsv(filename, latex = False):
     stats = statistics_termfile.process_file(filename)
 
     stats_dict = OrderedDict()
+    stats_dict["total"] = OrderedDict()
+    stats_dict["total"]["ids"] = Counter()
+    stats_dict["total"]["terms"] = Counter()
+    stats_dict["total"]["terms_lw"] = Counter()
+    stats_dict["total"]["terms_lw_nows"] = Counter()
+
     for stats, fdist in stats.entity_type_dict.iteritems():
         stats_dict[stats] = OrderedDict()
         stats_dict[stats]["ids"] = fdist.id_freq_dist()
         stats_dict[stats]["terms"] = fdist.term_freq_dist()
         stats_dict[stats]["terms_lw"] = fdist.term_lw_freq_dist()
         stats_dict[stats]["terms_lw_nows"] = fdist.term_lw_nows_freq_dist()
+        stats_dict["total"]["ids"] += fdist.id_freq_dist()
+        stats_dict["total"]["terms"] += fdist.term_freq_dist()
+        stats_dict["total"]["terms_lw"] += fdist.term_lw_freq_dist()
+        stats_dict["total"]["terms_lw_nows"] += fdist.term_lw_nows_freq_dist()
 
 
     labels = ["ids",
@@ -46,7 +56,7 @@ def write2tsv(filename, latex = False):
 
 def output_tsv(filename, total_term_freqs, term_freqs, labels):
     latex = False
-    with open(STATSPATH + filename, "w") as statsfile:
+    with open(STATSPATH + filename.replace("/", "_per_"), "w") as statsfile:
         fieldnames_numeric = sorted(total_term_freqs.keys())
         fieldnames = [str(key) for key in fieldnames_numeric]
 
@@ -85,7 +95,7 @@ def output_tsv(filename, total_term_freqs, term_freqs, labels):
 
 def write2latex(table, filename):
     tabulate.LATEX_ESCAPE_RULES = {}
-    with open(STATSPATH + filename+"_latex_snippet.txt", "a") as texfile:
+    with open(STATSPATH + filename.replace("/", "_per_") +"_latex_snippet.txt", "a") as texfile:
         texfile.write(tabulate.tabulate(table, tablefmt = "latex"))
         texfile.write("\n\n")
 
