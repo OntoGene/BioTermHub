@@ -110,6 +110,13 @@ class EntityTypeStats(object):
         
         return avg
         
+    def token_length_avg(self):
+        token_len_list = [len(term) for term in self.ambiguous_term_dict.keys()]
+        #print token_len_list
+        #print sum(token_len_list)
+        avg = float(sum(token_len_list))/float(len(token_len_list))
+        return avg
+        
     def calculate_dict_freq_dist(self, one_dict):
         freq_list = [len(set(one_list)) for id, one_list in one_dict.items()]
         
@@ -157,6 +164,7 @@ class EntityTypeStats(object):
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
         print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dist()
         print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
+        print 'AVG Token Lenght', self.token_length_avg()
     
         
         
@@ -262,6 +270,12 @@ class ResourceStats(object):
         return id_freq_dict
         
         
+    def token_length_avg(self):
+        token_len_list = [len(term) for term in self.ambiguous_term_dict.keys()]
+        avg = float(sum(token_len_list))/float(len(token_len_list))
+        return avg
+        
+        
     
         
         
@@ -290,6 +304,8 @@ class ResourceStats(object):
         
         print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dist()
         print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
+        
+        print 'AVG Token Lenght', self.token_length_avg()
         
 
 
@@ -393,6 +409,11 @@ class OverallStats(object):
         
         return avg
         
+    def token_length_avg(self):
+        token_len_list = [len(term) for term in self.ambiguous_terms.keys()]
+        avg = float(sum(token_len_list))/float(len(token_len_list))
+        return avg
+        
     def calculate_dict_freq_dist(self, one_dict):
         freq_list = [len(set(one_list)) for id, one_list in one_dict.items()]
         
@@ -438,7 +459,7 @@ class OverallStats(object):
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
         print 'FREQ DIST number of ids per term (terms are lowercased)', self.term_lw_freq_dist()
         print 'FREQ DIST number of ids per term (terms are lowercased and non whitespace characters are removed', self.term_lw_nows_freq_dist()
-        
+        print 'AVG Token Lenght', self.token_length_avg()
         
         print '-----------'
         print 'RESOURCE STATS'
