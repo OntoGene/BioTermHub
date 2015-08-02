@@ -241,7 +241,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 tfile.close()
                 remove(download_path)
             
-            gzip-compressed single files
+            #gzip-compressed single files
             elif dfile.endswith(".gz"):
                 print "\nExtracting gzipped file %s ..." % res_dfile
                 with gzip.open(download_path, "rb") as infile:
@@ -251,7 +251,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                             outfile.write(line)
                 remove(download_path)
             
-            ZIP files
+            #ZIP files
             elif dfile.endswith(".zip"):
                 print "\nExtracting zip archive %s ..." %res_dfile
                 zfile = ZipFile(download_path)
