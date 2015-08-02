@@ -221,8 +221,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 if res_dfile_url.startswith("http"):
                     download_file_http(res_dfile_url, dpath)
                 elif res_dfile_url.startswith("ftp"):
-                    pass
-                    # download_file_ftp(res_dfile_url, dpath)
+                    download_file_ftp(res_dfile_url, dpath)
                     
                 # Do not insert timestamp or overwrite previous timestamp if download is forced
                 if not force_file:
