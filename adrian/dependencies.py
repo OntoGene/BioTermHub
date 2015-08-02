@@ -18,10 +18,15 @@ TIMEOUT = 1
 try:
     import requests
     from requests import head, ConnectionError
-    from requests.adapters import ConnectTimeout
+    try:
+        # requests >= 2.7.0
+        from requests.adapters import ConnectTimeout
+    except ImportError:
+        # requests < 2.7.0
+        from requests.adapters import Timeout
     from progressbar import *
 except ImportError:
-    print "Error: Modules 'progressbar' and 'requests' (>= 2.7.0) needed to download ressources."
+    print "Error: Packages 'progressbar' and 'requests' required to download ressources."
     quit()
 
 # Import preprocessors
