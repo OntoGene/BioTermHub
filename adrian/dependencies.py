@@ -1,7 +1,6 @@
 # Import from standard library
 from os import remove, mkdir
 from os.path import exists
-from time import time
 import datetime
 import tarfile
 from zipfile import ZipFile
@@ -11,7 +10,6 @@ import email.utils as eut
 from collections import defaultdict, OrderedDict
 from glob import glob
 import socket # timeout and adress resolution error for FTP
-import sys
 import re
 
 TIMEOUT = 1
@@ -262,9 +260,6 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             pproc = preproc_jobs[dfile]
             print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
             preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
-    
-        else:
-            print "up-to-date."
     print "Download complete."
     
     # Reopen log file, overwriting old log file
