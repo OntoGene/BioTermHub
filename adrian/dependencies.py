@@ -114,7 +114,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies, dfile)
         
         if not force and res_dfile in dependencies_log_dict:
-            print "%-35s\tChecking for a newer version ... " % res_dfile, 
+            print "%-35s\tChecking for a newer version ... " % res_dfile
         else:
             print "%-35s\tFetching timestamp..." % res_dfile,
         
@@ -260,10 +260,12 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             #     remove(download_path)
             # print ""
 
-        if dfile in preproc_jobs:
-            pproc = preproc_jobs[dfile]
-            print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
-            preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
+            if dfile in preproc_jobs:
+                pproc = preproc_jobs[dfile]
+                print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
+                preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
+        else:
+            print "up-to-date"
     print "Download complete."
     
     # Reopen log file, overwriting old log file
