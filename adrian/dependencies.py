@@ -241,24 +241,24 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 tfile.close()
                 remove(download_path)
             
-            # gzip-compressed single files
-            # elif dfile.endswith(".gz"):
-            #     print "\nExtracting gzipped file %s ..." % res_dfile
-            #     with gzip.open(download_path, "rb") as infile:
-            #         download_path_stripped = download_path.rstrip(".gz")
-            #         with open(download_path_stripped, "w") as outfile:
-            #             for line in infile:
-            #                 outfile.write(line)
-            #     remove(download_path)
+            gzip-compressed single files
+            elif dfile.endswith(".gz"):
+                print "\nExtracting gzipped file %s ..." % res_dfile
+                with gzip.open(download_path, "rb") as infile:
+                    download_path_stripped = download_path.rstrip(".gz")
+                    with open(download_path_stripped, "w") as outfile:
+                        for line in infile:
+                            outfile.write(line)
+                remove(download_path)
             
-            # ZIP files
-            # elif dfile.endswith(".zip"):
-            #     print "\nExtracting zip archive %s ..." %res_dfile
-            #     zfile = ZipFile(download_path)
-            #     zfile.extractall(dpath)
-            #     zfile.close()
-            #     remove(download_path)
-            # print ""
+            ZIP files
+            elif dfile.endswith(".zip"):
+                print "\nExtracting zip archive %s ..." %res_dfile
+                zfile = ZipFile(download_path)
+                zfile.extractall(dpath)
+                zfile.close()
+                remove(download_path)
+            print ""
 
             if dfile in preproc_jobs:
                 pproc = preproc_jobs[dfile]
