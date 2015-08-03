@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
 import bdict
 from unicode_csv import UnicodeDictWriter
 from tools import UnmetDependenciesError
+from oid_generator import OID
 
 # parsers and parser wrappers
 import uniprot_cellosaurus_parser
@@ -26,44 +27,73 @@ try:
 except UnmetDependenciesError:
     chebi_o2o_wrapper = None
 
+# Resource : Resource type, counterpart
+
+CROSS_LOOKUP_PAIRS = {'mesh': ('reference', ('ctd_chem', 'ctd_disease'),
+                      'ctd_chem': ('origin', 'ctd_lookup', 'mesh'),
+                      'ctd_disease': ('origin', 'ctd_lookup', 'mesh')}
 
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
-        
+
         # Convert kwargs to defaultdict to create calls dictionary and to sorted OrderedDict
         # to maintain order of resources in output
         self.dkwargs = defaultdict(bool, kwargs)
-        self.okwargs = OrderedDict(sorted(kwargs.items(), key= lambda x: x[0]))
+        self.okwargs = OrderedDict(sorted(kwargs.items(), key= self.sort_kwargs)
         self.calls = {"uniprot": {"module":uniprot_cellosaurus_parser, "arguments":(self.dkwargs["uniprot"], uniprot_cellosaurus_parser.UniProtRecTypes)},
                       "cellosaurus":{"module":uniprot_cellosaurus_parser, "arguments":(self.dkwargs["cellosaurus"], uniprot_cellosaurus_parser.CellosaurusRecTypes)},
                       "entrezgene":{"module":entrezgene_n2o3_wrapper, "arguments":(self.dkwargs["entrezgene"],)},
                       "mesh":{"module":mesh_wrapper, "arguments":self.dkwargs["mesh"]},
                       "taxdump":{"module":taxdump_parser, "arguments":(self.dkwargs["taxdump"],)},
-                      "chebi":{"module":chebi_o2o_wrapper, "arguments":(self.dkwargs["chebi"],)}
+                      "chebi":{"module":chebi_o2o_wrapper, "arguments":(self.dkwargs["chebi"],)},
+                      "ctd_chem":{"module":ctd_parser, "arguments":(self.dkwargs["ctd_chem"], self.dkwargs["ctd_lookup"])}
+                      "ctd_disease":{"module":ctd_parser, "arguments":(self.dkwargs["ctd_disease"], self.dkwargs["ctd_lookup"])}
                       }
 
         self.stats = OrderedDict()
         self.ambig_units = {}
+        self.cross_lookup = defaultdict(set)
 
         if not self.pickles_exist:
             self.bidict_originalid_oid = bdict.bidict()
             self.bidict_originalid_term = bdict.bidict()
         #self.bidict_originalid_term = bdict.defaultbidict(set)
 
+    def sort_kwargs(self, element):
+        origins = [resource for resource in CROSS_LOOKUP_PAIRS if CROSS_LOOKUP_PAIRS[resource][0] == 'origin']
+        if element[0] in origins:
+            return False
+        else:
+            return element[0]
+
+    # Check if a resource should be prepared for cross-lookup
+    def check_cross_lookup(self, resource):
+        if resource in CROSS_LOOKUP_PAIRS:
+            origin = CROSS_LOOKUP_PAIRS[resource][1]
+            origin_arg = CROSS_LOOKUP_PAIRS[origin][1]
+            if origin in self.dkwargs and self.dkwargs[origin_arg]:
+                return True
+        return False
+
     @property
     def pickles_exist(self):
         return os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term.pkl')
-    
+
     def recordsets(self):
         for resource, infile in self.okwargs.iteritems():
             if self.calls[resource]["module"]:
-                recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
+                if resource in CROSS_LOOKUP_PAIRS and CROSS_LOOKUP_PAIRS[resource][0] == 'origin':
+                    recordset = self.calls[resource]["module"].RecordSet(self.calls[resource]["arguments"][0],
+                                                                         self.calls[resource]["arguments"][1],
+                                                                         self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][1]]
+                else:
+                    recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
                 self.stats[resource] = recordset.stats
                 self.ambig_units[resource] = recordset.ambig_unit
                 yield recordset.rowdicts, resource
             else:
                 print "Warning: Skipping %s due to unmet dependencies ..." % resource
-            
+
     def calcstats(self):
         total = StatDict()
         total["ratios"]["terms/id"] = Counter()
@@ -115,7 +145,12 @@ class UnifiedBuilder(dict):
            self.unpickle_bidicts(rsc)
 
         for rsc_rowlist, resource in rsc.recordsets():
+                clookup = rsc.check_cross_lookup(resource)
             for row in rsc_rowlist:
+                # Cross-lookup handling
+                if clookup:
+                    # If reference, add id to set
+                    rsc.cross_lookup[resource].add(row['original_id'])
                 writer.writerow(row)
                 if compile_hash:
                     # One oid may have multiple original_ids (e.g. uniprot), one original_id has always one oid
