@@ -24,13 +24,13 @@ class RecordSet(object):
         for line in self.csv_object:
             if line[0][0] == "#":
                 continue
-            if self.mesh_ids and line[0] in self.mesh_ids:
-                continue
             term_and_synonyms = [line[0]]
             term_and_synonyms.extend(line[7].split('|'))
             for term in term_and_synonyms:
                 if term:
                     ns, id = line[1].split(':')
+                    if self.mesh_ids and id in self.mesh_ids:
+                        continue
                     resource = 'CTD (%s)' % ns
                     row_dict = {'oid': OID.get(),
                                 'resource':resource,
