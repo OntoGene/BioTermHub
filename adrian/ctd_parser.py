@@ -24,7 +24,7 @@ class RecordSet(object):
         for line in self.csv_object:
             if line[0][0] == "#":
                 continue
-            if self.mesh_ids and line[0] in mesh_ids:
+            if self.mesh_ids and line[0] in self.mesh_ids:
                 continue
             term_and_synonyms = [line[0]]
             term_and_synonyms.extend(line[7].split('|'))

@@ -107,7 +107,7 @@ class RecordSetContainer(object):
                         and CROSS_LOOKUP_PAIRS[resource][0] == 'origin' \
                         and self.calls[resource]["arguments"][1]:
                         recordset = self.calls[resource]["module"].RecordSet(self.calls[resource]["arguments"][0],
-                                                                             self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][1]])
+                                                                             self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]])
                     else:
                         recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
                     self.stats[resource] = recordset.stats
