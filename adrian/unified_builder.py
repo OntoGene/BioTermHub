@@ -5,7 +5,7 @@ import csv
 import sys
 import cPickle
 from collections import defaultdict, OrderedDict, Counter
-from tools import StatDict
+from tools import StatDict, CrossLookupTuple
 
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
@@ -27,11 +27,14 @@ try:
 except UnmetDependenciesError:
     chebi_o2o_wrapper = None
 
-# Resource : Resource type, counterpart
+# Format:
+# comparison origin: Resource : 'origin', method, counterpart
+# comparison reference: Resource : 'reference', tuple of counterparts
 
 CROSS_LOOKUP_PAIRS = {'mesh': ('reference', ('ctd_chem', 'ctd_disease')),
                       'ctd_chem': ('origin', 'ctd_lookup', 'mesh'),
                       'ctd_disease': ('origin', 'ctd_lookup', 'mesh')}
+
 
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
@@ -174,8 +177,10 @@ class UnifiedBuilder(dict):
                 # Cross-lookup handling
                 if clookup:
                     # If reference, add id to set
-                    rsc.cross_lookup[resource].add(row['original_id'])
+                    clookup_tuple = CrossLookupTuple(id=row['original_id'], term=row["term"])
+                    rsc.cross_lookup[resource].add(clookup_tuple)
                 writer.writerow(row)
+
                 if compile_hash:
                     # One oid may have multiple original_ids (e.g. uniprot), one original_id has always one oid
                     rsc.bidict_originalid_oid[row["oid"]] = row["original_id"]

@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '../lib')
 from unicode_csv import UnicodeCsvReader
 from oid_generator import OID
-from tools import StatDict
+from tools import StatDict, CrossLookupTuple
 
 class RecordSet(object):
     """
@@ -29,8 +29,10 @@ class RecordSet(object):
             for term in term_and_synonyms:
                 if term:
                     ns, id = line[1].split(':')
-                    if self.mesh_ids and id in self.mesh_ids:
-                        continue
+                    if self.mesh_ids:
+                        clookup_tuple = CrossLookupTuple(id=id, term=term)
+                        if clookup_tuple in self.mesh_ids:
+                            continue
                     resource = 'CTD (%s)' % ns
                     row_dict = {'oid': OID.get(),
                                 'resource':resource,
