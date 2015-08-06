@@ -1,4 +1,6 @@
+#
 # dependencies configuration
+#
 
 # Download path
 
@@ -19,3 +21,11 @@ force = False
 # (force-fallback: Don't attempt download from url with date placeholders 
 # if remote change date check fails, fall back to previous year instead )
 rd_fail = "ask"
+
+#
+# Terminology DB builder
+#
+
+# Output path
+
+path_out = '/data'
