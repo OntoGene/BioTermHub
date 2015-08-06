@@ -28,4 +28,4 @@ rd_fail = "ask"
 
 # Output path
 
-path_out = '/data'
+path_out = 'data/'
