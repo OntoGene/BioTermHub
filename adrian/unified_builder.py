@@ -2,6 +2,7 @@ from __future__ import division
 import os
 import codecs
 import csv
+import re
 import sys
 import cPickle
 from collections import defaultdict, OrderedDict, Counter
@@ -127,6 +128,7 @@ class RecordSetContainer(object):
         total["ratios"]["ids/term"] = Counter()
         for recordset, stats in self.stats.iteritems():
 
+            # Calculate averages and ratios for terms and ids
             if self.ambig_units[recordset] == "terms":
                 try:
                     self.stats[recordset]['avg. terms/id'] = stats["terms"]/stats["ids"]
@@ -161,26 +163,39 @@ class RecordSetContainer(object):
 
         
 class UnifiedBuilder(dict):
-    def __init__(self, rsc, filename, compile_hash = False, pickle_hash = False):
+    def __init__(self, rsc, filename, compile_hash = False, pickle_hash = False, mapping = None):
         dict.__init__(self)
         csv_file = codecs.open(filename, 'wt', 'utf-8')
         fieldnames = ["oid", "resource", "original_id", "term", "preferred_term", "entity_type"]
         writer = UnicodeDictWriter(csv_file, dialect= csv.excel_tab, fieldnames=fieldnames, quotechar=str("\""), quoting= csv.QUOTE_NONE, restval='__')
         writer.writeheader()
-       
+
+        # Unpickle existing hash if it exists
         if pickle_hash:
            self.unpickle_bidicts(rsc)
 
         for rsc_rowlist, resource in rsc.recordsets():
+
+            # Initialize cross-lookup and mapping
             clookup = rsc.check_cross_lookup(resource)
+            mapping_set = False
             for row in rsc_rowlist:
                 # Cross-lookup handling
                 if clookup:
                     # If reference, add id to set
                     clookup_tuple = CrossLookupTuple(id=row['original_id'], term=row["term"])
                     rsc.cross_lookup[resource].add(clookup_tuple)
+
+                # Mapping for resources and entity_types
+                if mapping:
+                    if not mapping_set:
+                        resource_mapped = self.mapper(mapping, 'resource', row)
+                        mapping_set = True
+                    row['resource'] = resource_mapped
+                    row['entity_type'] = self.mapper(mapping, 'entity_type', row)
                 writer.writerow(row)
 
+                # Compilation of bidirectional hash
                 if compile_hash:
                     # One oid may have multiple original_ids (e.g. uniprot), one original_id has always one oid
                     rsc.bidict_originalid_oid[row["oid"]] = row["original_id"]
@@ -192,7 +207,20 @@ class UnifiedBuilder(dict):
 
         if pickle_hash:
             self.pickle_bidicts(rsc)
+            
+    # Try to map field value using an exact match. If this fails, iterate through keys,
+    # treat keys as regular expression patterns, try match against keys.
+    def mapper(self, mapping, column, row):
+        value = row[column]
+        try:
+            return mapping[column][value]
+        except KeyError:
+            for key in mapping[column].iterkeys():
+                if re.match(key, value):
+                    return mapping[column][key]
+        return value
 
+    # Pickle bidirectional dictionary
     def pickle_bidicts(self, rsc):
         with open('data/originalid_oid.pkl', 'wb') as o_originalid_oid:
             cPickle.dump(rsc.bidict_originalid_oid, o_originalid_oid, -1)
@@ -200,6 +228,7 @@ class UnifiedBuilder(dict):
         with open('data/originalid_term.pkl', 'wb') as o_originalid_term:
             cPickle.dump(rsc.bidict_originalid_term, o_originalid_term, -1)
 
+    # Unpickle bidirectional dictionary
     def unpickle_bidicts(self, rsc):
         if rsc.pickles_exist:
             with open('data/originalid_oid.pkl', 'rb') as o_originalid_oid:
