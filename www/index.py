@@ -148,8 +148,8 @@ def create_resource(resources, target_fn):
     try:
         rsc = ub.RecordSetContainer(**resources)
         ub.UnifiedBuilder(rsc, target_fn + '.tmp')
-    except Exception as e:
-        with open(target_fn + '.log') as f:
+    except StandardError as e:
+        with open(target_fn + '.log', 'w') as f:
             f.write(str(e))
     else:
         os.rename(target_fn + '.tmp', target_fn)
