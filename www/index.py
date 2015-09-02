@@ -43,12 +43,14 @@ RESOURCES = [
 se = etree.SubElement
 NBSP = u'\xA0'
 
+snippetpath = ('/mnt/storage/hex/users/furrer/'
+                'tia2015-biomed-term-res/terminology_tool/adrian/')
 
 def application(environ, start_response):
     # Build the page.
     html = etree.HTML(PAGE)
     populate_checkboxes(html, RESOURCES)
-    resource_keys = {id_: loc for _, id_, loc in RESOURCES}
+    resource_keys = {id_: snippetpath+loc for _, id_, loc in RESOURCES}
 
     # Respond to the user requests.
     fields = FieldStorage(fp=environ['wsgi.input'], environ=environ,
