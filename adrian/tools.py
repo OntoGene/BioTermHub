@@ -1,6 +1,8 @@
 __author__ = 'vicawil'
 
-from collections import OrderedDict, Callable, Counter
+from collections import OrderedDict, Callable, Counter, namedtuple
+
+CrossLookupTuple = namedtuple('CrossLookupTuple', ('id', 'term'))
 
 class DefaultOrderedDict(OrderedDict):
     # http://stackoverflow.com/a/6190500

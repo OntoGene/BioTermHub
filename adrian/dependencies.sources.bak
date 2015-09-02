@@ -41,7 +41,3 @@ ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/desc{%Y}.zip
 
 ## Supplementary records
 ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/supp{%Y}.zip
-
-# CTD chemicals and diseases
-http://ctdbase.org/reports/CTD_chemicals.csv.gz
-http://ctdbase.org/reports/CTD_diseases.csv.gz

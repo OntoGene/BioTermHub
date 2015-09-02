@@ -131,12 +131,12 @@ def transform_input(file_list, mapping = None, unified_build = False):
                 output_dict = {}
                 if not mapping:
                     output_dict['term'] = term
-                    output_dict['type'] = 'gene'
+                    output_dict['type'] = 'gene/protein'
                     output_dict['ncbi_id'] = line_dict['GeneID']
                     output_dict['reference'] = line_dict['Symbol']
                 else:
                     output_dict[mapping['term']] = term
-                    output_dict[mapping['type']] = 'gene'
+                    output_dict[mapping['type']] = 'gene/protein'
                     output_dict[mapping['ncbi_id']] = line_dict['GeneID']
                     output_dict[mapping['reference']] = line_dict['Symbol']
                 

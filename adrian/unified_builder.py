@@ -2,10 +2,11 @@ from __future__ import division
 import os
 import codecs
 import csv
+import re
 import sys
 import cPickle
 from collections import defaultdict, OrderedDict, Counter
-from tools import StatDict
+from tools import StatDict, CrossLookupTuple
 
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
@@ -20,56 +21,114 @@ import uniprot_cellosaurus_parser
 import taxdump_parser
 import entrezgene_n2o3_wrapper
 import mesh_wrapper
+import ctd_parser
 
 try:
     import chebi_o2o_wrapper
 except UnmetDependenciesError:
     chebi_o2o_wrapper = None
 
+# Format:
+# comparison origin: Resource : 'origin', method, counterpart
+# comparison reference: Resource : 'reference', tuple of counterparts
+
+CROSS_LOOKUP_PAIRS = {'mesh': ('reference', ('ctd_chem', 'ctd_disease')),
+                      'ctd_chem': ('origin', 'ctd_lookup', 'mesh'),
+                      'ctd_disease': ('origin', 'ctd_lookup', 'mesh')}
+
 
 class RecordSetContainer(object):
     def __init__(self, **kwargs):
-        
+
         # Convert kwargs to defaultdict to create calls dictionary and to sorted OrderedDict
         # to maintain order of resources in output
         self.dkwargs = defaultdict(bool, kwargs)
-        self.okwargs = OrderedDict(sorted(kwargs.items(), key= lambda x: x[0]))
-        self.calls = {"uniprot": {"module":uniprot_cellosaurus_parser, "arguments":(self.dkwargs["uniprot"], uniprot_cellosaurus_parser.UniProtRecTypes)},
-                      "cellosaurus":{"module":uniprot_cellosaurus_parser, "arguments":(self.dkwargs["cellosaurus"], uniprot_cellosaurus_parser.CellosaurusRecTypes)},
-                      "entrezgene":{"module":entrezgene_n2o3_wrapper, "arguments":(self.dkwargs["entrezgene"],)},
-                      "mesh":{"module":mesh_wrapper, "arguments":self.dkwargs["mesh"]},
-                      "taxdump":{"module":taxdump_parser, "arguments":(self.dkwargs["taxdump"],)},
-                      "chebi":{"module":chebi_o2o_wrapper, "arguments":(self.dkwargs["chebi"],)}
+        self.okwargs = OrderedDict(sorted(kwargs.items(), key= self._sort_kwargs))
+        self.calls = {"uniprot":
+                          {"module":uniprot_cellosaurus_parser,
+                           "arguments":(self.dkwargs["uniprot"],
+                                        uniprot_cellosaurus_parser.UniProtRecTypes)},
+                      "cellosaurus":
+                          {"module":uniprot_cellosaurus_parser,
+                           "arguments":(self.dkwargs["cellosaurus"],
+                                        uniprot_cellosaurus_parser.CellosaurusRecTypes)},
+                      "entrezgene":
+                          {"module":entrezgene_n2o3_wrapper,
+                           "arguments":(self.dkwargs["entrezgene"],)},
+                      "mesh":
+                          {"module":mesh_wrapper,
+                           "arguments":self.dkwargs["mesh"]},
+                      "taxdump":
+                          {"module":taxdump_parser,
+                           "arguments":(self.dkwargs["taxdump"],)},
+                      "chebi":
+                          {"module":chebi_o2o_wrapper,
+                           "arguments":(self.dkwargs["chebi"],)},
+                      "ctd_chem":
+                          {"module":ctd_parser,
+                           "arguments":(self.dkwargs["ctd_chem"],
+                                        self.dkwargs["ctd_lookup"])},
+                      "ctd_disease":{"module":ctd_parser,
+                                     "arguments":(self.dkwargs["ctd_disease"],
+                                                  self.dkwargs["ctd_lookup"])}
                       }
 
         self.stats = OrderedDict()
         self.ambig_units = {}
+        self.cross_lookup = defaultdict(set)
 
         if not self.pickles_exist:
             self.bidict_originalid_oid = bdict.bidict()
             self.bidict_originalid_term = bdict.bidict()
         #self.bidict_originalid_term = bdict.defaultbidict(set)
 
+    def _sort_kwargs(self, element):
+        origins = [resource for resource in CROSS_LOOKUP_PAIRS if CROSS_LOOKUP_PAIRS[resource][0] == 'origin']
+        sorttuple = (element[0] in origins, element[0])
+        return sorttuple
+
+    # Check if a resource should be prepared for cross-lookup
+    def check_cross_lookup(self, resource):
+        if resource in CROSS_LOOKUP_PAIRS and CROSS_LOOKUP_PAIRS[resource][0] == 'reference':
+            # Check if any associated origins are 1) present and 2) have their cross-lookup flag set
+            for origin in CROSS_LOOKUP_PAIRS[resource][1]:
+                origin_arg = CROSS_LOOKUP_PAIRS[origin][1]
+                if origin in self.dkwargs and self.dkwargs[origin_arg]:
+                    return True
+        return False
+
     @property
     def pickles_exist(self):
         return os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term.pkl')
-    
+
     def recordsets(self):
         for resource, infile in self.okwargs.iteritems():
-            if self.calls[resource]["module"]:
-                recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
-                self.stats[resource] = recordset.stats
-                self.ambig_units[resource] = recordset.ambig_unit
-                yield recordset.rowdicts, resource
+            if resource in self.calls:
+                if self.calls[resource]["module"]:
+
+                    # Check if a cross-lookup has to be performed for the resource and if so, pass corresponding lookup set
+                    if resource in CROSS_LOOKUP_PAIRS \
+                        and CROSS_LOOKUP_PAIRS[resource][0] == 'origin' \
+                        and self.calls[resource]["arguments"][1]:
+                        recordset = self.calls[resource]["module"].RecordSet(self.calls[resource]["arguments"][0],
+                                                                             self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]])
+                    else:
+                        recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"])
+                    self.stats[resource] = recordset.stats
+                    self.ambig_units[resource] = recordset.ambig_unit
+                    yield recordset.rowdicts, resource
+                else:
+                    print "Warning: Skipping %s due to unmet dependencies ..." % resource
             else:
-                print "Warning: Skipping %s due to unmet dependencies ..." % resource
-            
+                continue
+
     def calcstats(self):
         total = StatDict()
         total["ratios"]["terms/id"] = Counter()
         total["ratios"]["ids/term"] = Counter()
         for recordset, stats in self.stats.iteritems():
 
+            # Calculate averages and ratios for terms and ids
             if self.ambig_units[recordset] == "terms":
                 try:
                     self.stats[recordset]['avg. terms/id'] = stats["terms"]/stats["ids"]
@@ -104,19 +163,39 @@ class RecordSetContainer(object):
 
         
 class UnifiedBuilder(dict):
-    def __init__(self, rsc, filename, compile_hash = False, pickle_hash = False):
+    def __init__(self, rsc, filename, compile_hash = False, pickle_hash = False, mapping = None):
         dict.__init__(self)
         csv_file = codecs.open(filename, 'wt', 'utf-8')
         fieldnames = ["oid", "resource", "original_id", "term", "preferred_term", "entity_type"]
         writer = UnicodeDictWriter(csv_file, dialect= csv.excel_tab, fieldnames=fieldnames, quotechar=str("\""), quoting= csv.QUOTE_NONE, restval='__')
         writer.writeheader()
-       
+
+        # Unpickle existing hash if it exists
         if pickle_hash:
            self.unpickle_bidicts(rsc)
 
         for rsc_rowlist, resource in rsc.recordsets():
+
+            # Initialize cross-lookup and mapping
+            clookup = rsc.check_cross_lookup(resource)
+            mapping_set = False
             for row in rsc_rowlist:
+                # Cross-lookup handling
+                if clookup:
+                    # If reference, add id to set
+                    clookup_tuple = CrossLookupTuple(id=row['original_id'], term=row["term"])
+                    rsc.cross_lookup[resource].add(clookup_tuple)
+
+                # Mapping for resources and entity_types
+                if mapping:
+                    if not mapping_set:
+                        resource_mapped = self.mapper(mapping, 'resource', row)
+                        mapping_set = True
+                    row['resource'] = resource_mapped
+                    row['entity_type'] = self.mapper(mapping, 'entity_type', row)
                 writer.writerow(row)
+
+                # Compilation of bidirectional hash
                 if compile_hash:
                     # One oid may have multiple original_ids (e.g. uniprot), one original_id has always one oid
                     rsc.bidict_originalid_oid[row["oid"]] = row["original_id"]
@@ -128,7 +207,20 @@ class UnifiedBuilder(dict):
 
         if pickle_hash:
             self.pickle_bidicts(rsc)
+            
+    # Try to map field value using an exact match. If this fails, iterate through keys,
+    # treat keys as regular expression patterns, try match against keys.
+    def mapper(self, mapping, column, row):
+        value = row[column]
+        try:
+            return mapping[column][value]
+        except KeyError:
+            for key in mapping[column].iterkeys():
+                if re.match(key, value):
+                    return mapping[column][key]
+        return value
 
+    # Pickle bidirectional dictionary
     def pickle_bidicts(self, rsc):
         with open('data/originalid_oid.pkl', 'wb') as o_originalid_oid:
             cPickle.dump(rsc.bidict_originalid_oid, o_originalid_oid, -1)
@@ -136,6 +228,7 @@ class UnifiedBuilder(dict):
         with open('data/originalid_term.pkl', 'wb') as o_originalid_term:
             cPickle.dump(rsc.bidict_originalid_term, o_originalid_term, -1)
 
+    # Unpickle bidirectional dictionary
     def unpickle_bidicts(self, rsc):
         if rsc.pickles_exist:
             with open('data/originalid_oid.pkl', 'rb') as o_originalid_oid:

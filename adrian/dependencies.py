@@ -1,7 +1,6 @@
 # Import from standard library
 from os import remove, mkdir
 from os.path import exists
-from time import time
 import datetime
 import tarfile
 from zipfile import ZipFile
@@ -11,7 +10,6 @@ import email.utils as eut
 from collections import defaultdict, OrderedDict
 from glob import glob
 import socket # timeout and adress resolution error for FTP
-import sys
 import re
 
 TIMEOUT = 1
@@ -20,10 +18,15 @@ TIMEOUT = 1
 try:
     import requests
     from requests import head, ConnectionError
-    from requests.adapters import ConnectTimeout
+    try:
+        # requests >= 2.7.0
+        from requests.adapters import ConnectTimeout
+    except ImportError:
+        # requests < 2.7.0
+        from requests.adapters import Timeout
     from progressbar import *
 except ImportError:
-    print "Error: Modules 'progressbar' and 'requests' (>= 2.7.0) needed to download ressources."
+    print "Error: Packages 'progressbar' and 'requests' required to download ressources."
     quit()
 
 # Import preprocessors
@@ -111,7 +114,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies, dfile)
         
         if not force and res_dfile in dependencies_log_dict:
-            print "%-35s\tChecking for a newer version ... " % res_dfile, 
+            print "%-35s\tChecking for a newer version ... " % res_dfile,
         else:
             print "%-35s\tFetching timestamp..." % res_dfile,
         
@@ -218,8 +221,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 if res_dfile_url.startswith("http"):
                     download_file_http(res_dfile_url, dpath)
                 elif res_dfile_url.startswith("ftp"):
-                    pass
-                    # download_file_ftp(res_dfile_url, dpath)
+                    download_file_ftp(res_dfile_url, dpath)
                     
                 # Do not insert timestamp or overwrite previous timestamp if download is forced
                 if not force_file:
@@ -239,30 +241,29 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 tfile.close()
                 remove(download_path)
             
-            # gzip-compressed single files
-            # elif dfile.endswith(".gz"):
-            #     print "\nExtracting gzipped file %s ..." % res_dfile
-            #     with gzip.open(download_path, "rb") as infile:
-            #         download_path_stripped = download_path.rstrip(".gz")
-            #         with open(download_path_stripped, "w") as outfile:
-            #             for line in infile:
-            #                 outfile.write(line)
-            #     remove(download_path)
+            #gzip-compressed single files
+            elif dfile.endswith(".gz"):
+                print "\nExtracting gzipped file %s ..." % res_dfile
+                with gzip.open(download_path, "rb") as infile:
+                    download_path_stripped = download_path.rstrip(".gz")
+                    with open(download_path_stripped, "w") as outfile:
+                        for line in infile:
+                            outfile.write(line)
+                remove(download_path)
             
-            # ZIP files
-            # elif dfile.endswith(".zip"):
-            #     print "\nExtracting zip archive %s ..." %res_dfile
-            #     zfile = ZipFile(download_path)
-            #     zfile.extractall(dpath)
-            #     zfile.close()
-            #     remove(download_path)
-            # print ""
+            #ZIP files
+            elif dfile.endswith(".zip"):
+                print "\nExtracting zip archive %s ..." %res_dfile
+                zfile = ZipFile(download_path)
+                zfile.extractall(dpath)
+                zfile.close()
+                remove(download_path)
+            print ""
 
-        if dfile in preproc_jobs:
-            pproc = preproc_jobs[dfile]
-            print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
-            preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
-    
+            if dfile in preproc_jobs:
+                pproc = preproc_jobs[dfile]
+                print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
+                preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
         else:
             print "up-to-date."
     print "Download complete."
@@ -421,5 +422,5 @@ def generate_pbar(filesize):
                                                     Percentage(),' ', ETA()], maxval=filesize).start()
 
 if __name__ == "__main__":
-    from dependencies_config import *
+    from settings import dpath, force, rd_fail
     getdeps(dpath, force, rd_fail)
