@@ -233,16 +233,22 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             
             # If the file is compressed, decompress and erase archive
             
+            archive_members = []
+            compressed = False
+            
             # gzip-compressed tarballs
             if res_dfile.endswith(".tar.gz"):
+                compressed = True
                 tfile = tarfile.open(download_path, "r:gz")
                 print "\nExtracting compressed tarball %s ..." % res_dfile
+                archive_members = tfile.getnames()
                 tfile.extractall(dpath)
                 tfile.close()
                 remove(download_path)
             
             #gzip-compressed single files
             elif res_dfile.endswith(".gz"):
+                compressed = True
                 print "\nExtracting gzipped file %s ..." % res_dfile
                 with gzip.open(download_path, "rb") as infile:
                     download_path_stripped = download_path.rstrip(".gz")
@@ -253,17 +259,27 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             
             #ZIP files
             elif res_dfile.endswith(".zip"):
+                compressed = True
                 print "\nExtracting zip archive %s ..." %res_dfile
                 zfile = ZipFile(download_path)
+                archive_members = zfile.namelist()
                 zfile.extractall(dpath)
                 zfile.close()
                 remove(download_path)
             print ""
 
+            # Strip year information from file name
             if year:
-                res_dfile_ren = res_dfile.replace(year, '')
-                download_path_ren = dpath + res_dfile_ren
-                rename(download_path, download_path_ren)
+                if compressed:
+                    for name in archive_members:
+                        name_ren = name.replace(year, '')
+                        extract_path = dpath + name
+                        extract_path_ren = dpath + name_ren
+                        rename(extract_path, extract_path_ren)
+                else:
+                    res_dfile_ren = res_dfile.replace(year, '')
+                    download_path_ren = dpath + res_dfile_ren
+                    rename(download_path, download_path_ren)
                 
 
             if dfile in preproc_jobs:
@@ -404,10 +420,10 @@ def resolveurl(dependencies, dfile, yearoffset = 0):
         if date_string in ("%Y", "%y") and yearoffset:
             try:
                 date_subs = int(year)
-                date_subs_string = str(date_subs - yearoffset)
+                year = str(date_subs - yearoffset)
             except ValueError:
                 pass
-        resolved_url = re.sub("\{.+?\}", date_subs_string, url)
+        resolved_url = re.sub("\{.+?\}", year, url)
         resolved_file = resolved_url.split("/")[-1]
         
         return resolved_file, resolved_url, year

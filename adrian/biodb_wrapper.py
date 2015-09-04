@@ -13,7 +13,6 @@ def get_resources():
 
     return resource_dict
 
-
 def ub_wrapper(*args):
     resources = get_resources()
     rsc_args = {}
