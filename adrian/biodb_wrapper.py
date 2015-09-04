@@ -24,5 +24,3 @@ def ub_wrapper(*args):
             rsc_args[arg] = path_out + rsc_arg
 
     rsc = RecordSetContainer(**rsc_args)
-
-ub_wrapper('cellosaurus', 'uniprot', 'chebi')
