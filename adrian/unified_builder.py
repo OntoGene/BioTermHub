@@ -75,6 +75,8 @@ class RecordSetContainer(object):
 
         self.stats = OrderedDict()
         self.ambig_units = {}
+        self.resources = set()
+        self.entity_types = set()
         self.cross_lookup = defaultdict(set)
 
         if not self.pickles_exist:
@@ -180,6 +182,9 @@ class UnifiedBuilder(dict):
             clookup = rsc.check_cross_lookup(resource)
             mapping_set = False
             for row in rsc_rowlist:
+                # Track resource names and entity types
+                rsc.resources.add(row['resource'])
+                rsc.entity_types.add(row['entity_type'])
                 # Cross-lookup handling
                 if clookup:
                     # If reference, add id to set
