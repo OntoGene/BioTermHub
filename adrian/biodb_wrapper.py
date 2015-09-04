@@ -2,7 +2,7 @@ __author__ = 'vicawil'
 
 from collections import defaultdict
 from unified_builder import RecordSetContainer, UnifiedBuilder
-from settings import path_out
+from settings import dpath
 
 def get_resources():
     resource_dict = defaultdict(bool)
