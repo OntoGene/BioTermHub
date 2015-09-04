@@ -21,6 +21,6 @@ def ub_wrapper(*args):
     for arg in args:
         rsc_arg = resources[arg]
         if rsc_arg:
-            rsc_args[arg] = path_out + rsc_arg
+            rsc_args[arg] = dpath + rsc_arg
 
     rsc = RecordSetContainer(**rsc_args)
