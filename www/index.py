@@ -24,6 +24,7 @@ sys.path.append('/mnt/storage/hex/users/furrer/'
                 'tia2015-biomed-term-res/terminology_tool')
 sys.path.append(libdir)
 import adrian.unified_builder as ub
+import adrian.biodb_wrapper as wrapper
 ub = reload(ub)  # make sure recent changes take effect
 
 
@@ -31,13 +32,19 @@ ub = reload(ub)  # make sure recent changes take effect
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 THISURL = ('http://localhost:8080/hex/users/furrer/'
            'tia2015-biomed-term-res/terminology_tool/www')
+SCRIPT_NAME = os.path.basename(__file__)
 
-RESOURCES = [
-    ('Uniprot', 'uniprot', "1k_snippets/uniprot_sprot-3"),
-    ('Cellosaurus', 'cellosaurus', "1k_snippets/cellosaurus-2"),
-    ('EntrezGene', 'entrezgene', "1k_snippets/gene_info-3"),
-    ('MeSH', 'mesh', ("1k_snippets/desc-1k", "1k_snippets/supp-1k")),
-    ('Taxdump', 'taxdump', "1k_snippets/names-1k")]
+RESOURCES = {
+    'cellosaurus': 'Cellosaurus',
+    'chebi': 'ChEBI',
+    'ctd_chem': 'CTD chemicals',
+    'ctd_disease': 'CTD diseases',
+    'entrezgene': 'EntrezGene',
+    'mesh_desc': 'MeSH description',
+    'mesh_supp': 'MeSH supplement',
+    'taxdump': 'Taxdump',
+    'uniprot': 'Uniprot',
+}
 
 # Some shorthands.
 se = etree.SubElement
@@ -49,8 +56,7 @@ snippetpath = ('/mnt/storage/hex/users/furrer/'
 def application(environ, start_response):
     # Build the page.
     html = etree.HTML(PAGE)
-    populate_checkboxes(html, RESOURCES)
-    resource_keys = {id_: snippetpath+loc for _, id_, loc in RESOURCES}
+    populate_checkboxes(html, RESOURCES.iteritems())
 
     # Respond to the user requests.
     fields = FieldStorage(fp=environ['wsgi.input'], environ=environ,
@@ -60,14 +66,26 @@ def application(environ, start_response):
     if download_id is not None:
         # Creation has started already. Check for the resulting CSV.
         result = handle_download_request(download_id)
+        if result.text.startswith('[Please wait'):
+            # Add auto-refresh to the page.
+            head = html.find('/html/head')
+            se(head, 'meta', {'http-equiv': "refresh", 'content': "15"})
     elif creation_request:
         # A creation request has been submitted.
-        link = start_resource_creation(
-            {id_: resource_keys[id_] for id_ in creation_request})
-        result = etree.HTML('<p>The resource is being created.<br/>'
-                            'A download link will be provided '
-                            '<a href="{}" target="blank_">here</a> '
-                            'in a few minutes.</p>'.format(link))
+        renaming = parse_renaming(fields)
+        link = start_resource_creation(creation_request, renaming)
+        # Return a page with immediate redirect to the download request.
+        html = etree.HTML(
+            '<!doctype html><html><head>'
+            '<meta charset="UTF-8"/>'
+            '<meta http-equiv="refresh" content="0; url={}"/>'
+            '<title>Biomedical Terminology Resource</title>'
+            '</head><body><div id="result"/></body></html>'
+            .format(link))
+        result = etree.HTML(
+            '<p>The resource is being created.<br/>'
+            'Please follow <a href="{}" target="blank_">this link</a> '
+            'to find your download in a few minutes.</p>'.format(link))
     else:
         # Empty form.
         result = etree.HTML('<p>[no pending request]</p>')
@@ -98,17 +116,27 @@ def populate_checkboxes(doc, resources):
     '''
     Insert a labeled checkbox for every resource.
     '''
-    form = doc.find('.//*[@id="form-res"]')
-    for label, id_, _ in resources:
+    div = doc.find('.//*[@id="div-checkboxes"]')
+    for id_, label in resources:
         atts = dict(type='checkbox', name='resources', value=id_)
-        se(se(form, 'p'), 'input', atts).tail = NBSP + label
-    # etree.SubElement appends new elements at the end --
-    # now the button is at the second position.
-    # Move it to the end:
-    form.append(form[1])
+        se(se(div, 'p'), 'input', atts).tail = NBSP + label
 
 
-def start_resource_creation(resources):
+def parse_renaming(fields):
+    '''
+    Get any user-specified renaming entries.
+    '''
+    m = {}
+    for level in ('resource', 'entity_type'):
+        m[level] = {}
+        entries = [fields.getfirst('{}-{}'.format(level, n), '').split('\n')
+                   for n in ('std', 'custom')]
+        for std, custom in zip(*entries):
+            m[level][std] = custom
+    return m
+
+
+def start_resource_creation(resources, renaming):
     '''
     Asynchronous initialisation.
     '''
@@ -117,9 +145,9 @@ def start_resource_creation(resources):
     target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
     # Start the creation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
-                   args=(resources, target_fn))
+                   args=(resources, renaming, target_fn))
     p.start()
-    return '{}?dlid={}'.format(THISURL, download_id)
+    return '{}/{}?dlid={}'.format(THISURL, SCRIPT_NAME, download_id)
 
 
 def handle_download_request(download_id):
@@ -130,17 +158,18 @@ def handle_download_request(download_id):
     fn = '{}.csv'.format(download_id)
     path = os.path.join(DOWNLOADDIR, fn)
     if os.path.exists(path):
+        msg.text = 'Download resource: '
         address = '/'.join((THISURL, 'downloads', fn))
-        se(msg, 'a', {'href': address}).text = fn
+        se(msg, 'a', href=address).text = fn
     elif os.path.exists(path + '.log'):
         with open(path + '.log') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
     else:
-        msg.text = '[not ready yet]'
+        msg.text = '[Please wait while the resource is being created...]'
     return msg
 
 
-def create_resource(resources, target_fn):
+def create_resource(resources, renaming, target_fn):
     '''
     Call the creation pipeline.
 
@@ -148,8 +177,10 @@ def create_resource(resources, target_fn):
     write them to a log file.
     '''
     try:
-        rsc = ub.RecordSetContainer(**resources)
-        ub.UnifiedBuilder(rsc, target_fn + '.tmp')
+        rsc = wrapper.ub_wrapper(*resources)
+        ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapdict=renaming)
+        # TODO: read back rsc.resources and rsc.entity_types
+        # and store them somewhere useful.
     except StandardError as e:
         with open(target_fn + '.log', 'w') as f:
             f.write(str(e))
@@ -160,10 +191,10 @@ def create_resource(resources, target_fn):
 PAGE = '''<!doctype html>
 <html>
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"/>
   <title>Biomedical Terminology Resource</title>
   <link rel='stylesheet' type='text/css'
-    href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'>
+    href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'/>
   <style>
     body { background:WhiteSmoke; }
     td { padding: 0cm 0.2cm 0cm 0.2cm;
@@ -185,7 +216,26 @@ PAGE = '''<!doctype html>
         <div style="text-align: left">
           <form id="form-res" role="form" action="." method="get"
                 accept-charset="UTF-8">
-            <label>Please select the resources to be included:</label>
+            <div id="div-checkboxes">
+              <label>Please select the resources to be included:</label>
+            </div>
+            <div id="div-renaming">
+              <p>Use the following text boxes to change the labeling of resources and entity types. Unix-style regex (eg. "mesh desc.*") are allowed.</p>
+              <label>Resources:</label>
+              <table>
+                <tr>
+                  <td><textarea rows="3" cols="35" name="resource-std"></td>
+                  <td><textarea rows="3" cols="35" name="resource-custom"></td>
+                </tr>
+              </table>
+              <label>Entity types:</label>
+              <table>
+                <tr>
+                  <td><textarea rows="3" cols="35" name="entity_type-std"></td>
+                  <td><textarea rows="3" cols="35" name="entity_type-custom"></td>
+                </tr>
+              </table>
+            </div>
             <input type="submit"/>
           </form>
         </div>

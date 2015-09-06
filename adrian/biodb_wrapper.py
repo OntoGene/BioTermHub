@@ -22,4 +22,4 @@ def ub_wrapper(*args):
         if rsc_arg:
             rsc_args[arg] = dpath + rsc_arg
 
-    rsc = RecordSetContainer(**rsc_args)
+    return RecordSetContainer(**rsc_args)
