@@ -1,5 +1,5 @@
 # Import from standard library
-from os import remove, mkdir
+from os import remove, rename, mkdir
 from os.path import exists
 import datetime
 import tarfile
@@ -111,7 +111,7 @@ def getdeps(dpath, force = False, rd_fail="ask"):
         
         # Resolve date substitution strings if present
         
-        res_dfile, res_dfile_url, url_is_resolved = resolveurl(dependencies, dfile)
+        res_dfile, res_dfile_url, year = resolveurl(dependencies, dfile)
         
         if not force and res_dfile in dependencies_log_dict:
             print "%-35s\tChecking for a newer version ... " % res_dfile,
@@ -136,11 +136,11 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 
                 elif usr_input == "p":
                     # If the url has a date substitution string, attempt to download file with one year subtracted from the current year
-                    if url_is_resolved:
+                    if year:
                         print "Attempting to fetch timestamp from previous year...",
                         try:
                             del res_dependencies[res_dfile]
-                            res_dfile, res_dfile_url, _ = resolveurl(dependencies[dfile], yearoffset = 1)
+                            res_dfile, res_dfile_url, year = resolveurl(dependencies[dfile], yearoffset = 1)
                             changedate = fetch_changedate(res_dfile_url)
                             res_dependencies[res_dfile] = res_dfile_url
                         except RemoteCDateCheckFailed:
@@ -233,16 +233,22 @@ def getdeps(dpath, force = False, rd_fail="ask"):
             
             # If the file is compressed, decompress and erase archive
             
+            archive_members = []
+            compressed = False
+            
             # gzip-compressed tarballs
-            if dfile.endswith(".tar.gz"):
+            if res_dfile.endswith(".tar.gz"):
+                compressed = True
                 tfile = tarfile.open(download_path, "r:gz")
                 print "\nExtracting compressed tarball %s ..." % res_dfile
+                archive_members = tfile.getnames()
                 tfile.extractall(dpath)
                 tfile.close()
                 remove(download_path)
             
             #gzip-compressed single files
-            elif dfile.endswith(".gz"):
+            elif res_dfile.endswith(".gz"):
+                compressed = True
                 print "\nExtracting gzipped file %s ..." % res_dfile
                 with gzip.open(download_path, "rb") as infile:
                     download_path_stripped = download_path.rstrip(".gz")
@@ -252,18 +258,35 @@ def getdeps(dpath, force = False, rd_fail="ask"):
                 remove(download_path)
             
             #ZIP files
-            elif dfile.endswith(".zip"):
+            elif res_dfile.endswith(".zip"):
+                compressed = True
                 print "\nExtracting zip archive %s ..." %res_dfile
                 zfile = ZipFile(download_path)
+                archive_members = zfile.namelist()
                 zfile.extractall(dpath)
                 zfile.close()
                 remove(download_path)
             print ""
 
+            # Strip year information from file name
+            if year:
+                if compressed:
+                    for name in archive_members:
+                        name_ren = name.replace(year, '')
+                        extract_path = dpath + name
+                        extract_path_ren = dpath + name_ren
+                        rename(extract_path, extract_path_ren)
+                else:
+                    res_dfile_ren = res_dfile.replace(year, '')
+                    download_path_ren = dpath + res_dfile_ren
+                    rename(download_path, download_path_ren)
+                
+
             if dfile in preproc_jobs:
                 pproc = preproc_jobs[dfile]
                 print "Preprocessing %s ..." % preprocessors[pproc]["args"][0]
                 preprocessors[pproc]["module"].preprocess(*preprocessors[pproc]["args"])
+
         else:
             print "up-to-date."
     print "Download complete."
@@ -392,17 +415,18 @@ def resolveurl(dependencies, dfile, yearoffset = 0):
         
         dnow = datetime.datetime.now()
         
-        date_subs_string = dnow.strftime(date_string)
+        year = dnow.strftime(date_string)
+        
         if date_string in ("%Y", "%y") and yearoffset:
             try:
-                date_subs = int(date_subs_string)
-                date_subs_string = str(date_subs - yearoffset)
+                date_subs = int(year)
+                year = str(date_subs - yearoffset)
             except ValueError:
                 pass
-        resolved_url = re.sub("\{.+?\}", date_subs_string, url)
+        resolved_url = re.sub("\{.+?\}", year, url)
         resolved_file = resolved_url.split("/")[-1]
         
-        return resolved_file, resolved_url, True
+        return resolved_file, resolved_url, year
         
     else:
         nfile = url.split("/")[-1]
