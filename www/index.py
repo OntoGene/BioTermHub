@@ -23,15 +23,14 @@ libdir = os.path.join(HERE, 'lib')
 sys.path.append('/mnt/storage/hex/users/furrer/'
                 'tia2015-biomed-term-res/terminology_tool')
 sys.path.append(libdir)
-import adrian.unified_builder as ub
-import adrian.biodb_wrapper as wrapper
-ub = reload(ub)  # make sure recent changes take effect
+# import adrian.unified_builder as ub
+# import adrian.biodb_wrapper as wrapper
+# ub = reload(ub)  # make sure recent changes take effect
 
 
 # Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
-THISURL = ('http://localhost:8080/hex/users/furrer/'
-           'tia2015-biomed-term-res/terminology_tool/www')
+THISURL = ('http://kitt.cl.uzh.ch/kitt/biodb/')
 SCRIPT_NAME = os.path.basename(__file__)
 
 RESOURCES = {
@@ -147,7 +146,7 @@ def start_resource_creation(resources, renaming):
     p = mp.Process(target=create_resource,
                    args=(resources, renaming, target_fn))
     p.start()
-    return '{}/{}?dlid={}'.format(THISURL, SCRIPT_NAME, download_id)
+    return '{}?dlid={}'.format(THISURL, download_id)
 
 
 def handle_download_request(download_id):
@@ -219,6 +218,7 @@ PAGE = '''<!doctype html>
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
             </div>
+            <hr/>
             <div id="div-renaming">
               <p>Use the following text boxes to change the labeling of resources and entity types. Unix-style regex (eg. "mesh desc.*") are allowed.</p>
               <label>Resources:</label>
@@ -236,6 +236,7 @@ PAGE = '''<!doctype html>
                 </tr>
               </table>
             </div>
+            <hr/>
             <input type="submit"/>
           </form>
         </div>
