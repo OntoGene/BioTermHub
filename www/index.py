@@ -12,45 +12,39 @@ from cgi import FieldStorage
 import multiprocessing as mp
 import time
 import glob
+from collections import OrderedDict
+from contextlib import contextmanager
 
 from lxml import etree
 import cgitb
 cgitb.enable()
 
 HERE = os.path.dirname(__file__)
-libdir = os.path.join(HERE, 'lib')
-
-sys.path.append('/mnt/storage/hex/users/furrer/'
-                'tia2015-biomed-term-res/terminology_tool')
-sys.path.append(libdir)
-# import adrian.unified_builder as ub
-# import adrian.biodb_wrapper as wrapper
-# ub = reload(ub)  # make sure recent changes take effect
-
 
 # Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 THISURL = ('http://kitt.cl.uzh.ch/kitt/biodb/')
 SCRIPT_NAME = os.path.basename(__file__)
 
-RESOURCES = {
-    'cellosaurus': 'Cellosaurus',
-    'chebi': 'ChEBI',
-    'ctd_chem': 'CTD chemicals',
-    'ctd_disease': 'CTD diseases',
-    'entrezgene': 'EntrezGene',
-    'mesh_desc': 'MeSH description',
-    'mesh_supp': 'MeSH supplement',
-    'taxdump': 'Taxdump',
-    'uniprot': 'Uniprot',
-}
+RESOURCES = OrderedDict((
+    ('cellosaurus', 'Cellosaurus'),
+    ('chebi', 'ChEBI'),
+    ('ctd_chem', 'CTD chemicals'),
+    ('ctd_disease', 'CTD diseases'),
+    ('entrezgene', 'EntrezGene'),
+    ('mesh_desc', 'MeSH description'),
+    ('mesh_supp', 'MeSH supplement'),
+    ('taxdump', 'Taxdump'),
+    ('uniprot', 'Uniprot'),
+))
 
 # Some shorthands.
 se = etree.SubElement
 NBSP = u'\xA0'
 
-snippetpath = ('/mnt/storage/hex/users/furrer/'
-                'tia2015-biomed-term-res/terminology_tool/adrian/')
+PROJECTPATH = ('/mnt/storage/hex/users/furrer/'
+               'tia2015-biomed-term-res/terminology_tool/adrian/')
+
 
 def application(environ, start_response):
     # Build the page.
@@ -58,36 +52,28 @@ def application(environ, start_response):
     populate_checkboxes(html, RESOURCES.iteritems())
 
     # Respond to the user requests.
-    fields = FieldStorage(fp=environ['wsgi.input'], environ=environ,
-                          keep_blank_values=1)
+    fields = FieldStorage(fp=environ['wsgi.input'], environ=environ)
+                          #keep_blank_values=1)
     download_id = fields.getfirst('dlid')
     creation_request = fields.getlist('resources')
-    if download_id is not None:
+
+    if creation_request:
+        # A creation request has been submitted.
+        renaming = parse_renaming(fields)
+        download_id = start_resource_creation(creation_request, renaming)
+
+    if download_id is None:
+        # Empty form.
+        result = etree.HTML('<p>[no pending request]</p>')
+    else:
         # Creation has started already. Check for the resulting CSV.
         result = handle_download_request(download_id)
         if result.text.startswith('[Please wait'):
             # Add auto-refresh to the page.
-            head = html.find('/html/head')
-            se(head, 'meta', {'http-equiv': "refresh", 'content': "15"})
-    elif creation_request:
-        # A creation request has been submitted.
-        renaming = parse_renaming(fields)
-        link = start_resource_creation(creation_request, renaming)
-        # Return a page with immediate redirect to the download request.
-        html = etree.HTML(
-            '<!doctype html><html><head>'
-            '<meta charset="UTF-8"/>'
-            '<meta http-equiv="refresh" content="0; url={}"/>'
-            '<title>Biomedical Terminology Resource</title>'
-            '</head><body><div id="result"/></body></html>'
-            .format(link))
-        result = etree.HTML(
-            '<p>The resource is being created.<br/>'
-            'Please follow <a href="{}" target="blank_">this link</a> '
-            'to find your download in a few minutes.</p>'.format(link))
-    else:
-        # Empty form.
-        result = etree.HTML('<p>[no pending request]</p>')
+            head = html.find('head')
+            link = '{}?dlid={}'.format(THISURL, download_id)
+            se(head, 'meta', {'http-equiv': "refresh",
+                              'content': "15; url={}".format(link)})
 
     # Hidden functionality: clear the downloads directory with "?del=all".
     if fields.getfirst('del') == 'all':
@@ -96,6 +82,8 @@ def application(environ, start_response):
             os.remove(fn)
         msg = 'INFO: removed {} files in {}.'.format(len(delfns), DOWNLOADDIR)
         html.find('.//*[@id="div-msg"]').text = msg
+
+    # TODO: add automatic download-dir clean-up.
 
     # Serialise the complete page.
     html.find('.//*[@id="div-result"]').append(result)
@@ -131,7 +119,8 @@ def parse_renaming(fields):
         entries = [fields.getfirst('{}-{}'.format(level, n), '').split('\n')
                    for n in ('std', 'custom')]
         for std, custom in zip(*entries):
-            m[level][std] = custom
+            if std and custom:
+                m[level][std] = custom
     return m
 
 
@@ -146,7 +135,7 @@ def start_resource_creation(resources, renaming):
     p = mp.Process(target=create_resource,
                    args=(resources, renaming, target_fn))
     p.start()
-    return '{}?dlid={}'.format(THISURL, download_id)
+    return download_id
 
 
 def handle_download_request(download_id):
@@ -176,15 +165,34 @@ def create_resource(resources, renaming, target_fn):
     write them to a log file.
     '''
     try:
-        rsc = wrapper.ub_wrapper(*resources)
-        ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapdict=renaming)
-        # TODO: read back rsc.resources and rsc.entity_types
-        # and store them somewhere useful.
+        with cd(PROJECTPATH):
+            if PROJECTPATH not in sys.path:
+                sys.path.append(PROJECTPATH)
+            import unified_builder as ub
+            import biodb_wrapper
+            # ub = reload(ub)  # make sure recent changes take effect
+            rsc = biodb_wrapper.ub_wrapper(*resources)
+            ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
+            # TODO: read back rsc.resources and rsc.entity_types
+            # and store them somewhere useful.
     except StandardError as e:
         with open(target_fn + '.log', 'w') as f:
-            f.write(str(e))
+            f.write('{}: {}\n'.format(e.__class__.__name__, e))
     else:
         os.rename(target_fn + '.tmp', target_fn)
+
+
+@contextmanager
+def cd(newdir):
+    '''
+    Temporarily change the working directory.
+    '''
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)
 
 
 PAGE = '''<!doctype html>

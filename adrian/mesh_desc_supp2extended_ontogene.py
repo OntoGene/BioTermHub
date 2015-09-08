@@ -11,7 +11,7 @@ import sys
 import os
 import shutil
 import random
-import nltk
+# import nltk
 import collections
 import csv
 import cStringIO

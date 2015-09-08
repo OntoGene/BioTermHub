@@ -13,7 +13,7 @@ import os
 import codecs
 import shutil
 import random
-import nltk
+# import nltk
 import csv
 import oid_generator
 

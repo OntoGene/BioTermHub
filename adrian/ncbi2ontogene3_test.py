@@ -18,7 +18,7 @@ sys.path.insert(0, '../lib')
 import codecs
 import shutil
 import random
-import nltk
+# import nltk
 import collections
 import csv
 import re
