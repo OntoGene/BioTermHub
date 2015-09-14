@@ -180,7 +180,6 @@ class UnifiedBuilder(dict):
 
             # Initialize cross-lookup and mapping
             clookup = rsc.check_cross_lookup(resource)
-            mapping_set = False
             for row in rsc_rowlist:
                 # Track resource names and entity types
                 rsc.resources.add(row['resource'])
@@ -193,10 +192,7 @@ class UnifiedBuilder(dict):
 
                 # Mapping for resources and entity_types
                 if mapping:
-                    if not mapping_set:
-                        resource_mapped = self.mapper(mapping, 'resource', row)
-                        mapping_set = True
-                    row['resource'] = resource_mapped
+                    row['resource'] = self.mapper(mapping, 'resource', row)
                     row['entity_type'] = self.mapper(mapping, 'entity_type', row)
                 writer.writerow(row)
 
