@@ -18,6 +18,8 @@ def ub_wrapper(*args):
     rsc_args = {}
 
     for arg in args:
+        if arg == 'ctd_lookup':
+            rsc_args[arg] = True
         rsc_arg = resources[arg]
         if rsc_arg:
                 rsc_args[arg] = dpath + rsc_arg
