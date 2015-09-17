@@ -1,6 +1,6 @@
 from unified_builder import RecordSetContainer, UnifiedBuilder
-import statplot
-import statoutput
+#import statplot
+#import statoutput
 #~ from guppy import hpy
 #~ h = hpy()
 #~ h.setref()
@@ -92,7 +92,7 @@ test_rsc = RecordSetContainer(
 
 print "Processing ..."
 
-a = UnifiedBuilder(test_rsc, "output.csv", True, True)
+a = UnifiedBuilder(test_rsc, "output.csv")
 
 test_rsc.calcstats()
 print test_rsc.stats

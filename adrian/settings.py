@@ -10,7 +10,7 @@
 # running an update. Otherwise, the old log file will be erased and all sources
 # redownloaded by default.
 
-dpath = "data/"
+dpath = "/mnt/storage/kitt/projects/clontogene/termdb/data/"
 
 # Force downloads. Ignores previous timestamps from the logfile.
 force = False
@@ -28,4 +28,4 @@ rd_fail = "ask"
 
 # Output path
 
-path_out = 'data/'
+path_out = '/mnt/storage/kitt/projects/clontogene/termdb/data/'

@@ -8,7 +8,7 @@ from __future__ import division, print_function #, unicode_literals
 
 import sys
 import os
-from cgi import FieldStorage
+import cgi
 import multiprocessing as mp
 import time
 import glob
@@ -32,8 +32,7 @@ RESOURCES = OrderedDict((
     ('ctd_chem', 'CTD chemicals'),
     ('ctd_disease', 'CTD diseases'),
     ('entrezgene', 'EntrezGene'),
-    ('mesh_desc', 'MeSH description'),
-    ('mesh_supp', 'MeSH supplement'),
+    ('mesh', 'MeSH'),
     ('taxdump', 'Taxdump'),
     ('uniprot', 'Uniprot'),
 ))
@@ -42,18 +41,49 @@ RESOURCES = OrderedDict((
 se = etree.SubElement
 NBSP = u'\xA0'
 
-PROJECTPATH = ('/mnt/storage/hex/users/furrer/'
-               'tia2015-biomed-term-res/terminology_tool/adrian/')
+BUILDERPATH = ('/mnt/storage/kitt/projects/clontogene/termdb/'
+               'terminology_tool/adrian/')
+
+
+def main():
+    '''
+    Run this as a CGI script.
+    '''
+    fields = cgi.FieldStorage()
+
+    output, response_headers = main_handler(fields)
+
+    # HTTP response.
+    for entry in response_headers:
+        print('{}: {}'.format(*entry))
+    print()
+    print(output)
 
 
 def application(environ, start_response):
+    '''
+    Run this as a WSGI script.
+    '''
+    fields = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+
+    output, response_headers = main_handler(fields)
+
+    # HTTP response.
+    status = '200 OK'
+    start_response(status, response_headers)
+
+    return [output]
+
+
+def main_handler(fields):
+    '''
+    Main program logic, used in both WSGI and CGI mode.
+    '''
     # Build the page.
     html = etree.HTML(PAGE)
     populate_checkboxes(html, RESOURCES.iteritems())
 
     # Respond to the user requests.
-    fields = FieldStorage(fp=environ['wsgi.input'], environ=environ)
-                          #keep_blank_values=1)
     download_id = fields.getfirst('dlid')
     creation_request = fields.getlist('resources')
 
@@ -89,14 +119,11 @@ def application(environ, start_response):
     html.find('.//*[@id="div-result"]').append(result)
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True)
-
-    # WSGI boilerplate: HTTP response.
-    status = '200 OK'
+    # HTTP boilerplate.
     response_headers = [('Content-type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
-    start_response(status, response_headers)
 
-    return [output]
+    return output, response_headers
 
 
 def populate_checkboxes(doc, resources):
@@ -107,6 +134,7 @@ def populate_checkboxes(doc, resources):
     for id_, label in resources:
         atts = dict(type='checkbox', name='resources', value=id_)
         se(se(div, 'p'), 'input', atts).tail = NBSP + label
+    # TODO: add a checkbox for ctd_lookup
 
 
 def parse_renaming(fields):
@@ -152,8 +180,10 @@ def handle_download_request(download_id):
     elif os.path.exists(path + '.log'):
         with open(path + '.log') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
-    else:
+    elif os.path.exists(path + '.tmp') or is_recent(download_id, 10):
         msg.text = '[Please wait while the resource is being created...]'
+    else:
+        msg.text = 'The requested resource seems not to exist.'
     return msg
 
 
@@ -165,12 +195,14 @@ def create_resource(resources, renaming, target_fn):
     write them to a log file.
     '''
     try:
-        with cd(PROJECTPATH):
-            if PROJECTPATH not in sys.path:
-                sys.path.append(PROJECTPATH)
+        target_fn = os.path.abspath(target_fn)
+        with cd(BUILDERPATH):
+            if BUILDERPATH not in sys.path:
+                sys.path.append(BUILDERPATH)
             import unified_builder as ub
             import biodb_wrapper
-            # ub = reload(ub)  # make sure recent changes take effect
+            ub = reload(ub)  # make sure recent changes take effect
+            biodb_wrapper = reload(biodb_wrapper)
             rsc = biodb_wrapper.ub_wrapper(*resources)
             ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
             # TODO: read back rsc.resources and rsc.entity_types
@@ -180,6 +212,18 @@ def create_resource(resources, renaming, target_fn):
             f.write('{}: {}\n'.format(e.__class__.__name__, e))
     else:
         os.rename(target_fn + '.tmp', target_fn)
+
+
+def is_recent(download_id, seconds):
+    '''
+    Determine if download_id was created no more than n seconds ago.
+    '''
+    try:
+        timestamp = int(download_id.split('-')[0])
+    except ValueError:
+        # Invalid download ID.
+        return False
+    return time.time() - timestamp <= seconds
 
 
 @contextmanager
@@ -221,7 +265,7 @@ PAGE = '''<!doctype html>
       <div style="float: left; width: 50%;">
         <h3>Resource Selection</h3>
         <div style="text-align: left">
-          <form id="form-res" role="form" action="." method="get"
+          <form id="form-res" role="form" action="." method="post"
                 accept-charset="UTF-8">
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
@@ -261,3 +305,7 @@ PAGE = '''<!doctype html>
 </body>
 </html>
 '''
+
+
+if __name__ == '__main__':
+    main()
