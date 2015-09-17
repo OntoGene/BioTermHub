@@ -23,7 +23,6 @@ HERE = os.path.dirname(__file__)
 
 # Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
-THISURL = ('http://kitt.cl.uzh.ch/kitt/biodb/')
 SCRIPT_NAME = os.path.basename(__file__)
 
 RESOURCES = OrderedDict((
@@ -51,7 +50,8 @@ def main():
     '''
     fields = cgi.FieldStorage()
 
-    output, response_headers = main_handler(fields)
+    url = 'http://kitt.cl.uzh.ch/kitt/cgi-bin/biodb/index.py'
+    output, response_headers = main_handler(fields, url)
 
     # HTTP response.
     for entry in response_headers:
@@ -66,7 +66,8 @@ def application(environ, start_response):
     '''
     fields = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
-    output, response_headers = main_handler(fields)
+    url = 'http://kitt.cl.uzh.ch/kitt/biodb/'
+    output, response_headers = main_handler(fields, url)
 
     # HTTP response.
     status = '200 OK'
@@ -75,7 +76,7 @@ def application(environ, start_response):
     return [output]
 
 
-def main_handler(fields):
+def main_handler(fields, self_url):
     '''
     Main program logic, used in both WSGI and CGI mode.
     '''
@@ -84,8 +85,15 @@ def main_handler(fields):
     populate_checkboxes(html, RESOURCES.iteritems())
 
     # Respond to the user requests.
-    download_id = fields.getfirst('dlid')
     creation_request = fields.getlist('resources')
+    download_id = fields.getfirst('dlid')
+    download_ready = fields.getfirst('download')
+
+    if download_ready:
+        try:
+            return deliver_download(download_ready)
+        except StandardError:
+            pass
 
     if creation_request:
         # A creation request has been submitted.
@@ -97,11 +105,11 @@ def main_handler(fields):
         result = etree.HTML('<p>[no pending request]</p>')
     else:
         # Creation has started already. Check for the resulting CSV.
-        result = handle_download_request(download_id)
+        result = handle_download_request(download_id, self_url)
         if result.text.startswith('[Please wait'):
             # Add auto-refresh to the page.
             head = html.find('head')
-            link = '{}?dlid={}'.format(THISURL, download_id)
+            link = '{}?dlid={}'.format(self_url, download_id)
             se(head, 'meta', {'http-equiv': "refresh",
                               'content': "15; url={}".format(link)})
 
@@ -120,7 +128,7 @@ def main_handler(fields):
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True)
     # HTTP boilerplate.
-    response_headers = [('Content-type', 'text/html;charset=UTF-8'),
+    response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
 
     return output, response_headers
@@ -166,7 +174,7 @@ def start_resource_creation(resources, renaming):
     return download_id
 
 
-def handle_download_request(download_id):
+def handle_download_request(download_id, self_url):
     '''
     Check if the CSV is ready yet, or if an error occurred.
     '''
@@ -175,7 +183,7 @@ def handle_download_request(download_id):
     path = os.path.join(DOWNLOADDIR, fn)
     if os.path.exists(path):
         msg.text = 'Download resource: '
-        address = '/'.join((THISURL, 'downloads', fn))
+        address = '{}?download={}'.format(self_url, fn)
         se(msg, 'a', href=address).text = fn
     elif os.path.exists(path + '.log'):
         with open(path + '.log') as f:
@@ -185,6 +193,17 @@ def handle_download_request(download_id):
     else:
         msg.text = 'The requested resource seems not to exist.'
     return msg
+
+
+def deliver_download(fn):
+    path = os.path.join(DOWNLOADDIR, fn)
+    with open(path) as f:
+        output = f.read()
+    response_headers = [
+        ('Content-Type', 'application/octet-stream; name="{}"'.format(fn)),
+        ('Content-Disposition', 'attachment; filename="{}"'.format(fn)),
+        ('Content-Length', str(len(output)))]
+    return output, response_headers
 
 
 def create_resource(resources, renaming, target_fn):
@@ -265,7 +284,7 @@ PAGE = '''<!doctype html>
       <div style="float: left; width: 50%;">
         <h3>Resource Selection</h3>
         <div style="text-align: left">
-          <form id="form-res" role="form" action="." method="post"
+          <form id="form-res" role="form" method="post"
                 accept-charset="UTF-8">
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
