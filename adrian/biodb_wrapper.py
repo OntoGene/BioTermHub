@@ -18,11 +18,12 @@ def ub_wrapper(*args):
     rsc_args = {}
 
     for arg in args:
+        if arg == 'ctd_lookup':
+            rsc_args[arg] = True
         rsc_arg = resources[arg]
         if rsc_arg:
                 rsc_args[arg] = dpath + rsc_arg
         elif arg == 'mesh':
             rsc_args['mesh'] = (dpath + resources['mesh_desc'], dpath + resources['mesh_supp'])
-    
-    
+
     return RecordSetContainer(**rsc_args)
