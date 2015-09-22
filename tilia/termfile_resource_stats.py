@@ -184,7 +184,6 @@ class OverallStats(object):
        
 
     def update_stats(self, line_dict):
-        self.all_lines_counter += 1
     
         resource = line_dict['resource']
         entity_type = line_dict['entity_type']
