@@ -539,7 +539,7 @@ def main():
     """
     Invoke this module as a script
     """
-    usage = "usage: %prog [options]; args[0]: original (database) file (NCBI); args[1]: output csv file ('Ontogene Format')"
+    usage = "usage: %prog [options]; args[0]: database file - csv file ('Ontogene Format')"
     parser = OptionParser(version='%prog 0.99', usage=usage)
 
     parser.add_option('-l', '--logfile', dest='logfilename',
