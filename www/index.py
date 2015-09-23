@@ -12,6 +12,7 @@ import cgi
 import multiprocessing as mp
 import time
 import glob
+import codecs
 from collections import OrderedDict
 from contextlib import contextmanager
 
@@ -24,6 +25,7 @@ HERE = os.path.dirname(__file__)
 # Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 SCRIPT_NAME = os.path.basename(__file__)
+BUILDERPATH = os.path.realpath(os.path.join(HERE, '..', 'adrian'))
 
 RESOURCES = OrderedDict((
     ('cellosaurus', 'Cellosaurus'),
@@ -39,9 +41,6 @@ RESOURCES = OrderedDict((
 # Some shorthands.
 se = etree.SubElement
 NBSP = u'\xA0'
-
-BUILDERPATH = ('/mnt/storage/kitt/projects/clontogene/termdb/'
-               'terminology_tool/adrian/')
 
 
 def main():
@@ -83,6 +82,8 @@ def main_handler(fields, self_url):
     # Build the page.
     html = etree.HTML(PAGE)
     populate_checkboxes(html, RESOURCES.iteritems())
+    add_resource_labels(html, HERE)
+    clean_up_dir(DOWNLOADDIR, html, fields.getfirst('del') == 'all')
 
     # Respond to the user requests.
     creation_request = fields.getlist('resources')
@@ -98,35 +99,28 @@ def main_handler(fields, self_url):
     if creation_request:
         # A creation request has been submitted.
         renaming = parse_renaming(fields)
-        download_id = start_resource_creation(creation_request, renaming)
+        # rb: read back identifiers if all resources are selected.
+        rb = set(RESOURCES).issubset(creation_request)
+        download_id = start_resource_creation(creation_request, renaming, rb)
 
     if download_id is None:
         # Empty form.
-        result = etree.HTML('<p>[no pending request]</p>')
+        result = etree.XML('<p>[no pending request]</p>')
     else:
         # Creation has started already. Check for the resulting CSV.
         result = handle_download_request(download_id, self_url)
         if result.text.startswith('[Please wait'):
             # Add auto-refresh to the page.
-            head = html.find('head')
             link = '{}?dlid={}'.format(self_url, download_id)
-            se(head, 'meta', {'http-equiv': "refresh",
-                              'content': "15; url={}".format(link)})
-
-    # Hidden functionality: clear the downloads directory with "?del=all".
-    if fields.getfirst('del') == 'all':
-        delfns = glob.glob('{}/*'.format(DOWNLOADDIR))
-        for fn in delfns:
-            os.remove(fn)
-        msg = 'INFO: removed {} files in {}.'.format(len(delfns), DOWNLOADDIR)
-        html.find('.//*[@id="div-msg"]').text = msg
-
-    # TODO: add automatic download-dir clean-up.
+            se(html.find('head'), 'meta',
+                {'http-equiv': "refresh",
+                 'content': "15; url={}".format(link)})
 
     # Serialise the complete page.
     html.find('.//*[@id="div-result"]').append(result)
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
-                            xml_declaration=True, pretty_print=True)
+                            xml_declaration=True, pretty_print=True,
+                            doctype='<!doctype html>')
     # HTTP boilerplate.
     response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
@@ -138,11 +132,52 @@ def populate_checkboxes(doc, resources):
     '''
     Insert a labeled checkbox for every resource.
     '''
-    div = doc.find('.//*[@id="div-checkboxes"]')
+    tbl = doc.find('.//table[@id="tbl-checkboxes"]')
+    atts = dict(type='checkbox', name='resources')
     for id_, label in resources:
-        atts = dict(type='checkbox', name='resources', value=id_)
-        se(se(div, 'p'), 'input', atts).tail = NBSP + label
-    # TODO: add a checkbox for ctd_lookup
+        atts['value'] = id_
+        se(se(se(se(tbl, 'tr'), 'td'), 'p'), 'input', atts).tail = NBSP + label
+        if id_ == 'ctd_chem':
+            cell = se(se(tbl[-1], 'td', rowspan='2'), 'p', font='-1')
+            atts['value'] = 'ctd_lookup'
+            label = 'avoid duplicates found in MeSH also'
+            se(cell, 'input', atts).tail = NBSP + label
+            se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
+                                   'are selected)')
+
+
+def add_resource_labels(doc, path):
+    '''
+    Add a list of existing resource/entity type identifiers.
+    '''
+    for level in ('resources', 'entity_types'):
+        fn = os.path.join(path, '{}.identifiers'.format(level))
+        with codecs.open(fn, 'r', 'utf8') as f:
+            names = f.read().strip().split('\n')
+        if names:
+            cell = doc.find('.//td[@id="td-{}-ids"]'.format(level[:3]))
+            cell.text = names[0]
+            for n in names[1:]:
+                se(cell, 'br').tail = n
+
+
+def clean_up_dir(dirpath, doc, clear_all=False):
+    '''
+    Remove old (or all) files under this directory.
+    '''
+    fns = glob.iglob('{}/*'.format(dirpath))
+    if clear_all:
+        # Hidden functionality: clear the downloads directory with "?del=all".
+        # Report this when it happens.
+        del_fns = list(fns)
+        msg = 'INFO: removed {} files in {}.'.format(len(del_fns), dirpath)
+        doc.find('.//*[@id="div-msg"]').text = msg
+    else:
+        # Automatic clean-up of files older than 35 days.
+        deadline = time.time() - 3024000  # 35 * 24 * 3600
+        del_fns = [fn for fn in fns if os.path.getmtime(fn) < deadline]
+    for fn in del_fns:
+        os.remove(fn)
 
 
 def parse_renaming(fields):
@@ -160,17 +195,19 @@ def parse_renaming(fields):
     return m
 
 
-def start_resource_creation(resources, renaming):
+def start_resource_creation(resources, renaming, read_back):
     '''
     Asynchronous initialisation.
     '''
     timestamp = int(time.time())
     download_id = '{}-{}'.format(timestamp, '-'.join(sorted(resources)))
     target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
+
     # Start the creation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
-                   args=(resources, renaming, target_fn))
+                   args=(resources, renaming, target_fn, read_back))
     p.start()
+
     return download_id
 
 
@@ -186,7 +223,7 @@ def handle_download_request(download_id, self_url):
         address = '{}?download={}'.format(self_url, fn)
         se(msg, 'a', href=address).text = fn
     elif os.path.exists(path + '.log'):
-        with open(path + '.log') as f:
+        with codecs.open(path + '.log', 'r', 'utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
     elif os.path.exists(path + '.tmp') or is_recent(download_id, 10):
         msg.text = '[Please wait while the resource is being created...]'
@@ -196,6 +233,10 @@ def handle_download_request(download_id, self_url):
 
 
 def deliver_download(fn):
+    '''
+    Return the requested file to the user.
+    '''
+    # TODO: prevent reading a huge file into memory too early.
     path = os.path.join(DOWNLOADDIR, fn)
     with open(path) as f:
         output = f.read()
@@ -206,12 +247,9 @@ def deliver_download(fn):
     return output, response_headers
 
 
-def create_resource(resources, renaming, target_fn):
+def create_resource(resources, renaming, target_fn, read_back=False):
     '''
-    Call the creation pipeline.
-
-    Since exceptions are not raised to the parent process,
-    write them to a log file.
+    Run the BioDB resource creation pipeline.
     '''
     try:
         target_fn = os.path.abspath(target_fn)
@@ -220,17 +258,20 @@ def create_resource(resources, renaming, target_fn):
                 sys.path.append(BUILDERPATH)
             import unified_builder as ub
             import biodb_wrapper
-            ub = reload(ub)  # make sure recent changes take effect
-            biodb_wrapper = reload(biodb_wrapper)
             rsc = biodb_wrapper.ub_wrapper(*resources)
             ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
-            # TODO: read back rsc.resources and rsc.entity_types
-            # and store them somewhere useful.
     except StandardError as e:
-        with open(target_fn + '.log', 'w') as f:
+        with codecs.open(target_fn + '.log', 'w', 'utf8') as f:
             f.write('{}: {}\n'.format(e.__class__.__name__, e))
     else:
         os.rename(target_fn + '.tmp', target_fn)
+        if read_back:
+            # Read back resource and entity type names.
+            for level in ('resources', 'entity_types'):
+                names = sorted(rsc.__getattribute__(level))
+                fn = os.path.join(HERE, '{}.identifiers'.format(level))
+                with codecs.open(fn, 'w', 'utf8') as f:
+                    f.write('\n'.join(names) + '\n')
 
 
 def is_recent(download_id, seconds):
@@ -267,10 +308,18 @@ PAGE = '''<!doctype html>
     href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'/>
   <style>
     body { background:WhiteSmoke; }
-    td { padding: 0cm 0.2cm 0cm 0.2cm;
-         vertical-align: top; }
-    #div-result { padding-bottom: 1cm }
+    td { padding: 0cm 0.2cm 0cm 0.2cm; }
   </style>
+  <script type="text/javascript">
+    function checkAll(bx) {
+      var cbs = document.getElementsByTagName('input');
+      for (var i=cbs.length; i--;) {
+        if(cbs[i].type == 'checkbox') {
+          cbs[i].checked = bx.checked;
+        }
+      }
+    }
+  </script>
 </head>
 <body>
   <center>
@@ -280,7 +329,7 @@ PAGE = '''<!doctype html>
   </center>
   <center>
     <div id="div-msg"></div>
-    <div style="width: 80%;">
+    <div style="width: 80%; padding-bottom: 1cm;">
       <div style="float: left; width: 50%;">
         <h3>Resource Selection</h3>
         <div style="text-align: left">
@@ -288,27 +337,33 @@ PAGE = '''<!doctype html>
                 accept-charset="UTF-8">
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
+              <p><input type="checkbox" name="all" onclick="checkAll(this)"/> select all</p>
+              <table id="tbl-checkboxes"></table>
             </div>
             <hr/>
             <div id="div-renaming">
-              <p>Use the following text boxes to change the labeling of resources and entity types. Unix-style regex (eg. "mesh desc.*") are allowed.</p>
+              <p>Use the following text boxes to change the labeling of resources and entity types.
+                Unix-style regex (eg. "mesh desc.*") are allowed.</p>
+              <p>You can use define multiple pattern-replacement pairs
+                by using corresponding lines in the left/right box.</p>
               <label>Resources:</label>
               <table>
                 <tr>
-                  <td><textarea rows="3" cols="35" name="resource-std"></td>
-                  <td><textarea rows="3" cols="35" name="resource-custom"></td>
+                  <td><textarea rows="3" cols="35" name="resource-std" placeholder="[pattern]"></td>
+                  <td><textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></td>
                 </tr>
               </table>
               <label>Entity types:</label>
               <table>
                 <tr>
-                  <td><textarea rows="3" cols="35" name="entity_type-std"></td>
-                  <td><textarea rows="3" cols="35" name="entity_type-custom"></td>
+                  <td><textarea rows="3" cols="35" name="entity_type-std" placeholder="[pattern]"></td>
+                  <td><textarea rows="3" cols="35" name="entity_type-custom" placeholder="[replacement]"></td>
                 </tr>
               </table>
             </div>
-            <hr/>
-            <input type="submit"/>
+            <div style="padding-top: .6cm;">
+              <input type="submit"/>
+            </div>
           </form>
         </div>
       </div>
@@ -318,8 +373,20 @@ PAGE = '''<!doctype html>
           <div id="div-result"></div>
         </center>
       </div>
+      <div style="clear: both">
+        <hr/>
+      </div>
+      <table>
+        <tr>
+          <th>Existing resource labels:</th>
+          <th>Existing entity-type labels:</th>
+        </tr>
+        <tr style="vertical-align: top;">
+          <td id="td-res-ids"></td>
+          <td id="td-ent-ids"></td>
+        </tr>
+      </table>
     </div>
-    <div style="clear: both"></div>
   </center>
 </body>
 </html>
