@@ -141,12 +141,11 @@ def populate_checkboxes(doc, resources):
     for id_, label in resources:
         atts['value'] = id_
         se(se(se(se(tbl, 'tr'), 'td'), 'p'), 'input', atts).tail = NBSP + label
-        if id_ == 'ctd_chem':
-            cell = se(se(tbl[-1], 'td', rowspan='2'), 'p', font='-1')
-            atts['value'] = 'ctd_lookup'
-            label = 'avoid duplicates found in MeSH also'
-            se(cell, 'input', atts).tail = NBSP + label
-            se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
+    cell = se(tbl.getparent(), 'p')
+    atts['value'] = 'ctd_lookup'
+    label = 'avoid duplicates found in MeSH also'
+    se(cell, 'input', atts).tail = NBSP + label
+    se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
                                    'are selected)')
 
 
@@ -346,6 +345,12 @@ PAGE = '''<!doctype html>
         xmlhttp.open("POST", 'index.py', true);
         xmlhttp.send(fdata);
         ev.preventDefault();
+
+        // Disable the checkboxes.
+        var bx = document.getElementById('inp-select-all');
+        bx.checked = false;
+        checkAll(bx);
+
       }, false);
     }
   </script>
@@ -366,13 +371,13 @@ PAGE = '''<!doctype html>
                 accept-charset="UTF-8">
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
-              <p><input type="checkbox" name="all" onclick="checkAll(this)"/> select all</p>
+              <p><input type="checkbox" id="inp-select-all" name="all" onclick="checkAll(this)"/> select all</p>
               <table id="tbl-checkboxes"></table>
             </div>
             <hr/>
             <div id="div-renaming">
               <p>Use the following text boxes to change the labeling of resources and entity types.
-                Unix-style regex (eg. "mesh desc.*") are allowed.</p>
+                You may use regular expressions (eg. "mesh desc.*").</p>
               <p>You can use define multiple pattern-replacement pairs
                 by using corresponding lines in the left/right box.</p>
               <label>Resources:</label>
@@ -390,7 +395,7 @@ PAGE = '''<!doctype html>
                 </tr>
               </table>
             </div>
-            <div style="padding-top: .6cm;">
+            <div style="padding-top: .5cm; padding-bottom: .3cm;">
               <input type="submit" value="Create resource" />
             </div>
           </form>
