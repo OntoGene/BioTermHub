@@ -26,6 +26,7 @@ HERE = os.path.dirname(__file__)
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 SCRIPT_NAME = os.path.basename(__file__)
 BUILDERPATH = os.path.realpath(os.path.join(HERE, '..', 'adrian'))
+DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
 
 RESOURCES = OrderedDict((
     ('cellosaurus', 'Cellosaurus'),
@@ -87,34 +88,37 @@ def main_handler(fields, self_url):
 
     # Respond to the user requests.
     creation_request = fields.getlist('resources')
-    download_id = fields.getfirst('dlid')
-    download_ready = fields.getfirst('download')
-
-    if download_ready:
-        try:
-            return deliver_download(download_ready)
-        except StandardError:
-            pass
+    job_id = fields.getfirst('dlid')
 
     if creation_request:
         # A creation request has been submitted.
+        timestamp = int(time.time())
+        job_id = '{}-{}'.format(timestamp, '-'.join(sorted(creation_request)))
+
         renaming = parse_renaming(fields)
         # rb: read back identifiers if all resources are selected.
         rb = set(RESOURCES).issubset(creation_request)
-        download_id = start_resource_creation(creation_request, renaming, rb)
 
-    if download_id is None:
+        if fields.getfirst('requested-through') == 'ajax':
+            # If AJAX is possible, return only a download link to be included.
+            return ajax_response(creation_request, renaming, job_id, rb)
+
+        # Without AJAX, proceed with the dumb auto-refresh mode.
+        start_resource_creation(creation_request, renaming, job_id, rb)
+
+
+    if job_id is None:
         # Empty form.
         result = etree.XML('<p>[no pending request]</p>')
     else:
         # Creation has started already. Check for the resulting CSV.
-        result = handle_download_request(download_id, self_url)
+        result = handle_download_request(job_id)
         if result.text.startswith('[Please wait'):
             # Add auto-refresh to the page.
-            link = '{}?dlid={}'.format(self_url, download_id)
+            link = '{}?dlid={}'.format(self_url, job_id)
             se(html.find('head'), 'meta',
                 {'http-equiv': "refresh",
-                 'content': "15; url={}".format(link)})
+                 'content': "5; url={}".format(link)})
 
     # Serialise the complete page.
     html.find('.//*[@id="div-result"]').append(result)
@@ -191,67 +195,62 @@ def parse_renaming(fields):
                    for n in ('std', 'custom')]
         for std, custom in zip(*entries):
             if std and custom:
-                m[level][std] = custom
+                m[level][std.strip()] = custom.strip()
     return m
 
 
-def start_resource_creation(resources, renaming, read_back):
+def ajax_response(resources, renaming, job_id, read_back):
+    '''
+    Run the pipeline and return an HTML fragment when finished.
+    '''
+    create_resource(resources, renaming, job_id, read_back)
+    outcome = handle_download_request(job_id)
+
+    output = etree.tostring(outcome, method='HTML', encoding='UTF-8')
+    response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
+                        ('Content-Length', str(len(output)))]
+
+    return output, response_headers
+
+
+def start_resource_creation(resources, renaming, job_id, read_back):
     '''
     Asynchronous initialisation.
     '''
-    timestamp = int(time.time())
-    download_id = '{}-{}'.format(timestamp, '-'.join(sorted(resources)))
-    target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
-
     # Start the creation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
-                   args=(resources, renaming, target_fn, read_back))
+                   args=(resources, renaming, job_id, read_back))
     p.start()
 
-    return download_id
+    return job_id
 
 
-def handle_download_request(download_id, self_url):
+def handle_download_request(job_id):
     '''
     Check if the CSV is ready yet, or if an error occurred.
     '''
     msg = etree.Element('p')
-    fn = '{}.csv'.format(download_id)
+    fn = '{}.csv'.format(job_id)
     path = os.path.join(DOWNLOADDIR, fn)
     if os.path.exists(path):
         msg.text = 'Download resource: '
-        address = '{}?download={}'.format(self_url, fn)
-        se(msg, 'a', href=address).text = fn
+        se(msg, 'a', href=DL_URL+fn).text = fn
     elif os.path.exists(path + '.log'):
         with codecs.open(path + '.log', 'r', 'utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
-    elif os.path.exists(path + '.tmp') or is_recent(download_id, 10):
+    elif os.path.exists(path + '.tmp') or is_recent(job_id, 10):
         msg.text = '[Please wait while the resource is being created...]'
     else:
         msg.text = 'The requested resource seems not to exist.'
     return msg
 
 
-def deliver_download(fn):
-    '''
-    Return the requested file to the user.
-    '''
-    # TODO: prevent reading a huge file into memory too early.
-    path = os.path.join(DOWNLOADDIR, fn)
-    with open(path) as f:
-        output = f.read()
-    response_headers = [
-        ('Content-Type', 'application/octet-stream; name="{}"'.format(fn)),
-        ('Content-Disposition', 'attachment; filename="{}"'.format(fn)),
-        ('Content-Length', str(len(output)))]
-    return output, response_headers
-
-
-def create_resource(resources, renaming, target_fn, read_back=False):
+def create_resource(resources, renaming, job_id, read_back=False):
     '''
     Run the BioDB resource creation pipeline.
     '''
     try:
+        target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(job_id))
         target_fn = os.path.abspath(target_fn)
         with cd(BUILDERPATH):
             if BUILDERPATH not in sys.path:
@@ -274,12 +273,12 @@ def create_resource(resources, renaming, target_fn, read_back=False):
                     f.write('\n'.join(names) + '\n')
 
 
-def is_recent(download_id, seconds):
+def is_recent(job_id, seconds):
     '''
-    Determine if download_id was created no more than n seconds ago.
+    Determine if job_id was created no more than n seconds ago.
     '''
     try:
-        timestamp = int(download_id.split('-')[0])
+        timestamp = int(job_id.split('-')[0])
     except ValueError:
         # Invalid download ID.
         return False
@@ -311,6 +310,7 @@ PAGE = '''<!doctype html>
     td { padding: 0cm 0.2cm 0cm 0.2cm; }
   </style>
   <script type="text/javascript">
+    // "select all" checkbox.
     function checkAll(bx) {
       var cbs = document.getElementsByTagName('input');
       for (var i=cbs.length; i--;) {
@@ -318,6 +318,35 @@ PAGE = '''<!doctype html>
           cbs[i].checked = bx.checked;
         }
       }
+    }
+
+    // AJAX stuff.
+    onload = function() {
+      var form = document.getElementById('form-res');
+      form.addEventListener('submit', function(ev) {
+
+        var xmlhttp = new XMLHttpRequest(),
+            fdata = new FormData(form),
+            res_div = document.getElementById('div-result');
+
+        fdata.append("requested-through", "ajax");
+
+        xmlhttp.onreadystatechange = function() {
+          if (xmlhttp.readyState == 4) {
+            if (xmlhttp.status == 200) {
+              res_div.innerHTML = xmlhttp.responseText;
+            } else {
+              res_div.innerHTML = "Error " + xmlhttp.status + " occurred";
+            }
+          } else {
+            res_div.innerHTML = "Please wait while the resource is being created...";
+          }
+        }
+
+        xmlhttp.open("POST", 'index.py', true);
+        xmlhttp.send(fdata);
+        ev.preventDefault();
+      }, false);
     }
   </script>
 </head>
@@ -362,7 +391,7 @@ PAGE = '''<!doctype html>
               </table>
             </div>
             <div style="padding-top: .6cm;">
-              <input type="submit"/>
+              <input type="submit" value="Create resource" />
             </div>
           </form>
         </div>
