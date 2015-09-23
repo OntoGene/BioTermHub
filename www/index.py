@@ -6,13 +6,15 @@
 
 from __future__ import division, print_function #, unicode_literals
 
+import sys
 import os
 import cgi
-import subprocess as sp
+import multiprocessing as mp
 import time
 import glob
 import codecs
 from collections import OrderedDict
+from contextlib import contextmanager
 
 from lxml import etree
 import cgitb
@@ -195,29 +197,16 @@ def parse_renaming(fields):
 
 def start_resource_creation(resources, renaming, read_back):
     '''
-    Asynchronous initialisation as a subprocess.
+    Asynchronous initialisation.
     '''
-    args = ['python', 'create_resource.py']
-
     timestamp = int(time.time())
     download_id = '{}-{}'.format(timestamp, '-'.join(sorted(resources)))
     target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(download_id))
-    args.extend(['-t', target_fn])
-
-    args.append('-r')
-    args.extend(resources)
-
-    flag = {'resource': '-n', 'entity_type': '-e'}
-    for level, mapping in renaming.iteritems():
-        if mapping:
-            args.append(flag[level])
-            args.extend(i for item in mapping.iteritems() for i in item)
-
-    if read_back:
-        args.append('-b')
 
     # Start the creation process, but don't wait for its termination.
-    sp.Popen(args)
+    p = mp.Process(target=create_resource,
+                   args=(resources, renaming, target_fn, read_back))
+    p.start()
 
     return download_id
 
@@ -258,6 +247,33 @@ def deliver_download(fn):
     return output, response_headers
 
 
+def create_resource(resources, renaming, target_fn, read_back=False):
+    '''
+    Run the BioDB resource creation pipeline.
+    '''
+    try:
+        target_fn = os.path.abspath(target_fn)
+        with cd(BUILDERPATH):
+            if BUILDERPATH not in sys.path:
+                sys.path.append(BUILDERPATH)
+            import unified_builder as ub
+            import biodb_wrapper
+            rsc = biodb_wrapper.ub_wrapper(*resources)
+            ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
+    except StandardError as e:
+        with codecs.open(target_fn + '.log', 'w', 'utf8') as f:
+            f.write('{}: {}\n'.format(e.__class__.__name__, e))
+    else:
+        os.rename(target_fn + '.tmp', target_fn)
+        if read_back:
+            # Read back resource and entity type names.
+            for level in ('resources', 'entity_types'):
+                names = sorted(rsc.__getattribute__(level))
+                fn = os.path.join(HERE, '{}.identifiers'.format(level))
+                with codecs.open(fn, 'w', 'utf8') as f:
+                    f.write('\n'.join(names) + '\n')
+
+
 def is_recent(download_id, seconds):
     '''
     Determine if download_id was created no more than n seconds ago.
@@ -268,6 +284,19 @@ def is_recent(download_id, seconds):
         # Invalid download ID.
         return False
     return time.time() - timestamp <= seconds
+
+
+@contextmanager
+def cd(newdir):
+    '''
+    Temporarily change the working directory.
+    '''
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)
 
 
 PAGE = '''<!doctype html>
