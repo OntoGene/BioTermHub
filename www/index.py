@@ -80,12 +80,6 @@ def main_handler(fields, self_url):
     '''
     Main program logic, used in both WSGI and CGI mode.
     '''
-    # Build the page.
-    html = etree.HTML(PAGE)
-    populate_checkboxes(html, RESOURCES.iteritems())
-    add_resource_labels(html, HERE)
-    clean_up_dir(DOWNLOADDIR, html, fields.getfirst('del') == 'all')
-
     # Respond to the user requests.
     creation_request = fields.getlist('resources')
     job_id = fields.getfirst('dlid')
@@ -106,13 +100,15 @@ def main_handler(fields, self_url):
         # Without AJAX, proceed with the dumb auto-refresh mode.
         start_resource_creation(creation_request, renaming, job_id, rb)
 
-
     if job_id is None:
         # Empty form.
-        result = etree.XML('<p>[no pending request]</p>')
+        html = input_page()
+        clean_up_dir(DOWNLOADDIR, html, fields.getfirst('del') == 'all')
     else:
         # Creation has started already. Check for the resulting CSV.
+        html = response_page()
         result = handle_download_request(job_id)
+        html.find('.//*[@id="div-result"]').append(result)
         if result.text.startswith('[Please wait'):
             # Add auto-refresh to the page.
             link = '{}?dlid={}'.format(self_url, job_id)
@@ -121,7 +117,7 @@ def main_handler(fields, self_url):
                  'content': "5; url={}".format(link)})
 
     # Serialise the complete page.
-    html.find('.//*[@id="div-result"]').append(result)
+    html.find('.//a[@id="anchor-reset"]').set('href', self_url)
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True,
                             doctype='<!doctype html>')
@@ -130,6 +126,26 @@ def main_handler(fields, self_url):
                         ('Content-Length', str(len(output)))]
 
     return output, response_headers
+
+
+def input_page():
+    '''
+    Page with the input forms.
+    '''
+    html = etree.HTML(PAGE)
+    html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
+    populate_checkboxes(html, RESOURCES.iteritems())
+    add_resource_labels(html, HERE)
+    return html
+
+
+def response_page():
+    '''
+    Page with download information.
+    '''
+    html = etree.HTML(PAGE)
+    html.find('.//div[@id="div-input-form"]').set('class', 'hidden')
+    return html
 
 
 def populate_checkboxes(doc, resources):
@@ -307,9 +323,11 @@ PAGE = '''<!doctype html>
   <style>
     body { background:WhiteSmoke; }
     td { padding: 0cm 0.2cm 0cm 0.2cm; }
+    .hidden { display: none; }
+    .visible {}
   </style>
   <script type="text/javascript">
-    // "select all" checkbox.
+    // The "select all" checkbox.
     function checkAll(bx) {
       var cbs = document.getElementsByTagName('input');
       for (var i=cbs.length; i--;) {
@@ -326,31 +344,36 @@ PAGE = '''<!doctype html>
 
         var xmlhttp = new XMLHttpRequest(),
             fdata = new FormData(form),
-            res_div = document.getElementById('div-result');
+            result_div = document.getElementById('div-result'),
+            inp_div = document.getElementById('div-input-form'),
+            resp_div = document.getElementById('div-download-page');
 
+        // Replace the form div with the response div.
+        inp_div.setAttribute('class', 'hidden');
+        resp_div.setAttribute('class', 'visible');
+
+        // Mark this request as originating from AJAX.
         fdata.append("requested-through", "ajax");
 
+        // Status handling.
         xmlhttp.onreadystatechange = function() {
           if (xmlhttp.readyState == 4) {
             if (xmlhttp.status == 200) {
-              res_div.innerHTML = xmlhttp.responseText;
+              result_div.innerHTML = xmlhttp.responseText;
             } else {
-              res_div.innerHTML = "Error " + xmlhttp.status + " occurred";
+              result_div.innerHTML = "Error " + xmlhttp.status + " occurred";
             }
           } else {
-            res_div.innerHTML = "Please wait while the resource is being created...";
+            result_div.innerHTML = "Please wait while the resource is being created...";
           }
         }
 
+        // Data transmission.
         xmlhttp.open("POST", 'index.py', true);
         xmlhttp.send(fdata);
+
+        // Prevent reloading the page on submit.
         ev.preventDefault();
-
-        // Disable the checkboxes.
-        var bx = document.getElementById('inp-select-all');
-        bx.checked = false;
-        checkAll(bx);
-
       }, false);
     }
   </script>
@@ -364,7 +387,7 @@ PAGE = '''<!doctype html>
   <center>
     <div id="div-msg"></div>
     <div style="width: 80%; padding-bottom: 1cm;">
-      <div style="float: left; width: 50%;">
+      <div id="div-input-form">
         <h3>Resource Selection</h3>
         <div style="text-align: left">
           <form id="form-res" role="form" method="post"
@@ -400,26 +423,25 @@ PAGE = '''<!doctype html>
             </div>
           </form>
         </div>
+        <hr/>
+        <table>
+          <tr>
+            <th>Existing resource labels:</th>
+            <th>Existing entity-type labels:</th>
+          </tr>
+          <tr style="vertical-align: top;">
+            <td id="td-res-ids"></td>
+            <td id="td-ent-ids"></td>
+          </tr>
+        </table>
       </div>
-      <div style="float: right; width: 50%;">
+      <div id="div-download-page">
         <center>
           <h3>Download</h3>
           <div id="div-result"></div>
+          <p><a id="anchor-reset">Reset.</a></p>
         </center>
       </div>
-      <div style="clear: both">
-        <hr/>
-      </div>
-      <table>
-        <tr>
-          <th>Existing resource labels:</th>
-          <th>Existing entity-type labels:</th>
-        </tr>
-        <tr style="vertical-align: top;">
-          <td id="td-res-ids"></td>
-          <td id="td-ent-ids"></td>
-        </tr>
-      </table>
     </div>
   </center>
 </body>
