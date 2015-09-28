@@ -6,8 +6,7 @@ from tools import StatDict, CrossLookupTuple
 
 class RecordSet(object):
     """
-    Parses BioGRID records into dictionaries and stores these dictionaries
-    in a dictionary with the key-value structure record[BIOGRID_INTERACTION_ID]:record.
+    Parses CTD records into dictionaries.
     """
     def __init__(self, infile, mesh_ids = None):
         self.infile_name = infile.split('.')[0]
