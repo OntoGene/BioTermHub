@@ -14,7 +14,7 @@ from matplotlib.ticker import FormatStrFormatter, LogFormatter
 import numpy as np
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, os.path.join(HERE, '..', 'tilia'))
-import statistics_termfile_rev1 as statistics_termfile
+import statistics_termfile
 import re
 
 STATSPATH = "stats/"
