@@ -25,6 +25,7 @@ import csv
 import re
 import cProfile
 import collections
+import numpy as np
 
 import difflib
 from unicode_csv import UnicodeCsvReader, UnicodeDictReader, UnicodeDictWriter
@@ -81,20 +82,20 @@ class EntityTypeStats(object):
         else: self.terms_dict[one_term] += 1
         
         if not one_term in self.ambiguous_term_dict:
-            self.ambiguous_term_dict[one_term] = set([one_id])
-        else: self.ambiguous_term_dict[one_term].add(one_id)
+            self.ambiguous_term_dict[one_term] = np.array([one_id])
+        else: np.append(self.ambiguous_term_dict[one_term], one_id)
         
         if not one_term_lw in self.ambiguous_terms_lower:
-            self.ambiguous_terms_lower[one_term_lw] = set([one_id])
-        else: self.ambiguous_terms_lower[one_term_lw].add(one_id)
+            self.ambiguous_terms_lower[one_term_lw] = np.array([one_id])
+        else: np.append(self.ambiguous_terms_lower[one_term_lw], one_id)
         
         if not one_term_nws in self.ambiguous_terms_nows:
-            self.ambiguous_terms_nows[one_term_nws] = set([one_id])
-        else: self.ambiguous_terms_nows[one_term_nws].add(one_id)
+            self.ambiguous_terms_nows[one_term_nws] = np.array([one_id])
+        else: np.append(self.ambiguous_terms_nows[one_term_nws], one_id)
         
         if not one_id in self.synonyms_dict:
-            self.synonyms_dict[one_id] = set([one_term])
-        else: self.synonyms_dict[one_id].add(one_term)
+            self.synonyms_dict[one_id] = np.array([one_term])
+        else: np.append(self.synonyms_dict[one_id], one_term)
         
         
     def calculate_dict_avg(self, one_dict):
@@ -103,18 +104,12 @@ class EntityTypeStats(object):
         for entry, count in one_dict.items():
             if type(count) is int:
                 total_count += count
-            if type(count) is set:
-                total_count += len(count)
+            if isinstance(count, np.ndarray):
+				count_unique = np.unique(count)
+				total_count += len(count_unique)
             
         avg = float(total_count)/float(len(one_dict))
         
-        return avg
-        
-    def token_length_avg(self):
-        token_len_list = [len(term) for term in self.ambiguous_term_dict.keys()]
-        #print token_len_list
-        #print sum(token_len_list)
-        avg = float(sum(token_len_list))/float(len(token_len_list))
         return avg
         
     def calculate_dict_freq_dist(self, one_dict):
@@ -164,7 +159,6 @@ class EntityTypeStats(object):
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
         print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dist()
         print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
-        print 'AVG Token Lenght', self.token_length_avg()
     
         
         
@@ -220,20 +214,20 @@ class ResourceStats(object):
         else: self.terms_dict[one_term] += 1
         
         if not one_term in self.ambiguous_term_dict:
-            self.ambiguous_term_dict[one_term] = set([one_id])
-        else: self.ambiguous_term_dict[one_term].add(one_id)
+            self.ambiguous_term_dict[one_term] = np.array([one_id])
+        else: np.append(self.ambiguous_term_dict[one_term], one_id)
         
         if not one_term_lw in self.ambiguous_terms_lower:
-            self.ambiguous_terms_lower[one_term_lw] = set([one_id])
-        else: self.ambiguous_terms_lower[one_term_lw].add(one_id)
+            self.ambiguous_terms_lower[one_term_lw] = np.array([one_id])
+        else: np.append(self.ambiguous_terms_lower[one_term_lw], one_id)
         
         if not one_term_nws in self.ambiguous_terms_nows:
-            self.ambiguous_terms_nows[one_term_nws] = set([one_id])
-        else: self.ambiguous_terms_nows[one_term_nws].add(one_id)
+            self.ambiguous_terms_nows[one_term_nws] = np.array([one_id])
+        else: np.append(self.ambiguous_terms_nows[one_term_nws], one_id)
             
         if not one_id in self.synonyms_dict:
-            self.synonyms_dict[one_id] = set([one_term])
-        else: self.synonyms_dict[one_id].add(one_term)
+            self.synonyms_dict[one_id] = np.array([one_term])
+        else: np.append(self.synonyms_dict[one_id], one_term)
         
         
     def calculate_dict_avg(self, one_dict):
@@ -242,8 +236,9 @@ class ResourceStats(object):
         for entry, count in one_dict.items():
             if type(count) is int:
                 total_count += count
-            if type(count) is set:
-                total_count += len(count)
+            if isinstance(count, np.ndarray):
+				count_unique = np.unique(count)
+				total_count += len(count_unique)
             
         avg = float(total_count)/float(len(one_dict))
         
@@ -268,12 +263,6 @@ class ResourceStats(object):
         
         id_freq_dict = self.calculate_dict_freq_dist(self.ambiguous_term_dict)
         return id_freq_dict
-        
-        
-    def token_length_avg(self):
-        token_len_list = [len(term) for term in self.ambiguous_term_dict.keys()]
-        avg = float(sum(token_len_list))/float(len(token_len_list))
-        return avg
         
         
     
@@ -304,8 +293,6 @@ class ResourceStats(object):
         
         print 'FREQ DIST number of ids per lower-cased term', self.term_lw_freq_dist()
         print 'FREQ DIST number or ids per lower-cased term with non alphabetical characters removed', self.term_lw_nows_freq_dist()
-        
-        print 'AVG Token Lenght', self.token_length_avg()
         
 
 
@@ -381,20 +368,20 @@ class OverallStats(object):
         else: self.terms_total_types_dict[one_term] += 1
         
         if not one_id in self.synonyms_dict:
-            self.synonyms_dict[one_id] = set([one_term])
-        else: self.synonyms_dict[one_id].add(one_term)
+            self.synonyms_dict[one_id] = np.array([one_term])
+        else: np.append(self.synonyms_dict[one_id], one_term)
         
         if not one_term in self.ambiguous_terms:
-            self.ambiguous_terms[one_term] = set([one_id])
-        else: self.ambiguous_terms[one_term].add(one_id)
+            self.ambiguous_terms[one_term] = np.array([one_id])
+        else: np.append(self.ambiguous_terms[one_term], one_id)
         
         if not one_term_lw in self.ambiguous_terms_lower:
-            self.ambiguous_terms_lower[one_term_lw] = set([one_id])
-        else: self.ambiguous_terms_lower[one_term_lw].add(one_id)
+            self.ambiguous_terms_lower[one_term_lw] = np.array([one_id])
+        else: np.append(self.ambiguous_terms_lower[one_term_lw], one_id)
         
         if not one_term_nws in self.ambiguous_terms_nows:
-            self.ambiguous_terms_nows[one_term_nws] = set([one_id])
-        else: self.ambiguous_terms_nows[one_term_nws].add(one_id)
+            self.ambiguous_terms_nows[one_term_nws] = np.array([one_id])
+        else: np.append(self.ambiguous_terms_nows[one_term_nws], one_id)
         
     def calculate_dict_avg(self, one_dict):
         total_count = 0
@@ -402,16 +389,12 @@ class OverallStats(object):
         for entry, count in one_dict.items():
             if type(count) is int:
                 total_count += count
-            if type(count) is set:
-                total_count += len(count)
+            if isinstance(count, np.ndarray):
+				count_unique = np.unique(count)
+				total_count += len(count_unique)
             
         avg = float(total_count)/float(len(one_dict))
         
-        return avg
-        
-    def token_length_avg(self):
-        token_len_list = [len(term) for term in self.ambiguous_terms.keys()]
-        avg = float(sum(token_len_list))/float(len(token_len_list))
         return avg
         
     def calculate_dict_freq_dist(self, one_dict):
@@ -459,7 +442,7 @@ class OverallStats(object):
         print 'FREQ DIST number of ids per term', self.term_freq_dist()
         print 'FREQ DIST number of ids per term (terms are lowercased)', self.term_lw_freq_dist()
         print 'FREQ DIST number of ids per term (terms are lowercased and non whitespace characters are removed', self.term_lw_nows_freq_dist()
-        print 'AVG Token Lenght', self.token_length_avg()
+        
         
         print '-----------'
         print 'RESOURCE STATS'
@@ -508,6 +491,7 @@ def process_file(csv_file, options=None, args=None):
         
     overall_stats.display_stats()
     
+    
     if not __name__ == '__main__':
         return overall_stats
 
@@ -539,7 +523,7 @@ def main():
     """
     Invoke this module as a script
     """
-    usage = "usage: %prog [options]; args[0]: database file - csv file ('Ontogene Format')"
+    usage = "usage: %prog [options]; args[0]: original (database) file (NCBI); args[1]: output csv file ('Ontogene Format')"
     parser = OptionParser(version='%prog 0.99', usage=usage)
 
     parser.add_option('-l', '--logfile', dest='logfilename',
