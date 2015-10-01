@@ -117,6 +117,7 @@ def main_handler(fields, self_url):
                  'content': "5; url={}".format(link)})
 
     # Serialise the complete page.
+    html.find('.//a[@id="anchor-title"]').set('href', self_url)
     html.find('.//a[@id="anchor-reset"]').set('href', self_url)
     output = etree.tostring(html, method='HTML', encoding='UTF-8',
                             xml_declaration=True, pretty_print=True,
@@ -159,7 +160,7 @@ def populate_checkboxes(doc, resources):
         se(se(se(se(tbl, 'tr'), 'td'), 'p'), 'input', atts).tail = NBSP + label
     cell = se(tbl.getparent(), 'p')
     atts['value'] = 'ctd_lookup'
-    label = 'avoid duplicates found in MeSH also'
+    label = 'skip CTD entries that are MeSH duplicates'
     se(cell, 'input', atts).tail = NBSP + label
     se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
                                    'are selected)')
@@ -381,7 +382,9 @@ PAGE = '''<!doctype html>
 <body>
   <center>
     <h1 class="page-header">
-      Biomedical Terminology Resource
+      <a id="anchor-title" style="color: black; text-decoration: none;">
+        Biomedical Terminology Resource
+      </a>
     </h1>
   </center>
   <center>
@@ -401,7 +404,7 @@ PAGE = '''<!doctype html>
             <div id="div-renaming">
               <p>Use the following text boxes to change the labeling of resources and entity types.
                 You may use regular expressions (eg. "mesh desc.*").</p>
-              <p>You can use define multiple pattern-replacement pairs
+              <p>You can define multiple pattern-replacement pairs
                 by using corresponding lines in the left/right box.</p>
               <label>Resources:</label>
               <table>
@@ -439,7 +442,8 @@ PAGE = '''<!doctype html>
         <center>
           <h3>Download</h3>
           <div id="div-result"></div>
-          <p><a id="anchor-reset">Reset.</a></p>
+          <hr/>
+          <p><a id="anchor-reset">Reset</a></p>
         </center>
       </div>
     </div>

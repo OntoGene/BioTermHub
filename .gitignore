@@ -5,3 +5,6 @@
 
 .*
 !/.gitignore
+
+www/resources.identifiers
+www/entity_types.identifiers
