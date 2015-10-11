@@ -10,7 +10,8 @@ class RecordSet(object):
     """
     def __init__(self, infile, mesh_ids = None):
         self.infile_name = infile.split('.')[0]
-        self.entity_type = self.infile_name.split('_')[1]
+        #TODO: relies on the file name, replace with constructor argument
+        self.entity_type = self.infile_name.split('_')[1].rstrip('s')
         self.csv_file = infile_csv = open(infile, "r")
         self.mesh_ids = mesh_ids
         self.ambig_unit = "terms"
