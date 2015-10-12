@@ -26,6 +26,8 @@ rd_fail = "ask"
 # Terminology DB builder
 #
 
-# Output path
+# Paths for output, statistics and files related to batch processing
 
 path_out = 'data/'
+path_stats = 'stats/'
+path_batch = 'batch/'
