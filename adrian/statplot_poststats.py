@@ -17,11 +17,13 @@ sys.path.insert(0, os.path.join(HERE, '..', 'tilia'))
 import statistics_termfile
 import re
 
-STATSPATH = "stats/"
+import settings
+
+STATSPATH = settings.path_stats
 
 def plotstats(filename):
     if not os.path.exists(STATSPATH):
-        os.mkdir("stats")
+        os.mkdir(STATSPATH)
 
     overall_stats = statistics_termfile.process_file(filename)
     stats = {}
