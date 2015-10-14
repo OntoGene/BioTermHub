@@ -298,7 +298,8 @@ def create_resource(resources, renaming, job_id,
     else:
         os.rename(target_fn + '.tmp', target_fn)
         if zipped:
-            with zipfile.ZipFile(target_fn[:-4] + '.zip', 'w') as f:
+            compr = zipfile.ZIP_DEFLATED
+            with zipfile.ZipFile(target_fn[:-4] + '.zip', 'w', compr) as f:
                 f.write(target_fn, job_id + '.csv')
         if read_back:
             # Read back resource and entity type names.
