@@ -26,6 +26,8 @@ rd_fail = "ask"
 # Terminology DB builder
 #
 
-# Output path
+# Paths for output, statistics and files related to batch processing
 
 path_out = '/mnt/storage/kitt/projects/clontogene/termdb/data/'
+path_stats = '/mnt/storage/kitt/projects/clontogene/termdb/www/stats/'
+path_batch = '/mnt/storage/kitt/projects/clontogene/termdb/www/batch/'
