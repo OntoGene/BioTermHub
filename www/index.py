@@ -13,6 +13,7 @@ import multiprocessing as mp
 import time
 import glob
 import codecs
+import zipfile
 from collections import OrderedDict
 from contextlib import contextmanager
 
@@ -27,6 +28,8 @@ DOWNLOADDIR = os.path.join(HERE, 'downloads')
 SCRIPT_NAME = os.path.basename(__file__)
 BUILDERPATH = os.path.realpath(os.path.join(HERE, '..', 'adrian'))
 DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
+CGI_URL = 'http://kitt.cl.uzh.ch/kitt/cgi-bin/biodb/index.py'
+WSGI_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/'
 
 RESOURCES = OrderedDict((
     ('cellosaurus', 'Cellosaurus'),
@@ -50,7 +53,7 @@ def main():
     '''
     fields = cgi.FieldStorage()
 
-    url = 'http://kitt.cl.uzh.ch/kitt/cgi-bin/biodb/index.py'
+    url = CGI_URL
     output, response_headers = main_handler(fields, url)
 
     # HTTP response.
@@ -66,7 +69,7 @@ def application(environ, start_response):
     '''
     fields = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
-    url = 'http://kitt.cl.uzh.ch/kitt/biodb/'
+    url = WSGI_URL
     output, response_headers = main_handler(fields, url)
 
     # HTTP response.
@@ -92,13 +95,16 @@ def main_handler(fields, self_url):
         renaming = parse_renaming(fields)
         # rb: read back identifiers if all resources are selected.
         rb = set(RESOURCES).issubset(creation_request)
+        zipped = fields.getfirst('zipped')
+        plot_email = fields.getfirst('plot-email')
+        params = (creation_request, renaming, job_id, rb, zipped, plot_email)
 
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
-            return ajax_response(creation_request, renaming, job_id, rb)
+            return ajax_response(params)
 
         # Without AJAX, proceed with the dumb auto-refresh mode.
-        start_resource_creation(creation_request, renaming, job_id, rb)
+        start_resource_creation(params)
 
     if job_id is None:
         # Empty form.
@@ -215,11 +221,12 @@ def parse_renaming(fields):
     return m
 
 
-def ajax_response(resources, renaming, job_id, read_back):
+def ajax_response(params):
     '''
     Run the pipeline and return an HTML fragment when finished.
     '''
-    create_resource(resources, renaming, job_id, read_back)
+    create_resource(*params)
+    job_id = params[2]
     outcome = handle_download_request(job_id)
 
     output = etree.tostring(outcome, method='HTML', encoding='UTF-8')
@@ -229,16 +236,14 @@ def ajax_response(resources, renaming, job_id, read_back):
     return output, response_headers
 
 
-def start_resource_creation(resources, renaming, job_id, read_back):
+def start_resource_creation(params):
     '''
     Asynchronous initialisation.
     '''
     # Start the creation process, but don't wait for its termination.
     p = mp.Process(target=create_resource,
-                   args=(resources, renaming, job_id, read_back))
+                   args=params)
     p.start()
-
-    return job_id
 
 
 def handle_download_request(job_id):
@@ -246,11 +251,12 @@ def handle_download_request(job_id):
     Check if the CSV is ready yet, or if an error occurred.
     '''
     msg = etree.Element('p')
-    fn = '{}.csv'.format(job_id)
+    fn = job_id + '.csv'
     path = os.path.join(DOWNLOADDIR, fn)
-    if os.path.exists(path):
-        msg.text = 'Download resource: '
-        se(msg, 'a', href=DL_URL+fn).text = fn
+    if os.path.exists(path[:-3] + 'zip'):
+        success_msg(msg, fn[:-3] + 'zip')
+    elif os.path.exists(path):
+        success_msg(msg, fn)
     elif os.path.exists(path + '.log'):
         with codecs.open(path + '.log', 'r', 'utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
@@ -261,18 +267,28 @@ def handle_download_request(job_id):
     return msg
 
 
-def create_resource(resources, renaming, job_id, read_back=False):
+def success_msg(msg, fn):
+    '''
+    Create a download link.
+    '''
+    msg.text = 'Download resource: '
+    se(msg, 'a', href=DL_URL+fn).text = fn
+
+
+def create_resource(resources, renaming, job_id,
+                    read_back=False, zipped=False, plot_email=None):
     '''
     Run the BioDB resource creation pipeline.
     '''
     try:
-        target_fn = os.path.join(DOWNLOADDIR, '{}.csv'.format(job_id))
+        target_fn = os.path.join(DOWNLOADDIR, job_id + '.csv')
         target_fn = os.path.abspath(target_fn)
         with cd(BUILDERPATH):
             if BUILDERPATH not in sys.path:
                 sys.path.append(BUILDERPATH)
             import unified_builder as ub
             import biodb_wrapper
+            import settings
             rsc = biodb_wrapper.ub_wrapper(*resources)
             ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
     except StandardError as e:
@@ -280,6 +296,9 @@ def create_resource(resources, renaming, job_id, read_back=False):
             f.write('{}: {}\n'.format(e.__class__.__name__, e))
     else:
         os.rename(target_fn + '.tmp', target_fn)
+        if zipped:
+            with zipfile.ZipFile(target_fn[:-4] + '.zip', 'w') as f:
+                f.write(target_fn, job_id + '.csv')
         if read_back:
             # Read back resource and entity type names.
             for level in ('resources', 'entity_types'):
@@ -287,6 +306,11 @@ def create_resource(resources, renaming, job_id, read_back=False):
                 fn = os.path.join(HERE, '{}.identifiers'.format(level))
                 with codecs.open(fn, 'w', 'utf8') as f:
                     f.write('\n'.join(names) + '\n')
+        if plot_email is not None:
+            pending_fn = os.path.join(settings.path_batch, 'pending')
+            plot_email = re.sub(r'\s+', '', plot_email)
+            with codecs.open(pending_fn, 'a', 'utf8') as f:
+                f.write('{} {}\n'.format(plot_email, target_fn))
 
 
 def is_recent(job_id, seconds):
@@ -421,8 +445,14 @@ PAGE = '''<!doctype html>
                 </tr>
               </table>
             </div>
-            <div style="padding-top: .5cm; padding-bottom: .3cm;">
-              <input type="submit" value="Create resource" />
+            <hr/>
+            <div style="padding-bottom: .3cm;">
+              <p>
+                <label>Send me an e-mail with resource statistics plots:</label>
+                <input type="text" name="plot-email" placeholder="user@example.com" />
+              </p>
+              <input type="submit" value="Create resource" />&nbsp;&nbsp;&nbsp;
+              <input type="checkbox" name="zipped" checked="checked" value="true" />&nbsp;download as Zip archive
             </div>
           </form>
         </div>
