@@ -8,6 +8,8 @@ import math
 import sys
 import os
 import os.path
+import matplotlib
+matplotlib.use('pdf')  # Choose a non-interactive backend; the default GTK causes an error unless logged in with X forwarding.
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator, MultipleLocator, AutoMinorLocator, ScalarFormatter, LinearLocator, AutoLocator, LogLocator
 from matplotlib.ticker import FormatStrFormatter, LogFormatter

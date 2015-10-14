@@ -13,7 +13,10 @@ import sys
 import os
 import sys
 
-sys.path.insert(0, '../lib')
+# The path to lib should be independent from the caller's working directory.
+HERE = os.path.dirname(__file__)
+lib = os.path.join(HERE, '..', 'lib')
+sys.path.insert(0, lib)
 
 #from Bio import Entrez
 import codecs
