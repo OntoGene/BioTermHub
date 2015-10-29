@@ -80,6 +80,7 @@ def barPlt(freqdist_list, title, xlab, ylab, group):
     ax.autoscale()
     
     plt.savefig(STATSPATH+'%s.png' % re.sub('[/\s]', '_', group), bbox_inches='tight')
+    plt.close(fig)
 
 
 if __name__ == "__main__":
