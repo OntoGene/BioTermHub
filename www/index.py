@@ -46,6 +46,9 @@ RESOURCES = OrderedDict((
 # Some shorthands.
 se = etree.SubElement
 NBSP = u'\xA0'
+WAIT_MESSAGE = ('Please wait while the resource is being created '
+                '(this may take up to 30 minutes, '
+                'depending on the size of the resource).')
 
 
 def main():
@@ -116,7 +119,7 @@ def main_handler(fields, self_url):
         html = response_page()
         result = handle_download_request(job_id)
         html.find('.//*[@id="div-result"]').append(result)
-        if result.text.startswith('[Please wait'):
+        if result.text == WAIT_MESSAGE:
             # Add auto-refresh to the page.
             link = '{}?dlid={}'.format(self_url, job_id)
             se(html.find('head'), 'meta',
@@ -262,7 +265,7 @@ def handle_download_request(job_id):
         with codecs.open(path + '.log', 'r', 'utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
     elif os.path.exists(path + '.tmp') or is_recent(job_id, 10):
-        msg.text = '[Please wait while the resource is being created...]'
+        msg.text = WAIT_MESSAGE
     else:
         msg.text = 'The requested resource seems not to exist.'
     return msg
@@ -308,7 +311,7 @@ def create_resource(resources, renaming, job_id,
                 fn = os.path.join(HERE, '{}.identifiers'.format(level))
                 with codecs.open(fn, 'w', 'utf8') as f:
                     f.write('\n'.join(names) + '\n')
-        if plot_email is not None:
+        if plot_email:
             pending_fn = os.path.join(settings.path_batch, 'pending')
             plot_email = re.sub(r'\s+', '', plot_email)
             with codecs.open(pending_fn, 'a', 'utf8') as f:
@@ -391,7 +394,7 @@ PAGE = '''<!doctype html>
               result_div.innerHTML = "Error " + xmlhttp.status + " occurred";
             }
           } else {
-            result_div.innerHTML = "Please wait while the resource is being created...";
+            result_div.innerHTML = WAIT_MESSAGE;
           }
         }
 
@@ -483,6 +486,7 @@ PAGE = '''<!doctype html>
 </body>
 </html>
 '''
+PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
 
 
 if __name__ == '__main__':
