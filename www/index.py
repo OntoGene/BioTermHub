@@ -258,9 +258,9 @@ def handle_download_request(job_id):
     fn = job_id + '.csv'
     path = os.path.join(DOWNLOADDIR, fn)
     if os.path.exists(path[:-3] + 'zip'):
-        success_msg(msg, fn[:-3] + 'zip')
+        success_msg(msg, fn[:-3] + 'zip', path[:-3] + 'zip')
     elif os.path.exists(path):
-        success_msg(msg, fn)
+        success_msg(msg, fn, path)
     elif os.path.exists(path + '.log'):
         with codecs.open(path + '.log', 'r', 'utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
@@ -271,12 +271,25 @@ def handle_download_request(job_id):
     return msg
 
 
-def success_msg(msg, fn):
+def success_msg(msg, fn, path):
     '''
     Create a download link.
     '''
     msg.text = 'Download resource: '
-    se(msg, 'a', href=DL_URL+fn).text = fn
+    link = se(msg, 'a', href=DL_URL+fn)
+    link.text = fn
+    link.tail = size_fmt(os.path.getsize(path), ' ({:.1f} {}B)')
+
+
+def size_fmt(num, fmt='{:.1f} {}B'):
+    '''
+    Convert file size to a human-readable format.
+    '''
+    for prefix in ('', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi'):
+        if abs(num) < 1024:
+            return fmt.format(num, prefix)
+        num /= 1024
+    return fmt.format(num, 'Yi')
 
 
 def create_resource(resources, renaming, job_id,
@@ -343,7 +356,7 @@ def cd(newdir):
         os.chdir(prevdir)
 
 
-PAGE = '''<!doctype html>
+PAGE = u'''<!doctype html>
 <html>
 <head>
   <meta charset="UTF-8"/>
@@ -432,7 +445,7 @@ PAGE = '''<!doctype html>
             <hr/>
             <div id="div-renaming">
               <p>Use the following text boxes to change the labeling of resources and entity types.
-                You may use regular expressions (eg. "mesh desc.*").</p>
+                You may use regular expressions (see the examples below).</p>
               <p>You can define multiple pattern-replacement pairs
                 by using corresponding lines in the left/right box.</p>
               <label>Resources:</label>
@@ -441,12 +454,18 @@ PAGE = '''<!doctype html>
                   <td><textarea rows="3" cols="35" name="resource-std" placeholder="[pattern]"></td>
                   <td><textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></td>
                 </tr>
+                <tr>
+                  <td>Example: mesh.* → MESH</td>
+                </tr>
               </table>
               <label>Entity types:</label>
               <table>
                 <tr>
                   <td><textarea rows="3" cols="35" name="entity_type-std" placeholder="[pattern]"></td>
                   <td><textarea rows="3" cols="35" name="entity_type-custom" placeholder="[replacement]"></td>
+                </tr>
+                <tr>
+                  <td>Example: (organism|species) → organism</td>
                 </tr>
               </table>
             </div>
