@@ -39,7 +39,8 @@ def main():
         print "Sending message ..."
 
         send_mail(cs.address, [mail], 'Statistics for %s' % export_name, 'Hello,\nYou have requested statistics plots for %s. Find them attached.' % export_name, cs, files)
-        remove(PENDING)
+
+    remove(PENDING)
 
 
 if __name__ == "__main__":
