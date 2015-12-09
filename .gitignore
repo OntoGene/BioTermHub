@@ -6,5 +6,7 @@
 .*
 !/.gitignore
 
-www/resources.identifiers
-www/entity_types.identifiers
+www/
+!www/index.py
+
+cgi-bin

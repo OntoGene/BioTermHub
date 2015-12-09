@@ -413,6 +413,7 @@ PAGE = u'''<!doctype html>
 
         // Data transmission.
         xmlhttp.open("POST", 'index.py', true);
+        xmlhttp.timeout = 1800000;  // 30 minutes
         xmlhttp.send(fdata);
 
         // Prevent reloading the page on submit.
