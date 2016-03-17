@@ -15,10 +15,10 @@
 * [BIOGRID-IDENTIFIERS-LATEST.tab.zip](http://thebiogrid.org/downloads/archives/Latest%20Release/BIOGRID-IDENTIFIERS-LATEST.tab.zip) (http://thebiogrid.org/download.php)
 
 
-### Tilia: ncib2ontogene_commented.py
+### Tilia: ncbi2ontogene_commented.py
 
 * Used data: [gene_info] (ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz)
  
 * TSV Format (Format: tax_id GeneID Symbol LocusTag Synonyms dbXrefs chromosome map_location description type_of_gene Symbol_from_nomenclature_authority Full_name_from_nomenclature_authority Nomenclature_status Other_designations Modification_date (tab is used as a separator, pound sign - start of a comment
 
-* Preprocessed with: C_ALL=C cut -f2,3,5,7,9,10,14 gene_info_changed > ncbi_gene_info_changed_relevant_cols
+* Preprocessed with: `C_ALL=C cut -f2,3,5,7,9,10,14 gene_info_changed > ncbi_gene_info_changed_relevant_cols`

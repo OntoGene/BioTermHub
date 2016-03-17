@@ -6,7 +6,7 @@
 .*
 !/.gitignore
 
-www/
+www/*
 !www/index.py
 
 cgi-bin
