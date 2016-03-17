@@ -344,7 +344,8 @@ def create_resource(job_id, resources, renaming,
     # Check if we really have to create this resource
     # (it might already exist from an earlier job).
     if os.path.exists(target_fn):
-        os.utime(target_fn)  # touch to keep this file from being cleaned away.
+        # Touch this file to keep it from being cleaned away.
+        os.utime(target_fn, None)
         success = True
     else:
         success = _create_resource(target_fn, resources, renaming, read_back)
@@ -353,7 +354,7 @@ def create_resource(job_id, resources, renaming,
         if zipped:
             zipfn = zipname(target_fn)
             if os.path.exists(zipfn):
-                os.utime(zipfn)  # touch as well
+                os.utime(zipfn, None)  # touch as well
             else:
                 with zipfile.ZipFile(zipfn, 'w', zipfile.ZIP_DEFLATED) as f:
                     f.write(target_fn, job_id + '.csv')
