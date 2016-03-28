@@ -108,7 +108,7 @@ def main_handler(fields, self_url):
         # rb: read back identifiers if all resources are selected.
         rb = set(RESOURCES).issubset(creation_request)
         plot_email = fields.getfirst('plot-email')
-        params = (job_id, resources, renaming, zipped, plot_email, rb)
+        params = (resources, renaming, zipped, plot_email, rb, job_id, True)
 
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
@@ -244,12 +244,15 @@ def job_hash(resources, renaming):
         # Update with the resource selection (inlucding skip option).
         m.update(r)
         p = resources[r]
+        # p is either a boolean (flag for skipping redundancy),
+        # a pair of str (paths) in the case of MeSH,
+        # or a str (one path), in all other cases.
+        # If there are paths, the last-modified time is added to the hash.
         if isinstance(p, basestring):
             p = (p,)
         if isinstance(p, tuple):
-            # MeSH: a pair of paths.
             for pp in p:
-                # Update with the timestamps.
+                # Update with the timestamps (whole-second precision is enough).
                 m.update(str(int(os.path.getmtime(pp))))
     for level in sorted(renaming):
         for entry in sorted(renaming[level].iteritems()):
@@ -264,7 +267,7 @@ def ajax_response(params):
     Run the pipeline and return an HTML fragment when finished.
     '''
     create_resource(*params)
-    job_id, zipped = params[0], params[3]
+    job_id, zipped = params[5], params[2]
     outcome = handle_download_request(job_id, zipped, False)
 
     output = etree.tostring(outcome, method='HTML', encoding='UTF-8')
@@ -333,64 +336,70 @@ def zipname(fn):
     return fn[:-4] + '.zip'
 
 
-def create_resource(job_id, resources, renaming,
-                    zipped=False, plot_email=None, read_back=False):
+def create_resource(resources, renaming,
+                    zipped=False, plot_email=None, read_back=False,
+                    job_id=None, log_exception=False):
     '''
     Run the Bio Term Hub resource creation pipeline, if necessary.
     '''
+    if job_id is None:
+        job_id = job_hash(resources, renaming)
     target_fn = os.path.join(DOWNLOADDIR, job_id + '.csv')
     target_fn = os.path.abspath(target_fn)
+    r_value = target_fn
 
     # Check if we really have to create this resource
     # (it might already exist from an earlier job).
     if os.path.exists(target_fn):
         # Touch this file to keep it from being cleaned away.
         os.utime(target_fn, None)
-        success = True
     else:
-        success = _create_resource(target_fn, resources, renaming, read_back)
-
-    if success:
-        if zipped:
-            zipfn = zipname(target_fn)
-            if os.path.exists(zipfn):
-                os.utime(zipfn, None)  # touch as well
+        try:
+            _create_resource(target_fn, resources, renaming, read_back)
+        except StandardError as e:
+            if log_exception:
+                with codecs.open(target_fn + '.log', 'w', 'utf8') as f:
+                    f.write('{}: {}\n'.format(e.__class__.__name__, e))
+                return
             else:
-                with zipfile.ZipFile(zipfn, 'w', zipfile.ZIP_DEFLATED) as f:
-                    f.write(target_fn, job_id + '.csv')
-        if plot_email:
-            pending_fn = os.path.join(settings.path_batch, 'pending')
-            plot_email = re.sub(r'\s+', '', plot_email)
-            with codecs.open(pending_fn, 'a', 'utf8') as f:
-                f.write('{} {}\n'.format(plot_email, target_fn))
+                raise
+
+    if zipped:
+        zipfn = zipname(target_fn)
+        r_value = zipfn
+        if os.path.exists(zipfn):
+            os.utime(zipfn, None)  # touch as well
+        else:
+            with zipfile.ZipFile(zipfn, 'w', zipfile.ZIP_DEFLATED) as f:
+                f.write(target_fn, job_id + '.csv')
+    if plot_email:
+        pending_fn = os.path.join(settings.path_batch, 'pending')
+        plot_email = re.sub(r'\s+', '', plot_email)
+        with codecs.open(pending_fn, 'a', 'utf8') as f:
+            f.write('{} {}\n'.format(plot_email, target_fn))
 
     # Remove old, unused files.
     clean_up_dir(DOWNLOADDIR, None)
+
+    return r_value
 
 
 def _create_resource(target_fn, resources, renaming, read_back=False):
     '''
     Run the Bio Term Hub resource creation pipeline.
     '''
-    try:
-        with cd(BUILDERPATH):
-            import unified_builder as ub
-            rsc = ub.RecordSetContainer(**resources)
-            ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
-    except StandardError as e:
-        with codecs.open(target_fn + '.log', 'w', 'utf8') as f:
-            f.write('{}: {}\n'.format(e.__class__.__name__, e))
-        return False
-    else:
-        os.rename(target_fn + '.tmp', target_fn)
-        if read_back:
-            # Read back resource and entity type names.
-            for level in ('resources', 'entity_types'):
-                names = sorted(rsc.__getattribute__(level))
-                fn = os.path.join(HERE, '{}.identifiers'.format(level))
-                with codecs.open(fn, 'w', 'utf8') as f:
-                    f.write('\n'.join(names) + '\n')
-        return True
+    with cd(BUILDERPATH):
+        import unified_builder as ub
+        rsc = ub.RecordSetContainer(**resources)
+        ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
+    os.rename(target_fn + '.tmp', target_fn)
+    if read_back:
+        # Read back resource and entity type names.
+        for level in ('resources', 'entity_types'):
+            names = sorted(rsc.__getattribute__(level))
+            fn = os.path.join(HERE, '{}.identifiers'.format(level))
+            with codecs.open(fn, 'w', 'utf8') as f:
+                f.write('\n'.join(names) + '\n')
 
 
 @contextmanager
