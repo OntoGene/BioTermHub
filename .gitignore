@@ -3,6 +3,8 @@
 *.pyc
 *.pyo
 
+*.sublime-*
+
 .*
 !/.gitignore
 

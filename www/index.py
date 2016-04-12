@@ -12,6 +12,7 @@ import re
 import cgi
 import multiprocessing as mp
 import time
+import math
 import glob
 import codecs
 import zipfile
@@ -259,7 +260,22 @@ def job_hash(resources, renaming):
             for e in entry:
                 # Update with any renaming rules.
                 m.update(e.encode('utf8'))
-    return m.hexdigest()
+    return base36digest(m.digest())
+
+
+def base36digest(octets):
+    '''
+    Convert a hash digest to base 36.
+    '''
+    n = sum(256**i * ord(b) for i, b in enumerate(octets))
+    length = int(math.ceil(math.log(256**len(octets), 36)))
+    d = ''
+    for _ in range(length):
+        n, r = divmod(n, 36)
+        d += digits[r]
+    return d
+
+digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 
 def ajax_response(params):
