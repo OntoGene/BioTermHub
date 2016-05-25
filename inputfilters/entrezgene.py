@@ -11,8 +11,8 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 
 import csv
 
-from base36gen import Base36Generator
-from tools import StatDict
+from termhub.lib.base36gen import Base36Generator
+from termhub.lib.tools import StatDict
 
 
 DUMP_FN = 'gene_info.trunc'

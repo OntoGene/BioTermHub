@@ -8,31 +8,23 @@
 import os
 import csv
 import re
-import sys
 import pickle
 import logging
 from collections import defaultdict, OrderedDict, Counter
-from tools import StatDict, CrossLookupTuple, Fields
 
-HERE = os.path.dirname(__file__)
-sys.path.insert(0, os.path.join(HERE, '..', 'lib'))
+# Helper modules.
+from termhub.lib import bdict
+from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple, Fields
+from termhub.lib.base36gen import Base36Generator
 
-# custom modules
-import bdict
-from tools import UnmetDependenciesError
-from base36gen import Base36Generator
-
-# parsers and parser wrappers
-import uniprot_cellosaurus_parser
-import taxdump_parser
-import entrezgene_n2o3_wrapper
-import mesh_wrapper
-import ctd_parser
+# Input parsers.
+from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump_parser, entrezgene, mesh_wrapper, ctd_parser
 
 try:
-    import chebi_o2o_wrapper
+    from termhub.inputfilters import chebi_o2o_wrapper
 except UnmetDependenciesError:
     chebi_o2o_wrapper = None
+
 
 # Format:
 # comparison origin: Resource : 'origin', method, counterpart
@@ -58,7 +50,7 @@ class RecordSetContainer(object):
                            "arguments":(self.dkwargs["cellosaurus"],
                                         uniprot_cellosaurus_parser.CellosaurusRecTypes)},
                       "entrezgene":
-                          {"module":entrezgene_n2o3_wrapper,
+                          {"module": entrezgene,
                            "arguments":(self.dkwargs["entrezgene"],)},
                       "mesh":
                           {"module":mesh_wrapper,
