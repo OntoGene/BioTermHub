@@ -18,12 +18,6 @@ from tools import StatDict
 DUMP_FN = 'gene_info.trunc'
 
 
-# Fields:
-# [0] OntoGene ID, [1] resource from which it comes,
-# [2] original ID, [3] term, [4] preferred form, [5] type
-
-
-
 class RecordSet(object):
     '''
     Record collector for EntrezGene dumps.

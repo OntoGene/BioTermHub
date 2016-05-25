@@ -2,7 +2,13 @@ __author__ = 'vicawil'
 
 from collections import OrderedDict, Callable, Counter, namedtuple
 
+
 CrossLookupTuple = namedtuple('CrossLookupTuple', ('id', 'term'))
+
+
+# Fields of the output TSV.
+Fields = namedtuple('Fields', 'oid resource original_id term preferred_term entity_type')
+
 
 class DefaultOrderedDict(OrderedDict):
     # http://stackoverflow.com/a/6190500
