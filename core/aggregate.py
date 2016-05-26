@@ -99,7 +99,7 @@ class RecordSetContainer(object):
     def pickles_exist(self):
         return os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term.pkl')
 
-    def recordsets(self):
+    def recordsets(self, mapping=None):
         oidgen = Base36Generator()
         for resource in self.okwargs:
             if resource in self.calls:
@@ -111,10 +111,10 @@ class RecordSetContainer(object):
                         and self.calls[resource]["arguments"][1]:
                         recordset = self.calls[resource]["module"].RecordSet(self.calls[resource]["arguments"][0],
                                                                              self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]],
-                                                                             oidgen=oidgen)
+                                                                             oidgen=oidgen, mapping=mapping)
                     else:
                         recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"],
-                                                                             oidgen=oidgen)
+                                                                             oidgen=oidgen, mapping=mapping)
                     self.stats[resource] = recordset.stats
                     self.ambig_units[resource] = recordset.ambig_unit
                     yield recordset, resource
@@ -173,7 +173,7 @@ class UnifiedBuilder(object):
             if pickle_hash:
                self.unpickle_bidicts(rsc)
 
-            for rsc_rowlist, resource in rsc.recordsets():
+            for rsc_rowlist, resource in rsc.recordsets(mapping):
 
                 # Initialize cross-lookup and mapping
                 clookup = rsc.check_cross_lookup(resource)
@@ -187,10 +187,6 @@ class UnifiedBuilder(object):
                         clookup_tuple = CrossLookupTuple(id=row.original_id, term=row.term)
                         rsc.cross_lookup[resource].add(clookup_tuple)
 
-                    # Mapping for resources and entity_types
-                    if mapping:
-                        row.resource = self.mapper(mapping, 'resource', row.resource)
-                        row.entity_type = self.mapper(mapping, 'entity_type', row.entity_type)
                     writer.writerow(row)
 
                     # Compilation of bidirectional hash
@@ -205,17 +201,6 @@ class UnifiedBuilder(object):
 
         if pickle_hash:
             self.pickle_bidicts(rsc)
-
-    # Try to map field value using an exact match. If this fails, iterate through keys,
-    # treat keys as regular expression patterns, try match against keys.
-    def mapper(self, mapping, column, value):
-        try:
-            return mapping[column][value]
-        except KeyError:
-            for key in mapping[column]:
-                if re.match(key, value):
-                    return mapping[column][key]
-        return value
 
     # Pickle bidirectional dictionary
     def pickle_bidicts(self, rsc):

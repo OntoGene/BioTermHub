@@ -9,6 +9,7 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 '''
 
 
+import re
 import csv
 
 from termhub.lib.base36gen import Base36Generator
@@ -25,13 +26,15 @@ class RecordSet(object):
 
     ambig_unit = "terms"
 
-    def __init__(self, fn=DUMP_FN, collect_stats=False, oidgen=None):
+    def __init__(self, fn=DUMP_FN, collect_stats=False, oidgen=None, mapping=None):
         self.fn = fn
         self.stats = StatDict()
         self.collect_stats = collect_stats
         if oidgen is None:
             oidgen = Base36Generator()
         self.oidgen = oidgen
+        self.resource = self.mapping(mapping, 'resource', 'EntrezGene')
+        self.entity_type = self.mapping(mapping, 'entity_type', 'gene/protein')
 
     def __iter__(self):
         '''
@@ -55,12 +58,29 @@ class RecordSet(object):
 
                 for term in terms:
                     entry = Fields(oid,
-                                   'EntrezGene',
+                                   self.resource,
                                    row['GeneID'],
                                    term,
                                    row['Symbol'],
-                                   'gene/protein')
+                                   self.entity_type)
                     yield entry
+
+    @staticmethod
+    def mapping(mapping, field, default):
+        '''
+        Get alternative names for one of the fixed-valued fields.
+        '''
+        try:
+            m = mapping[field]
+        except (TypeError, KeyError):
+            return default
+        try:
+            return m[default]
+        except KeyError:
+            for key in m:
+                if re.match(key, default):
+                    return m[key]
+            return default
 
     def update_stats(self, terms_per_id):
         '''
