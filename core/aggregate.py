@@ -18,12 +18,7 @@ from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
-from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump_parser, entrezgene, mesh_wrapper, ctd_parser
-
-try:
-    from termhub.inputfilters import chebi_o2o_wrapper
-except UnmetDependenciesError:
-    chebi_o2o_wrapper = None
+from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump_parser, entrezgene, mesh_wrapper, ctd_parser, chebi
 
 
 # Format:
@@ -59,7 +54,7 @@ class RecordSetContainer(object):
                           {"module":taxdump_parser,
                            "arguments":(self.dkwargs["taxdump"],)},
                       "chebi":
-                          {"module":chebi_o2o_wrapper,
+                          {"module":chebi,
                            "arguments":(self.dkwargs["chebi"],)},
                       "ctd_chem":
                           {"module":ctd_parser,
