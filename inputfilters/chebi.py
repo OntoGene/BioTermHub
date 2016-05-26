@@ -5,11 +5,11 @@
 
 
 '''
-Collect CHEBI chemicals ("chebi.obo"), parsed with Orange.bio.
+Collect ChEBI chemicals ("chebi.obo").
 '''
 
 
-from Orange.bio.ontology import OBOParser
+import re
 
 from termhub.inputfilters.abc import AbstractRecordSet
 from termhub.lib.tools import Fields
@@ -20,11 +20,11 @@ DUMP_FN = 'chebi.obo'
 
 class RecordSet(AbstractRecordSet):
     '''
-    Record collector for CHEBI through OBO.
+    Record collector for ChEBI.
     '''
 
     ambig_unit = "terms"
-    resource = 'CHEBI'
+    resource = 'ChEBI'
     entity_type = 'chemical'
 
     def __init__(self, fn=DUMP_FN, **kwargs):
@@ -35,27 +35,65 @@ class RecordSet(AbstractRecordSet):
         Iterate over term entries (1 per synonym).
         '''
         for stanza in self._iter_stanzas():
-            pass
+            oid = next(self.oidgen)
+
+            terms = set(s for s, t in stanza['synonyms']
+                          if self._relevant_synonym(t))
+            terms.add(stanza['pref'])
+
+            if self.collect_stats:
+                self.update_stats(len(terms))
+
+            for term in terms:
+                entry = Fields(oid,
+                               self.resource,
+                               stanza['id'],
+                               term,
+                               stanza['pref'],
+                               self.entity_type)
+                yield entry
+
 
     def _iter_stanzas(self):
         '''
-        Collect all information for a term.
+        Parse the .obo stanzas.
         '''
-        with open(self.fn) as f:
-            for event, item in OBOParser(file):
-                if event == 'START_STANZA':
-                    term = {}
-                    term['synonyms'] = []
-                elif event == 'TAG_VALUE':
-                    tag, value = item
-                    if tag == 'name':
-                        term['term'] = value
-                    elif tag == 'id':
-                        term['id'] = value
-                    elif tag == 'synonym':
-                        synonym = value.split('"')[1]
-                        if synonym != '.':
-                            term['synonym_list'].append(synonym)
-                elif event == 'CLOSE_STANZA':
-                    yield term
+        tag_value = re.compile(r'(\w+): (.+)')
+        synonym_type = re.compile(r'"(.*)" (.+)')
 
+        with open(self.fn) as f:
+            inside = False
+            concept = {}
+            for line in f:
+                line = line.strip()
+                if not line:
+                    # Stanza has ended.
+                    if 'id' in concept:
+                        yield concept
+                    inside = False
+                    concept.clear()
+                elif line == '[Term]':
+                    # Stanza starts.
+                    inside = True
+                    concept['synonyms'] = []
+                elif inside:
+                    tag, value = tag_value.match(line).groups()
+                    if tag == 'id':
+                        concept['id'] = value
+                    elif tag == 'name':
+                        concept['pref'] = value
+                    elif tag == 'synonym':
+                        synonym, syntype = synonym_type.match(value).groups()
+                        concept['synonyms'].append((synonym, syntype))
+            if 'id' in concept:
+                # After the final stanza: last yield.
+                yield concept
+
+    @classmethod
+    def _relevant_synonym(cls, syntype):
+        '''
+        Exclude formulas and InChiKeys.
+        '''
+        return not cls.exclude.search(syntype)
+
+    exclude = re.compile(r'FORMULA|InChI|SMILE')

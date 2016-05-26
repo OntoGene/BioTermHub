@@ -9,8 +9,10 @@ Abstract base class for RecordSet.
 '''
 
 
+import re
+
 from termhub.lib.base36gen import Base36Generator
-from termhub.lib.tools import StatDict, Fields
+from termhub.lib.tools import StatDict
 
 
 class AbstractRecordSet(object):
