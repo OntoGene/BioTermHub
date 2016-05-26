@@ -12,7 +12,7 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 import csv
 
 from termhub.lib.base36gen import Base36Generator
-from termhub.lib.tools import StatDict
+from termhub.lib.tools import StatDict, Fields
 
 
 DUMP_FN = 'gene_info.trunc'
@@ -37,9 +37,10 @@ class RecordSet(object):
         '''
         Iterate over term entries (1 per synonym).
         '''
-        with open(self.fn) as f:
-            for row in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE):
+        with open(self.fn, newline='') as f:
+            for row in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_MINIMAL):
                 if row['Symbol'] == 'NEWENTRY':
+                    # Skip these (placeholders for future addition?).
                     continue
 
                 oid = next(self.oidgen)
@@ -53,12 +54,12 @@ class RecordSet(object):
                     self.update_stats(len(terms))
 
                 for term in terms:
-                    entry = (oid,
-                             'EntrezGene',
-                             row['GeneID'],
-                             term,
-                             row['Symbol'],
-                             'gene/protein')
+                    entry = Fields(oid,
+                                   'EntrezGene',
+                                   row['GeneID'],
+                                   term,
+                                   row['Symbol'],
+                                   'gene/protein')
                     yield entry
 
     def update_stats(self, terms_per_id):

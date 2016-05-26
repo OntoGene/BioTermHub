@@ -14,7 +14,7 @@ from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
 from termhub.lib import bdict
-from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple, Fields
+from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple, Fields, TSVDialect
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
@@ -54,7 +54,7 @@ class RecordSetContainer(object):
                            "arguments":(self.dkwargs["entrezgene"],)},
                       "mesh":
                           {"module":mesh_wrapper,
-                           "arguments":self.dkwargs["mesh"]},
+                           "arguments":self.dkwargs["mesh"]},  # is already a tuple
                       "taxdump":
                           {"module":taxdump_parser,
                            "arguments":(self.dkwargs["taxdump"],)},
@@ -165,9 +165,9 @@ class RecordSetContainer(object):
 
 class UnifiedBuilder(object):
     def __init__(self, rsc, filename, compile_hash=False, pickle_hash=False, mapping=None):
-        with open(filename, 'wt', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, dialect=csv.excel_tab, fieldnames=Fields._fields, quotechar=str("\""), quoting=csv.QUOTE_NONE, restval='__')
-            writer.writeheader()
+        with open(filename, 'wt', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f, dialect=TSVDialect)
+            writer.writerow(Fields._fields)
 
             # Unpickle existing hash if it exists
             if pickle_hash:
