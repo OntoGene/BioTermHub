@@ -18,7 +18,7 @@ from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
-from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump, entrezgene, mesh_wrapper, ctd_parser, chebi
+from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump, entrezgene, mesh, ctd_parser, chebi
 
 
 # Format:
@@ -48,7 +48,7 @@ class RecordSetContainer(object):
                           {"module": entrezgene,
                            "arguments":(self.dkwargs["entrezgene"],)},
                       "mesh":
-                          {"module":mesh_wrapper,
+                          {"module":mesh,
                            "arguments":self.dkwargs["mesh"]},  # is already a tuple
                       "taxdump":
                           {"module":taxdump,
