@@ -34,6 +34,20 @@ class AbstractRecordSet(object):
         self.resource = self.mapping(mapping, 'resource', self.resource)
         self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
 
+    @classmethod
+    def resource_names(cls):
+        '''
+        Get a list of possible resource names.
+        '''
+        return [cls.resource]
+
+    @classmethod
+    def entity_type_names(cls):
+        '''
+        Get a list of possible entity_type names.
+        '''
+        return [cls.entity_type]
+
     @staticmethod
     def mapping(mapping, field, default):
         '''
