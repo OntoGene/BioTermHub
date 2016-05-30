@@ -18,7 +18,7 @@ from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
-from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump, entrezgene, mesh, ctd_parser, chebi
+from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump, entrezgene, mesh, ctd, chebi
 
 
 # Format:
@@ -57,12 +57,15 @@ class RecordSetContainer(object):
                           {"module":chebi,
                            "arguments":(self.dkwargs["chebi"],)},
                       "ctd_chem":
-                          {"module":ctd_parser,
+                          {"module":ctd,
                            "arguments":(self.dkwargs["ctd_chem"],
-                                        self.dkwargs["ctd_lookup"])},
-                      "ctd_disease":{"module":ctd_parser,
-                                     "arguments":(self.dkwargs["ctd_disease"],
-                                                  self.dkwargs["ctd_lookup"])}
+                                        'chemical'),
+                           'lookup': self.dkwargs["ctd_lookup"]},
+                      "ctd_disease":
+                          {"module":ctd,
+                           "arguments":(self.dkwargs["ctd_disease"],
+                                        'disease'),
+                           'lookup': self.dkwargs["ctd_lookup"]},
                      }
 
         self.stats = OrderedDict()
@@ -107,9 +110,9 @@ class RecordSetContainer(object):
                     # Check if a cross-lookup has to be performed for the resource and if so, pass corresponding lookup set
                     if resource in CROSS_LOOKUP_PAIRS \
                         and CROSS_LOOKUP_PAIRS[resource][0] == 'origin' \
-                        and self.calls[resource]["arguments"][1]:
-                        recordset = self.calls[resource]["module"].RecordSet(self.calls[resource]["arguments"][0],
-                                                                             self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]],
+                        and self.calls[resource]["lookup"]:
+                        recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"],
+                                                                             exclude=self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]],
                                                                              oidgen=oidgen, mapping=mapping)
                     else:
                         recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"],
