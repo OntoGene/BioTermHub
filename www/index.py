@@ -1,10 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf8
 
-# Author: Lenz Furrer, 2015
+# Author: Lenz Furrer, 2015--2016
 
 
-from __future__ import division, print_function #, unicode_literals
+'''
+Web interface for the Bio Term Hub.
+'''
+
 
 import sys
 import os
@@ -14,11 +17,9 @@ import multiprocessing as mp
 import time
 import math
 import glob
-import codecs
 import zipfile
 import hashlib
 from collections import OrderedDict
-from contextlib import contextmanager
 
 from lxml import etree
 import cgitb
@@ -29,7 +30,7 @@ HERE = os.path.dirname(__file__)
 # Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 SCRIPT_NAME = os.path.basename(__file__)
-BUILDERPATH = os.path.realpath(os.path.join(HERE, '..', 'adrian'))
+PACKAGEPATH = os.path.realpath(os.path.join(HERE, '..', '..'))
 DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
 CGI_URL = 'http://kitt.cl.uzh.ch/kitt/cgi-bin/biodb/index.py'
 WSGI_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/'
@@ -45,15 +46,13 @@ RESOURCES = OrderedDict((
     ('uniprot', 'Uniprot'),
 ))
 
-if BUILDERPATH not in sys.path:
-    sys.path.append(BUILDERPATH)
-import biodb_wrapper
-import settings
-
+if PACKAGEPATH not in sys.path:
+    sys.path.append(PACKAGEPATH)
+from termhub import biodb_wrapper, settings, unified_builder as ub
 
 # Some shorthands.
 se = etree.SubElement
-NBSP = u'\xA0'
+NBSP = '\xA0'
 WAIT_MESSAGE = ('Please wait while the resource is being created '
                 '(this may take up to 30 minutes, '
                 'depending on the size of the resource).')
@@ -134,8 +133,8 @@ def main_handler(fields, self_url):
             if zipped:
                 link += '&zipped=true'
             se(html.find('head'), 'meta',
-                {'http-equiv': "refresh",
-                 'content': "5; url={}".format(link)})
+               {'http-equiv': "refresh",
+                'content': "5; url={}".format(link)})
 
     # Serialise the complete page.
     html.find('.//a[@id="anchor-title"]').set('href', self_url)
@@ -156,7 +155,7 @@ def input_page():
     '''
     html = etree.HTML(PAGE)
     html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
-    populate_checkboxes(html, RESOURCES.iteritems())
+    populate_checkboxes(html, RESOURCES.items())
     add_resource_labels(html, HERE)
     return html
 
@@ -184,7 +183,7 @@ def populate_checkboxes(doc, resources):
     label = 'skip CTD entries that are MeSH duplicates'
     se(cell, 'input', atts).tail = NBSP + label
     se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
-                                   'are selected)')
+                           'are selected)')
 
 
 def add_resource_labels(doc, path):
@@ -193,7 +192,7 @@ def add_resource_labels(doc, path):
     '''
     for level in ('resources', 'entity_types'):
         fn = os.path.join(path, '{}.identifiers'.format(level))
-        with codecs.open(fn, 'r', 'utf8') as f:
+        with open(fn, 'r', encoding='utf8') as f:
             names = f.read().strip().split('\n')
         if names:
             cell = doc.find('.//td[@id="td-{}-ids"]'.format(level[:3]))
@@ -243,20 +242,20 @@ def job_hash(resources, renaming):
     m = hashlib.sha1()
     for r in sorted(resources):
         # Update with the resource selection (inlucding skip option).
-        m.update(r)
+        m.update(r.encode('utf8'))
         p = resources[r]
         # p is either a boolean (flag for skipping redundancy),
         # a pair of str (paths) in the case of MeSH,
         # or a str (one path), in all other cases.
         # If there are paths, the last-modified time is added to the hash.
-        if isinstance(p, basestring):
+        if isinstance(p, str):
             p = (p,)
         if isinstance(p, tuple):
             for pp in p:
                 # Update with the timestamps (whole-second precision is enough).
-                m.update(str(int(os.path.getmtime(pp))))
+                m.update(str(int(os.path.getmtime(pp))).encode('utf8'))
     for level in sorted(renaming):
-        for entry in sorted(renaming[level].iteritems()):
+        for entry in sorted(renaming[level].items()):
             for e in entry:
                 # Update with any renaming rules.
                 m.update(e.encode('utf8'))
@@ -267,7 +266,7 @@ def base36digest(octets):
     '''
     Convert a hash digest to base 36.
     '''
-    n = sum(256**i * ord(b) for i, b in enumerate(octets))
+    n = sum(256**i * b for i, b in enumerate(octets))
     length = int(math.ceil(math.log(256**len(octets), 36)))
     d = ''
     for _ in range(length):
@@ -315,7 +314,7 @@ def handle_download_request(job_id, zipped, is_recent):
     elif not zipped and os.path.exists(path):
         success_msg(msg, fn, path)
     elif os.path.exists(path + '.log'):
-        with codecs.open(path + '.log', 'r', 'utf8') as f:
+        with open(path + '.log', 'r', encoding='utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
     elif os.path.exists(path + '.tmp') or is_recent:
         msg.text = WAIT_MESSAGE
@@ -372,9 +371,9 @@ def create_resource(resources, renaming,
     else:
         try:
             _create_resource(target_fn, resources, renaming, read_back)
-        except StandardError as e:
+        except Exception as e:
             if log_exception:
-                with codecs.open(target_fn + '.log', 'w', 'utf8') as f:
+                with open(target_fn + '.log', 'w', encoding='utf8') as f:
                     f.write('{}: {}\n'.format(e.__class__.__name__, e))
                 return
             else:
@@ -391,7 +390,7 @@ def create_resource(resources, renaming,
     if plot_email:
         pending_fn = os.path.join(settings.path_batch, 'pending')
         plot_email = re.sub(r'\s+', '', plot_email)
-        with codecs.open(pending_fn, 'a', 'utf8') as f:
+        with open(pending_fn, 'a', encoding='utf8') as f:
             f.write('{} {}\n'.format(plot_email, target_fn))
 
     # Remove old, unused files.
@@ -404,34 +403,19 @@ def _create_resource(target_fn, resources, renaming, read_back=False):
     '''
     Run the Bio Term Hub resource creation pipeline.
     '''
-    with cd(BUILDERPATH):
-        import unified_builder as ub
-        rsc = ub.RecordSetContainer(**resources)
-        ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
+    rsc = ub.RecordSetContainer(**resources)
+    ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
     os.rename(target_fn + '.tmp', target_fn)
     if read_back:
         # Read back resource and entity type names.
         for level in ('resources', 'entity_types'):
             names = sorted(rsc.__getattribute__(level))
             fn = os.path.join(HERE, '{}.identifiers'.format(level))
-            with codecs.open(fn, 'w', 'utf8') as f:
+            with open(fn, 'w', encoding='utf8') as f:
                 f.write('\n'.join(names) + '\n')
 
 
-@contextmanager
-def cd(newdir):
-    '''
-    Temporarily change the working directory.
-    '''
-    prevdir = os.getcwd()
-    os.chdir(os.path.expanduser(newdir))
-    try:
-        yield
-    finally:
-        os.chdir(prevdir)
-
-
-PAGE = u'''<!doctype html>
+PAGE = '''<!doctype html>
 <html>
 <head>
   <meta charset="UTF-8"/>
