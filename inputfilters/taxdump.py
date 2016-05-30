@@ -12,7 +12,7 @@ Parse NCBI's Taxonomy dump ("names.dmp.trunc").
 import re
 from collections import defaultdict
 
-from termhub.inputfilters.abc import AbstractRecordSet
+from termhub.inputfilters.recordset import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 

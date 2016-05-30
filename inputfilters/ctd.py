@@ -12,7 +12,7 @@ Collect CTD chemicals and diseases
 
 import csv
 
-from termhub.inputfilters.abc import AbstractRecordSet
+from termhub.inputfilters.recordset import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 

@@ -9,10 +9,9 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 '''
 
 
-import re
 import csv
 
-from termhub.inputfilters.abc import AbstractRecordSet
+from termhub.inputfilters.recordset import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 
@@ -35,6 +34,29 @@ class RecordSet(AbstractRecordSet):
         '''
         Iterate over term entries (1 per synonym).
         '''
+        for id_, pref, synonyms in self._iter_concepts():
+
+            oid = next(self.oidgen)
+
+            terms = set(synonyms)
+            terms.add(pref)
+
+            if self.collect_stats:
+                self.update_stats(len(terms))
+
+            for term in terms:
+                entry = Fields(oid,
+                               self.resource,
+                               id_,
+                               term,
+                               pref,
+                               self.entity_type)
+                yield entry
+
+    def _iter_concepts(self):
+        '''
+        Parse the truncated TSV.
+        '''
         with open(self.fn, newline='') as f:
             reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
             for row in reader:
@@ -42,21 +64,9 @@ class RecordSet(AbstractRecordSet):
                     # Skip these (placeholders for future addition?).
                     continue
 
-                oid = next(self.oidgen)
+                if row['Synonyms'] != '-':
+                    synonyms = row['Synonyms'].split('|')
+                else:
+                    synonyms = []
 
-                terms = set([row['Symbol']])
-                synonyms = row['Synonyms']
-                if synonyms != '-':
-                    terms.update(synonyms.split('|'))
-
-                if self.collect_stats:
-                    self.update_stats(len(terms))
-
-                for term in terms:
-                    entry = Fields(oid,
-                                   self.resource,
-                                   row['GeneID'],
-                                   term,
-                                   row['Symbol'],
-                                   self.entity_type)
-                    yield entry
+                yield row['GeneID'], row['Symbol'], synonyms

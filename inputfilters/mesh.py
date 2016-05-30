@@ -9,9 +9,11 @@ Collect MeSH descriptions and supplements ("desc.xml", "supp.xml").
 '''
 
 
+from collections import namedtuple
+
 from lxml import etree
 
-from termhub.inputfilters.abc import AbstractRecordSet
+from termhub.inputfilters.recordset import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 
@@ -39,6 +41,10 @@ TREES = {
     'V': 'Publication Characteristics',
     'Z': 'Geographicals',
 }
+
+
+DescEntry = namedtuple('DescEntry', 'id pref terms trees')
+SuppEntry = namedtuple('SuppEntry', 'id pref terms refs')
 
 
 class RecordSet(AbstractRecordSet):
@@ -81,17 +87,17 @@ class RecordSet(AbstractRecordSet):
             oid = next(self.oidgen)
 
             if self.collect_stats:
-                self.update_stats(len(entry['terms']))
+                self.update_stats(len(entry.terms))
 
             entity_type = self._entity_type_mapping[self._tree_types[tree]]
             resource = self._resource_mapping[resource]
 
-            for term in entry['terms']:
+            for term in entry.terms:
                 yield Fields(oid,
                              resource,
-                             entry['id'],
+                             entry.id,
                              term,
-                             entry['pref'],
+                             entry.pref,
                              entity_type)
 
     def _iter_entries(self):
@@ -100,12 +106,12 @@ class RecordSet(AbstractRecordSet):
         '''
         ref_trees = {}
         for entry in self._iter_desc():
-            ref_trees[entry['id']] = entry['trees']
-            for tree in entry['trees'].intersection(self._tree_types):
+            ref_trees[entry.id] = entry.trees
+            for tree in entry.trees.intersection(self._tree_types):
                 resource = self._desc_names[tree]
                 yield entry, tree, resource
         for entry in self._iter_supp():
-            trees = set(t for id_ in entry['refs'] for t in ref_trees[id_])
+            trees = set(t for id_ in entry.refs for t in ref_trees[id_])
             for tree in trees.intersection(self._tree_types):
                 resource = self._supp_names[tree]
                 yield entry, tree, resource
@@ -123,13 +129,12 @@ class RecordSet(AbstractRecordSet):
             # .//ConceptName/String to the terms set,
             # as these are all included in the .//Term/String nodes.
 
-            entry = {
-                'id': record.find('DescriptorUI').text,
-                'pref': record.find('DescriptorName/String').text,
-                'terms': set(n.text for n in record.iterfind('.//Term/String')),
-                'trees': set(n.text[0]
-                             for n in record.iterfind('.//TreeNumber')),
-            }
+            entry = DescEntry(
+                record.find('DescriptorUI').text,
+                record.find('DescriptorName/String').text,
+                set(n.text for n in record.iterfind('.//Term/String')),
+                set(n.text[0] for n in record.iterfind('.//TreeNumber')),
+            )
             record.clear()
             yield entry
 
@@ -138,13 +143,13 @@ class RecordSet(AbstractRecordSet):
         Iterate over SupplementalRecord entries.
         '''
         for _, record in etree.iterparse(self.fn[1], tag='SupplementalRecord'):
-            entry = {
-                'id': record.find('SupplementalRecordUI').text,
-                'pref': record.find('SupplementalRecordName/String').text,
-                'terms': set(n.text for n in record.iterfind('.//Term/String')),
-                'refs': set(n.text.lstrip('*')  # What does the asterisk mean?
-                            for n in record.iterfind('.//DescriptorUI')),
-            }
+            entry = SuppEntry(
+                record.find('SupplementalRecordUI').text,
+                record.find('SupplementalRecordName/String').text,
+                set(n.text for n in record.iterfind('.//Term/String')),
+                set(n.text.lstrip('*') # What does the * mean in ref IDs?
+                    for n in record.iterfind('.//DescriptorUI')),
+            )
             record.clear()
             yield entry
 

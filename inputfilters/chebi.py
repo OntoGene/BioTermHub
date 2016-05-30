@@ -11,7 +11,7 @@ Collect ChEBI chemicals ("chebi.obo").
 
 import re
 
-from termhub.inputfilters.abc import AbstractRecordSet
+from termhub.inputfilters.recordset import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 
@@ -34,12 +34,12 @@ class RecordSet(AbstractRecordSet):
         '''
         Iterate over term entries (1 per synonym).
         '''
-        for stanza in self._iter_stanzas():
+        for concept in self._iter_stanzas():
             oid = next(self.oidgen)
 
-            terms = set(s for s, t in stanza['synonyms']
+            terms = set(s for s, t in concept['synonyms']
                           if self._relevant_synonym(t))
-            terms.add(stanza['pref'])
+            terms.add(concept['pref'])
 
             if self.collect_stats:
                 self.update_stats(len(terms))
@@ -47,9 +47,9 @@ class RecordSet(AbstractRecordSet):
             for term in terms:
                 entry = Fields(oid,
                                self.resource,
-                               stanza['id'],
+                               concept['id'],
                                term,
-                               stanza['pref'],
+                               concept['pref'],
                                self.entity_type)
                 yield entry
 
