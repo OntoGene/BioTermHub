@@ -1,4 +1,0 @@
-#Format: tax_id GeneID Symbol LocusTag Synonyms dbXrefs chromosome map_location description type_of_gene Symbol_from_nomenclature_authority Full_name_from_nomenclature_authority Nomenclature_status Other_designations Modification_date (tab is used as a separator, pound sign - start of a comment)
-573	13914798	D647_p11072	D647_p11072	-	-	-	-	DNA-cytosine methyltransferase	protein-coding	-	-	-	-	20150520
-573	13923837	blaKPC-2	D647_p12001	IPF_358	-	-	-	KPC-2 protein	protein-coding	-	-	-	-	20150520
-573	13923848	virB5	D647_p12029	IPF_307|PilX5	-	-	-	VirB5	protein-coding	-	-	-	-	20150520
