@@ -7,18 +7,18 @@
 
 import os
 import csv
-import re
 import pickle
 import logging
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
 from termhub.lib import bdict
-from termhub.lib.tools import UnmetDependenciesError, StatDict, CrossLookupTuple, Fields, TSVDialect
+from termhub.lib.tools import StatDict, Fields, TSVDialect
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
-from termhub.inputfilters import uniprot_cellosaurus_parser, taxdump, entrezgene, mesh, ctd, chebi
+from termhub.inputfilters import cellosaurus, chebi, ctd, entrezgene, mesh
+from termhub.inputfilters import taxdump, uniprot
 
 
 # Format:
@@ -37,34 +37,32 @@ class RecordSetContainer(object):
         self.dkwargs = defaultdict(bool, kwargs)
         self.okwargs = OrderedDict(sorted(kwargs.items(), key=self._sort_kwargs))
         self.calls = {"uniprot":
-                          {"module":uniprot_cellosaurus_parser,
-                           "arguments":(self.dkwargs["uniprot"],
-                                        uniprot_cellosaurus_parser.UniProtRecTypes)},
+                          {"module": uniprot,
+                           "arguments": (self.dkwargs["uniprot"],)},
                       "cellosaurus":
-                          {"module":uniprot_cellosaurus_parser,
-                           "arguments":(self.dkwargs["cellosaurus"],
-                                        uniprot_cellosaurus_parser.CellosaurusRecTypes)},
+                          {"module": cellosaurus,
+                           "arguments": (self.dkwargs["cellosaurus"],)},
                       "entrezgene":
                           {"module": entrezgene,
-                           "arguments":(self.dkwargs["entrezgene"],)},
+                           "arguments": (self.dkwargs["entrezgene"],)},
                       "mesh":
-                          {"module":mesh,
-                           "arguments":self.dkwargs["mesh"]},  # is already a tuple
+                          {"module": mesh,
+                           "arguments": self.dkwargs["mesh"]},  # is already a tuple
                       "taxdump":
-                          {"module":taxdump,
-                           "arguments":(self.dkwargs["taxdump"],)},
+                          {"module": taxdump,
+                           "arguments": (self.dkwargs["taxdump"],)},
                       "chebi":
-                          {"module":chebi,
-                           "arguments":(self.dkwargs["chebi"],)},
+                          {"module": chebi,
+                           "arguments": (self.dkwargs["chebi"],)},
                       "ctd_chem":
-                          {"module":ctd,
-                           "arguments":(self.dkwargs["ctd_chem"],
-                                        'chemical'),
+                          {"module": ctd,
+                           "arguments": (self.dkwargs["ctd_chem"],
+                                         'chemical'),
                            'lookup': self.dkwargs["ctd_lookup"]},
                       "ctd_disease":
-                          {"module":ctd,
-                           "arguments":(self.dkwargs["ctd_disease"],
-                                        'disease'),
+                          {"module": ctd,
+                           "arguments": (self.dkwargs["ctd_disease"],
+                                         'disease'),
                            'lookup': self.dkwargs["ctd_lookup"]},
                      }
 
@@ -109,8 +107,8 @@ class RecordSetContainer(object):
 
                     # Check if a cross-lookup has to be performed for the resource and if so, pass corresponding lookup set
                     if resource in CROSS_LOOKUP_PAIRS \
-                        and CROSS_LOOKUP_PAIRS[resource][0] == 'origin' \
-                        and self.calls[resource]["lookup"]:
+                            and CROSS_LOOKUP_PAIRS[resource][0] == 'origin' \
+                            and self.calls[resource]["lookup"]:
                         recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"],
                                                                              exclude=self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]],
                                                                              oidgen=oidgen, mapping=mapping)
@@ -173,7 +171,7 @@ class UnifiedBuilder(object):
 
             # Unpickle existing hash if it exists
             if pickle_hash:
-               self.unpickle_bidicts(rsc)
+                self.unpickle_bidicts(rsc)
 
             for rsc_rowlist, resource in rsc.recordsets(mapping):
 
@@ -183,8 +181,8 @@ class UnifiedBuilder(object):
                     # Cross-lookup handling
                     if clookup:
                         # If reference, add id to set
-                        clookup_tuple = CrossLookupTuple(id=row.original_id, term=row.term)
-                        rsc.cross_lookup[resource].add(clookup_tuple)
+                        rsc.cross_lookup[resource].add(
+                            (row.original_id, row.term))
 
                     writer.writerow(row)
 

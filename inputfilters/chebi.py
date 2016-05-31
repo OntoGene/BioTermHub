@@ -53,10 +53,13 @@ class RecordSet(AbstractRecordSet):
                                self.entity_type)
                 yield entry
 
-
     def _iter_stanzas(self):
         '''
         Parse the .obo stanzas.
+
+        Do not call list(...) on this method:
+        The same object is yielded in every iteration
+        (with modified content).
         '''
         tag_value = re.compile(r'(\w+): (.+)')
         synonym_type = re.compile(r'"(.*)" (.+)')

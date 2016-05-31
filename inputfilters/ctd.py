@@ -16,10 +16,6 @@ from termhub.inputfilters.recordset import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 
-CHEM_FN = 'CTD_chemicals.csv'
-DIS_FN = 'CTD_diseases.csv'
-
-
 class RecordSet(AbstractRecordSet):
     '''
     Record collector for ChEBI.
