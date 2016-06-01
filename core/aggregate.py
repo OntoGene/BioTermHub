@@ -5,6 +5,11 @@
 # Modified: Lenz Furrer, 2016
 
 
+'''
+Aggregator for joining data from all the different input filters.
+'''
+
+
 import os
 import csv
 import pickle
@@ -21,16 +26,23 @@ from termhub.inputfilters import cellosaurus, chebi, ctd, entrezgene, mesh
 from termhub.inputfilters import taxdump, uniprot
 
 
+# Cross lookup: ID/term pairs are skipped in "origin" if they are also
+# found in "reference".
 # Format:
 # comparison origin: Resource : 'origin', method, counterpart
 # comparison reference: Resource : 'reference', tuple of counterparts
 
-CROSS_LOOKUP_PAIRS = {'mesh': ('reference', ('ctd_chem', 'ctd_disease')),
-                      'ctd_chem': ('origin', 'ctd_lookup', 'mesh'),
-                      'ctd_disease': ('origin', 'ctd_lookup', 'mesh')}
+CROSS_LOOKUP_PAIRS = {
+    'mesh': ('reference', ('ctd_chem', 'ctd_disease')),
+    'ctd_chem': ('origin', 'ctd_lookup', 'mesh'),
+    'ctd_disease': ('origin', 'ctd_lookup', 'mesh')
+}
 
 
 class RecordSetContainer(object):
+    '''
+    Handler for multiple inputfilter instances.
+    '''
     def __init__(self, **kwargs):
         # Convert kwargs to defaultdict to create calls dictionary and to sorted OrderedDict
         # to maintain order of resources in output
@@ -68,12 +80,14 @@ class RecordSetContainer(object):
 
         self.stats = OrderedDict()
         self.ambig_units = {}
-        self.resources = set().union(
-            rs['module'].RecordSet.resource_names()
-            for rs in self.calls.values())
-        self.entity_types = set().union(
-            rs['module'].RecordSet.entity_type_names()
-            for rs in self.calls.values())
+        self.resources = set(
+            name
+            for rs in self.calls.values()
+            for name in rs['module'].RecordSet.resource_names())
+        self.entity_types = set(
+            name
+            for rs in self.calls.values()
+            for name in rs['module'].RecordSet.entity_type_names())
         self.cross_lookup = defaultdict(set)
 
         if not self.pickles_exist():
@@ -83,13 +97,19 @@ class RecordSetContainer(object):
 
     @staticmethod
     def _sort_kwargs(element):
+        '''
+        Make sure "reference" resources are read before "origin" resources.
+        '''
         is_origin = CROSS_LOOKUP_PAIRS.get(element[0], (None,))[0] == 'origin'
         return (is_origin, element[0])
 
-    # Check if a resource should be prepared for cross-lookup
     def check_cross_lookup(self, resource):
+        '''
+        Check if a resource should be prepared for cross-lookup.
+        '''
         if resource in CROSS_LOOKUP_PAIRS and CROSS_LOOKUP_PAIRS[resource][0] == 'reference':
-            # Check if any associated origins are 1) present and 2) have their cross-lookup flag set
+            # Check if any associated origins are
+            # 1) present and 2) have their cross-lookup flag set.
             for origin in CROSS_LOOKUP_PAIRS[resource][1]:
                 origin_arg = CROSS_LOOKUP_PAIRS[origin][1]
                 if origin in self.dkwargs and self.dkwargs[origin_arg]:
@@ -100,28 +120,28 @@ class RecordSetContainer(object):
         return os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term.pkl')
 
     def recordsets(self, mapping=None):
+        '''
+        Iterate over the readily initialised inputfilters.
+        '''
         oidgen = Base36Generator()
         for resource in self.okwargs:
-            if resource in self.calls:
-                if self.calls[resource]["module"]:
-
-                    # Check if a cross-lookup has to be performed for the resource and if so, pass corresponding lookup set
-                    if resource in CROSS_LOOKUP_PAIRS \
-                            and CROSS_LOOKUP_PAIRS[resource][0] == 'origin' \
-                            and self.calls[resource]["lookup"]:
-                        recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"],
-                                                                             exclude=self.cross_lookup[CROSS_LOOKUP_PAIRS[resource][2]],
-                                                                             oidgen=oidgen, mapping=mapping)
-                    else:
-                        recordset = self.calls[resource]["module"].RecordSet(*self.calls[resource]["arguments"],
-                                                                             oidgen=oidgen, mapping=mapping)
-                    self.stats[resource] = recordset.stats
-                    self.ambig_units[resource] = recordset.ambig_unit
-                    yield recordset, resource
-                else:
-                    logging.warning("Skipping %s due to unmet dependencies.", resource)
-            else:
+            try:
+                call = self.calls[resource]
+            except KeyError:
                 logging.warning('Ignoring unrecognised option: %s', resource)
+                continue
+            params = dict(oidgen=oidgen, mapping=mapping)
+            # Check if a cross-lookup has to be performed for the resource
+            # and if so, pass the corresponding lookup set.
+            if resource in CROSS_LOOKUP_PAIRS:
+                lookup = CROSS_LOOKUP_PAIRS[resource]
+                if lookup[0] == 'origin' and call["lookup"]:
+                    params['exclude'] = self.cross_lookup[lookup[2]]
+            recordset = call["module"].RecordSet(*call["arguments"],
+                                                 **params)
+            self.stats[resource] = recordset.stats
+            self.ambig_units[resource] = recordset.ambig_unit
+            yield recordset, resource
 
     def calcstats(self):
         total = StatDict()
@@ -164,6 +184,9 @@ class RecordSetContainer(object):
 
 
 class UnifiedBuilder(object):
+    '''
+    Concatenate all resources' data into a large TSV file.
+    '''
     def __init__(self, rsc, filename, compile_hash=False, pickle_hash=False, mapping=None):
         with open(filename, 'wt', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, dialect=TSVDialect)
