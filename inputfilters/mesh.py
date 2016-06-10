@@ -13,12 +13,9 @@ from collections import namedtuple
 
 from lxml import etree
 
-from termhub.inputfilters.recordset import AbstractRecordSet
+from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
 
-
-DESC_FN = 'desc.xml'
-SUPP_FN = 'supp.xml'
 
 # These headings for the initial letter of the MeSH Tree numbers are not given
 # anymore in the 2016 release.
@@ -55,6 +52,7 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = None  # Not a fixed field.
     entity_type = None  # Not a fixed field.
+    dump_fn = ('desc.xml', 'supp.xml')
 
     tree_type_defaults = {
         'B': 'organism',  # maybe "species" would be more consistent?
@@ -62,11 +60,10 @@ class RecordSet(AbstractRecordSet):
         'D': 'chemical',
     }
 
-    def __init__(self, desc=DESC_FN, supp=SUPP_FN, tree_types=None,
-                 mapping=None, **kwargs):
+    def __init__(self, tree_types=None, mapping=None, **kwargs):
         # Do not give mapping to the superclass, since those fields are not
         # fixed for MeSH.
-        super().__init__((desc, supp), **kwargs)
+        super().__init__(**kwargs)
         if tree_types is None:
             tree_types = self.tree_type_defaults
         self._tree_types = tree_types
@@ -152,6 +149,10 @@ class RecordSet(AbstractRecordSet):
             )
             record.clear()
             yield entry
+
+    @classmethod
+    def dump_label(cls):
+        return 'MeSH'
 
     @classmethod
     def resource_names(cls, trees=None):

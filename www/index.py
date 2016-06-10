@@ -19,36 +19,27 @@ import math
 import glob
 import zipfile
 import hashlib
-from collections import OrderedDict
 
 from lxml import etree
 import cgitb
 cgitb.enable()
 
 HERE = os.path.dirname(__file__)
+PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..', '..')
+if PACKAGEPATH not in sys.path:
+    sys.path.append(PACKAGEPATH)
+from termhub import settings
+from termhub.core.aggregate import RecordSetContainer
+from termhub.inputfilters import FILTERS
+
 
 # Config globals.
 DOWNLOADDIR = os.path.join(HERE, 'downloads')
 SCRIPT_NAME = os.path.basename(__file__)
-PACKAGEPATH = os.path.realpath(os.path.join(HERE, '..', '..'))
 DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
 CGI_URL = 'http://kitt.cl.uzh.ch/kitt/cgi-bin/biodb/index.py'
 WSGI_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/'
 
-RESOURCES = OrderedDict((
-    ('cellosaurus', 'Cellosaurus'),
-    ('chebi', 'ChEBI'),
-    ('ctd_chem', 'CTD chemicals'),
-    ('ctd_disease', 'CTD diseases'),
-    ('entrezgene', 'EntrezGene'),
-    ('mesh', 'MeSH'),
-    ('taxdump', 'Taxdump'),
-    ('uniprot', 'Uniprot'),
-))
-
-if PACKAGEPATH not in sys.path:
-    sys.path.append(PACKAGEPATH)
-from termhub import biodb_wrapper, settings, unified_builder as ub
 
 # Some shorthands.
 se = etree.SubElement
@@ -101,14 +92,14 @@ def main_handler(fields, self_url):
 
     if creation_request:
         # A creation request has been submitted.
-        resources = biodb_wrapper.resource_paths(*creation_request)
+        rsc = RecordSetContainer(resources=creation_request,
+                                 flags=fields.getlist('flags'))
         renaming = parse_renaming(fields)
-        job_id = job_hash(resources, renaming)
+        job_id = job_hash(rsc, renaming)
 
-        # rb: read back identifiers if all resources are selected.
-        rb = set(RESOURCES).issubset(creation_request)
         plot_email = fields.getfirst('plot-email')
-        params = (resources, renaming, zipped, plot_email, rb, job_id, True)
+        log_exception = True
+        params = (rsc, renaming, zipped, plot_email, job_id, log_exception)
 
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
@@ -155,8 +146,10 @@ def input_page():
     '''
     html = etree.HTML(PAGE)
     html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
-    populate_checkboxes(html, RESOURCES.items())
-    add_resource_labels(html, HERE)
+    dump_labels = sorted((c.dump_label(), n)
+                         for n, c in FILTERS.items())
+    populate_checkboxes(html, dump_labels)
+    add_resource_labels(html)
     return html
 
 
@@ -175,25 +168,24 @@ def populate_checkboxes(doc, resources):
     '''
     tbl = doc.find('.//table[@id="tbl-checkboxes"]')
     atts = dict(type='checkbox', name='resources')
-    for id_, label in resources:
+    for label, id_ in resources:
         atts['value'] = id_
         se(se(se(se(tbl, 'tr'), 'td'), 'p'), 'input', atts).tail = NBSP + label
+    # Add a checkbox for the CTD-lookup flag.
     cell = se(tbl.getparent(), 'p')
-    atts['value'] = 'ctd_lookup'
+    atts = dict(type='checkbox', name='flags', value='ctd_lookup')
     label = 'skip CTD entries that are MeSH duplicates'
     se(cell, 'input', atts).tail = NBSP + label
     se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
                            'are selected)')
 
 
-def add_resource_labels(doc, path):
+def add_resource_labels(doc):
     '''
     Add a list of existing resource/entity type identifiers.
     '''
-    for level in ('resources', 'entity_types'):
-        fn = os.path.join(path, '{}.identifiers'.format(level))
-        with open(fn, 'r', encoding='utf8') as f:
-            names = f.read().strip().split('\n')
+    for level in ('resource_names', 'entity_type_names'):
+        names = sorted(set(getattr(f, level)() for f in FILTERS.values()))
         if names:
             cell = doc.find('.//td[@id="td-{}-ids"]'.format(level[:3]))
             cell.text = names[0]
@@ -235,31 +227,27 @@ def parse_renaming(fields):
     return m
 
 
-def job_hash(resources, renaming):
+def job_hash(rsc, renaming):
     '''
     Create a hash value considering all options for this job.
     '''
-    m = hashlib.sha1()
-    for r in sorted(resources):
-        # Update with the resource selection (inlucding skip option).
-        m.update(r.encode('utf8'))
-        p = resources[r]
-        # p is either a boolean (flag for skipping redundancy),
-        # a pair of str (paths) in the case of MeSH,
-        # or a str (one path), in all other cases.
-        # If there are paths, the last-modified time is added to the hash.
-        if isinstance(p, str):
-            p = (p,)
-        if isinstance(p, tuple):
-            for pp in p:
-                # Update with the timestamps (whole-second precision is enough).
-                m.update(str(int(os.path.getmtime(pp))).encode('utf8'))
+    key = hashlib.sha1()
+    for name, rec in rsc.resources:
+        # Update with the resource selection.
+        key.update(name.encode('utf8'))
+        # For each dump file, add the last-modified time to the hash.
+        for path in rec.dump_fns():
+            # Update with the timestamps (whole-second precision is enough).
+            key.update(str(int(os.path.getmtime(path))).encode('utf8'))
+    # Update with the "skip" flag ("ctd_lookup").
+    for flag in rsc.flags:
+        key.update(flag.encode('utf8'))
+    # Update with any renaming rules.
     for level in sorted(renaming):
         for entry in sorted(renaming[level].items()):
             for e in entry:
-                # Update with any renaming rules.
-                m.update(e.encode('utf8'))
-    return base36digest(m.digest())
+                key.update(e.encode('utf8'))
+    return base36digest(key.digest())
 
 
 def base36digest(octets):
@@ -282,7 +270,7 @@ def ajax_response(params):
     Run the pipeline and return an HTML fragment when finished.
     '''
     create_resource(*params)
-    job_id, zipped = params[5], params[2]
+    job_id, zipped = params[4], params[2]
     outcome = handle_download_request(job_id, zipped, False)
 
     output = etree.tostring(outcome, method='HTML', encoding='UTF-8')
@@ -352,7 +340,7 @@ def zipname(fn):
 
 
 def create_resource(resources, renaming,
-                    zipped=False, plot_email=None, read_back=False,
+                    zipped=False, plot_email=None,
                     job_id=None, log_exception=False):
     '''
     Run the Bio Term Hub resource creation pipeline, if necessary.
@@ -370,14 +358,13 @@ def create_resource(resources, renaming,
         os.utime(target_fn, None)
     else:
         try:
-            _create_resource(target_fn, resources, renaming, read_back)
+            _create_resource(target_fn, resources, renaming)
         except Exception as e:
             if log_exception:
                 with open(target_fn + '.log', 'w', encoding='utf8') as f:
                     f.write('{}: {}\n'.format(e.__class__.__name__, e))
                 return
-            else:
-                raise
+            raise
 
     if zipped:
         zipfn = zipname(target_fn)
@@ -399,27 +386,19 @@ def create_resource(resources, renaming,
     return r_value
 
 
-def _create_resource(target_fn, resources, renaming, read_back=False):
+def _create_resource(target_fn, rsc, renaming):
     '''
     Run the Bio Term Hub resource creation pipeline.
     '''
-    rsc = ub.RecordSetContainer(**resources)
-    ub.UnifiedBuilder(rsc, target_fn + '.tmp', mapping=renaming)
+    rsc.write_all(target_fn + '.tmp', mapping=renaming)
     os.rename(target_fn + '.tmp', target_fn)
-    if read_back:
-        # Read back resource and entity type names.
-        for level in ('resources', 'entity_types'):
-            names = sorted(rsc.__getattribute__(level))
-            fn = os.path.join(HERE, '{}.identifiers'.format(level))
-            with open(fn, 'w', encoding='utf8') as f:
-                f.write('\n'.join(names) + '\n')
 
 
 PAGE = '''<!doctype html>
 <html>
 <head>
   <meta charset="UTF-8"/>
-  <title>Biomedical Terminology Resource</title>
+  <title>OntoGene Bio Term Hub</title>
   <link rel='stylesheet' type='text/css'
     href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'/>
   <style>
@@ -485,7 +464,7 @@ PAGE = '''<!doctype html>
   <center>
     <h1 class="page-header">
       <a id="anchor-title" style="color: black; text-decoration: none;">
-        Biomedical Terminology Resource
+        OntoGene Bio Term Hub
       </a>
     </h1>
   </center>
@@ -515,7 +494,7 @@ PAGE = '''<!doctype html>
                   <td><textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></td>
                 </tr>
                 <tr>
-                  <td>Example: mesh.* → MESH</td>
+                  <td>Example: MeSH.* → MeSH</td>
                 </tr>
               </table>
               <label>Entity types:</label>

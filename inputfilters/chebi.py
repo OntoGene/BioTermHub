@@ -11,11 +11,8 @@ Collect ChEBI chemicals ("chebi.obo").
 
 import re
 
-from termhub.inputfilters.recordset import AbstractRecordSet
+from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
-
-
-DUMP_FN = 'chebi.obo'
 
 
 class RecordSet(AbstractRecordSet):
@@ -26,9 +23,7 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'ChEBI'
     entity_type = 'chemical'
-
-    def __init__(self, fn=DUMP_FN, **kwargs):
-        super().__init__(fn, **kwargs)
+    dump_fn = 'chebi.obo'
 
     def __iter__(self):
         '''

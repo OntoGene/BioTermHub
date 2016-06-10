@@ -11,11 +11,8 @@ Collect Cellosaurus entries ("cellosaurus.txt").
 
 import re
 
-from termhub.inputfilters.recordset import AbstractRecordSet
+from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
-
-
-DUMP_FN = 'cellosaurus.txt'
 
 
 class RecordSet(AbstractRecordSet):
@@ -26,9 +23,7 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'Cellosaurus'
     entity_type = 'cell_line'
-
-    def __init__(self, fn=DUMP_FN, **kwargs):
-        super().__init__(fn, **kwargs)
+    dump_fn = 'cellosaurus.txt'
 
     def __iter__(self):
         '''

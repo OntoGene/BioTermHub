@@ -12,30 +12,31 @@ Collect CTD chemicals and diseases
 
 import csv
 
-from termhub.inputfilters.recordset import AbstractRecordSet
+from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
 
 
 class RecordSet(AbstractRecordSet):
     '''
-    Record collector for ChEBI.
+    Abstract record collector for CTD.
     '''
 
     ambig_unit = "terms"
     resource = None  # varying values
-    entity_type = None  # varying values
+    entity_type = None  # fixed value in subclasses
 
     _resource_names = {
         'MESH': 'CTD (MESH)',
         'OMIM': 'CTD (OMIM)',
     }
 
-    def __init__(self, fn, entity_type, mapping=None, exclude=(), **kwargs):
+    def __init__(self, fn, mapping=None, exclude=(), **kwargs):
         # Do not give mapping to the superclass, since those fields are not
         # fixed for CTD.
         super().__init__(fn, **kwargs)
-        # entity_type is fixed per RecordSet instance (but not resource!).
-        self.entity_type = self.mapping(mapping, 'entity_type', entity_type)
+        # entity_type is fixed in the corresponding subclasses
+        # (but not resource!).
+        self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
         self._resource_mapping = {
             plain: self.mapping(mapping, 'resource', wrapped)
             for plain, wrapped in self._resource_names.items()}
@@ -93,6 +94,28 @@ class RecordSet(AbstractRecordSet):
     def resource_names(cls):
         return list(cls._resource_names.values())
 
+
+class ChemRecordSet(RecordSet):
+    '''
+    Record collector for CTD chemicals.
+    '''
+
+    entity_type = 'chemical'
+    dump_fn = 'CTD_chemicals.csv'
+
     @classmethod
-    def entity_type_names(cls):
-        return ['chemical', 'disease']
+    def dump_label(cls):
+        return 'CTD chemicals'
+
+
+class DiseaseRecordSet(RecordSet):
+    '''
+    Record collector for CTD chemicals.
+    '''
+
+    entity_type = 'disease'
+    dump_fn = 'CTD_diseases.csv'
+
+    @classmethod
+    def dump_label(cls):
+        return 'CTD diseases'

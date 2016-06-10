@@ -11,11 +11,8 @@ Collect UniProt proteins ("uniprot_sprot.xml").
 
 from lxml import etree
 
-from termhub.inputfilters.recordset import AbstractRecordSet
+from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
-
-
-DUMP_FN = 'uniprot_sprot.xml'
 
 
 class RecordSet(AbstractRecordSet):
@@ -26,9 +23,7 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'Swiss-Prot'
     entity_type = 'gene/protein'
-
-    def __init__(self, fn=DUMP_FN, **kwargs):
-        super().__init__(fn, **kwargs)
+    dump_fn = 'uniprot_sprot.xml'
 
     def __iter__(self):
         '''

@@ -12,11 +12,8 @@ Parse NCBI's Taxonomy dump ("names.dmp.trunc").
 import re
 from collections import defaultdict
 
-from termhub.inputfilters.recordset import AbstractRecordSet
+from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
-
-
-DUMP_FN = 'names.dmp.trunc'
 
 
 class RecordSet(AbstractRecordSet):
@@ -27,9 +24,7 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'NCBI Taxonomy'
     entity_type = 'species'
-
-    def __init__(self, fn=DUMP_FN, **kwargs):
-        super().__init__(fn, **kwargs)
+    dump_fn = 'names.dmp.trunc'
 
     def __iter__(self):
         '''

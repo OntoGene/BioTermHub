@@ -10,32 +10,28 @@ Aggregator for joining data from all the different input filters.
 '''
 
 
-import os
 import csv
-import pickle
-import logging
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
-from termhub.lib import bdict
 from termhub.lib.tools import StatDict, Fields, TSVDialect
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
-from termhub.inputfilters import cellosaurus, chebi, ctd, entrezgene, mesh
-from termhub.inputfilters import taxdump, uniprot
+from termhub.inputfilters import FILTERS
 
 
-# Cross lookup: ID/term pairs are skipped in "origin" if they are also
-# found in "reference".
+# Cross lookup: ID/term pairs are skipped in "CROSS_DUPLICATES" if they are
+# also found in "CROSS_REFS".
 # Format:
-# comparison origin: Resource : 'origin', method, counterpart
-# comparison reference: Resource : 'reference', tuple of counterparts
-
-CROSS_LOOKUP_PAIRS = {
-    'mesh': ('reference', ('ctd_chem', 'ctd_disease')),
-    'ctd_chem': ('origin', 'ctd_lookup', 'mesh'),
-    'ctd_disease': ('origin', 'ctd_lookup', 'mesh')
+# Reference:  resource: list of counterparts
+# Duplicates: resource: flag name, counterpart
+CROSS_REFS = {
+    'mesh': ['ctd_chem', 'ctd_disease'],
+}
+CROSS_DUPLICATES = {
+    'ctd_chem': ('ctd_lookup', 'mesh'),
+    'ctd_disease': ('ctd_lookup', 'mesh'),
 }
 
 
@@ -43,105 +39,54 @@ class RecordSetContainer(object):
     '''
     Handler for multiple inputfilter instances.
     '''
-    def __init__(self, **kwargs):
-        # Convert kwargs to defaultdict to create calls dictionary and to sorted OrderedDict
-        # to maintain order of resources in output
-        self.dkwargs = defaultdict(bool, kwargs)
-        self.okwargs = OrderedDict(sorted(kwargs.items(), key=self._sort_kwargs))
-        self.calls = {"uniprot":
-                          {"module": uniprot,
-                           "arguments": (self.dkwargs["uniprot"],)},
-                      "cellosaurus":
-                          {"module": cellosaurus,
-                           "arguments": (self.dkwargs["cellosaurus"],)},
-                      "entrezgene":
-                          {"module": entrezgene,
-                           "arguments": (self.dkwargs["entrezgene"],)},
-                      "mesh":
-                          {"module": mesh,
-                           "arguments": self.dkwargs["mesh"]},  # is already a tuple
-                      "taxdump":
-                          {"module": taxdump,
-                           "arguments": (self.dkwargs["taxdump"],)},
-                      "chebi":
-                          {"module": chebi,
-                           "arguments": (self.dkwargs["chebi"],)},
-                      "ctd_chem":
-                          {"module": ctd,
-                           "arguments": (self.dkwargs["ctd_chem"],
-                                         'chemical'),
-                           'lookup': self.dkwargs["ctd_lookup"]},
-                      "ctd_disease":
-                          {"module": ctd,
-                           "arguments": (self.dkwargs["ctd_disease"],
-                                         'disease'),
-                           'lookup': self.dkwargs["ctd_lookup"]},
-                     }
+    def __init__(self, resources=(), flags=()):
+        self.resources = [(name, FILTERS[name])
+                          for name in sorted(resources, key=self._sort_args)]
+        self.flags = flags
 
         self.stats = OrderedDict()
         self.ambig_units = {}
-        self.resources = set(
-            name
-            for rs in self.calls.values()
-            for name in rs['module'].RecordSet.resource_names())
-        self.entity_types = set(
-            name
-            for rs in self.calls.values()
-            for name in rs['module'].RecordSet.entity_type_names())
         self.cross_lookup = defaultdict(set)
 
-        if not self.pickles_exist():
-            self.bidict_originalid_oid = bdict.bidict()
-            self.bidict_originalid_term = bdict.bidict()
-        #self.bidict_originalid_term = bdict.defaultbidict(set)
-
     @staticmethod
-    def _sort_kwargs(element):
+    def _sort_args(arg):
         '''
-        Make sure "reference" resources are read before "origin" resources.
+        Make sure "duplicate" resources are read last
+        (thus after their reference).
         '''
-        is_origin = CROSS_LOOKUP_PAIRS.get(element[0], (None,))[0] == 'origin'
-        return (is_origin, element[0])
+        return (arg in CROSS_DUPLICATES, arg)
 
     def check_cross_lookup(self, resource):
         '''
         Check if a resource should be prepared for cross-lookup.
         '''
-        if resource in CROSS_LOOKUP_PAIRS and CROSS_LOOKUP_PAIRS[resource][0] == 'reference':
+        if resource in CROSS_REFS:
             # Check if any associated origins are
             # 1) present and 2) have their cross-lookup flag set.
-            for origin in CROSS_LOOKUP_PAIRS[resource][1]:
-                origin_arg = CROSS_LOOKUP_PAIRS[origin][1]
-                if origin in self.dkwargs and self.dkwargs[origin_arg]:
+            for origin in CROSS_REFS[resource]:
+                present = any(n == origin for n, c in self.resources)
+                flag = CROSS_DUPLICATES[origin][0]
+                if present and flag in self.flags:
                     return True
         return False
 
-    def pickles_exist(self):
-        return os.path.exists('data/originalid_oid.pkl') and os.path.exists('data/originalid_term.pkl')
-
-    def recordsets(self, mapping=None):
+    def iter_resources(self, mapping=None):
         '''
         Iterate over the readily initialised inputfilters.
         '''
         oidgen = Base36Generator()
-        for resource in self.okwargs:
-            try:
-                call = self.calls[resource]
-            except KeyError:
-                logging.warning('Ignoring unrecognised option: %s', resource)
-                continue
+        for name, constr in self.resources:
             params = dict(oidgen=oidgen, mapping=mapping)
             # Check if a cross-lookup has to be performed for the resource
             # and if so, pass the corresponding lookup set.
-            if resource in CROSS_LOOKUP_PAIRS:
-                lookup = CROSS_LOOKUP_PAIRS[resource]
-                if lookup[0] == 'origin' and call["lookup"]:
-                    params['exclude'] = self.cross_lookup[lookup[2]]
-            recordset = call["module"].RecordSet(*call["arguments"],
-                                                 **params)
-            self.stats[resource] = recordset.stats
-            self.ambig_units[resource] = recordset.ambig_unit
-            yield recordset, resource
+            if name in CROSS_DUPLICATES:
+                flag, ref = CROSS_DUPLICATES[name]
+                if flag in self.flags:
+                    params['exclude'] = self.cross_lookup[ref]
+            recordset = constr(**params)
+            self.stats[name] = recordset.stats
+            self.ambig_units[name] = recordset.ambig_unit
+            yield recordset, name
 
     def calcstats(self):
         total = StatDict()
@@ -182,59 +127,23 @@ class RecordSetContainer(object):
 
         self.stats["total"] = total
 
-
-class UnifiedBuilder(object):
-    '''
-    Concatenate all resources' data into a large TSV file.
-    '''
-    def __init__(self, rsc, filename, compile_hash=False, pickle_hash=False, mapping=None):
+    def write_all(self, filename, mapping=None):
+        '''
+        Concatenate all resources' data into a large TSV file.
+        '''
         with open(filename, 'wt', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, dialect=TSVDialect)
             writer.writerow(Fields._fields)
 
-            # Unpickle existing hash if it exists
-            if pickle_hash:
-                self.unpickle_bidicts(rsc)
-
-            for rsc_rowlist, resource in rsc.recordsets(mapping):
+            for recordset, resource in self.iter_resources(mapping):
 
                 # Initialize cross-lookup and mapping
-                clookup = rsc.check_cross_lookup(resource)
-                for row in rsc_rowlist:
+                clookup = self.check_cross_lookup(resource)
+                for row in recordset:
                     # Cross-lookup handling
                     if clookup:
                         # If reference, add id to set
-                        rsc.cross_lookup[resource].add(
+                        self.cross_lookup[resource].add(
                             (row.original_id, row.term))
 
                     writer.writerow(row)
-
-                    # Compilation of bidirectional hash
-                    if compile_hash:
-                        # One oid may have multiple original_ids (e.g. uniprot), one original_id has always one oid
-                        rsc.bidict_originalid_oid[row.oid] = row.original_id
-                        # One original_id may have multiple terms (most resources), one term may have multiple original_ids (uniprot only)
-                        if resource == "uniprot":
-                            rsc.bidict_originalid_term[row.original_id] = row.term
-                        else:
-                            rsc.bidict_originalid_term[row.term] = row.original_id
-
-        if pickle_hash:
-            self.pickle_bidicts(rsc)
-
-    # Pickle bidirectional dictionary
-    def pickle_bidicts(self, rsc):
-        with open('data/originalid_oid.pkl', 'wb') as o_originalid_oid:
-            pickle.dump(rsc.bidict_originalid_oid, o_originalid_oid, -1)
-
-        with open('data/originalid_term.pkl', 'wb') as o_originalid_term:
-            pickle.dump(rsc.bidict_originalid_term, o_originalid_term, -1)
-
-    # Unpickle bidirectional dictionary
-    def unpickle_bidicts(self, rsc):
-        if rsc.pickles_exist():
-            with open('data/originalid_oid.pkl', 'rb') as o_originalid_oid:
-                rsc.bidict_originalid_oid = pickle.load(o_originalid_oid)
-
-            with open('data/originalid_term.pkl', 'rb') as o_originalid_term:
-                rsc.bidict_originalid_term = pickle.load(o_originalid_term)
