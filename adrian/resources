@@ -1,9 +1,0 @@
-cellosaurus	cellosaurus.txt
-chebi	chebi.obo
-ctd_chem	CTD_chemicals.csv
-ctd_disease	CTD_diseases.csv
-mesh_desc	desc.xml
-entrezgene	gene_info.trunc
-taxdump	names.dmp.trunc
-mesh_supp	supp.xml
-uniprot	uniprot_sprot.dat

@@ -446,5 +446,5 @@ def generate_pbar(filesize):
                                                     Percentage(),' ', ETA()], maxval=filesize).start()
 
 if __name__ == "__main__":
-    from settings import dpath, force, rd_fail
+    from termhub.core.settings import path_dumps as dpath, force, rd_fail
     getdeps(dpath, force, rd_fail)

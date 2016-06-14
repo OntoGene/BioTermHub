@@ -1,17 +1,29 @@
+#!/usr/bin/env python
+# coding: utf8
+
+# Author: Adrian van der Lek, 2015
+# Modified: Lenz Furrer, 2016
+
+
 from os import remove, listdir
 from os.path import abspath
-from email_sending import ConnectionSet, send_mail
+import logging
 
-from settings import path_stats, path_batch
-from statplot_poststats import plotstats
+from termhub.core.settings import path_stats, path_batch
+from termhub.stats.statplot_poststats import plotstats
+from termhub.stats.email_sending import ConnectionSet, send_mail
 PENDING = path_batch + "pending"
 
+
 def main():
+    '''
+    Run as script: Create stats graphics and send them by email.
+    '''
     try:
         with open(PENDING, 'r') as pending:
             pending = list(pending)
     except IOError:
-        print "No pending requests, exiting ..."
+        logging.info("No pending requests, exiting ...")
         return
 
     for request in pending:
@@ -36,7 +48,7 @@ def main():
             conf_list = config.read().split(",")
         cs = ConnectionSet(*conf_list)
 
-        print "Sending message ..."
+        logging.info("Sending message ...")
 
         send_mail(cs.address, [mail], 'Statistics for %s' % export_name, 'Hello,\nYou have requested statistics plots for %s. Find them attached.' % export_name, cs, files)
 

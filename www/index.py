@@ -28,24 +28,24 @@ HERE = os.path.dirname(__file__)
 PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..', '..')
 if PACKAGEPATH not in sys.path:
     sys.path.append(PACKAGEPATH)
-from termhub import settings
+from termhub.core import settings
 from termhub.core.aggregate import RecordSetContainer
 from termhub.inputfilters import FILTERS
 
 
 # Config globals.
-DOWNLOADDIR = os.path.join(HERE, 'downloads')
+DOWNLOADDIR = settings.path_download
 SCRIPT_NAME = os.path.basename(__file__)
-DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
-CGI_URL = 'http://kitt.cl.uzh.ch/kitt/cgi-bin/biodb/index.py'
-WSGI_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/'
+DL_URL = './downloads/'
+CGI_URL = './index.py'
+WSGI_URL = '.'
 
 
 # Some shorthands.
 se = etree.SubElement
 NBSP = '\xA0'
 WAIT_MESSAGE = ('Please wait while the resource is being created '
-                '(this may take up to 30 minutes, '
+                '(this may take a few minutes, '
                 'depending on the size of the resource).')
 
 
@@ -146,8 +146,8 @@ def input_page():
     '''
     html = etree.HTML(PAGE)
     html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
-    dump_labels = sorted((c.dump_label(), n)
-                         for n, c in FILTERS.items())
+    dump_labels = sorted(((c.dump_label(), n) for n, c in FILTERS.items()),
+                         key=lambda e: e[0].lower())
     populate_checkboxes(html, dump_labels)
     add_resource_labels(html)
     return html
@@ -185,7 +185,10 @@ def add_resource_labels(doc):
     Add a list of existing resource/entity type identifiers.
     '''
     for level in ('resource_names', 'entity_type_names'):
-        names = sorted(set(getattr(f, level)() for f in FILTERS.values()))
+        names = set()
+        for filter_ in FILTERS.values():
+            names.update(getattr(filter_, level)())
+        names = sorted(names, key=str.lower)
         if names:
             cell = doc.find('.//td[@id="td-{}-ids"]'.format(level[:3]))
             cell.text = names[0]

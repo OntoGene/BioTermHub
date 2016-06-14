@@ -12,7 +12,7 @@ Abstract base class for RecordSet.
 import os
 import re
 
-from termhub import settings
+from termhub.core import settings
 from termhub.lib.base36gen import Base36Generator
 from termhub.lib.tools import StatDict
 
@@ -105,7 +105,7 @@ class AbstractRecordSet(object):
     @classmethod
     def _resolve_dump_fns(cls, fn=None):
         if fn is None:
-            fn = cls._construct_path(settings.dpath, cls.dump_fn)
+            fn = cls._construct_path(settings.path_dumps, cls.dump_fn)
         return fn
 
     @staticmethod

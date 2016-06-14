@@ -4,8 +4,8 @@ __author__ = 'vicawil'
 import matplotlib.cm as cm
 import operator as o
 
-import math
 import sys
+import re
 import os
 import os.path
 import matplotlib
@@ -13,13 +13,10 @@ matplotlib.use('pdf')  # Choose a non-interactive backend; the default GTK cause
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator, MultipleLocator, AutoMinorLocator, ScalarFormatter, LinearLocator, AutoLocator, LogLocator
 from matplotlib.ticker import FormatStrFormatter, LogFormatter
-import numpy as np
-HERE = os.path.dirname(__file__)
-sys.path.insert(0, os.path.join(HERE, '..', 'tilia'))
-import statistics_termfile
-import re
 
-import settings
+
+from termhub.core import settings
+from termhub.stats import statistics_termfile
 
 STATSPATH = settings.path_stats
 
