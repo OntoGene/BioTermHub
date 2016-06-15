@@ -17,12 +17,11 @@ import multiprocessing as mp
 import time
 import math
 import glob
+import logging
 import zipfile
 import hashlib
 
 from lxml import etree
-import cgitb
-cgitb.enable()
 
 HERE = os.path.dirname(__file__)
 PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..', '..')
@@ -34,6 +33,7 @@ from termhub.inputfilters import FILTERS
 
 
 # Config globals.
+LOGFILE = settings.log_file
 DOWNLOADDIR = settings.path_download
 SCRIPT_NAME = os.path.basename(__file__)
 DL_URL = './downloads/'
@@ -85,10 +85,18 @@ def main_handler(fields, self_url):
     '''
     Main program logic, used in both WSGI and CGI mode.
     '''
+    # Set up the logger.
+    logging.basicConfig(
+        level=logging.INFO,
+        filename=LOGFILE,
+        format='%(process)d - %(asctime)s - %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
+
     # Respond to the user requests.
     creation_request = fields.getlist('resources')
     job_id = fields.getfirst('dlid')
     zipped = fields.getfirst('zipped')
+    logging.info('Processing request: %r', fields)
 
     if creation_request:
         # A creation request has been submitted.
@@ -103,9 +111,11 @@ def main_handler(fields, self_url):
 
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
+            logging.info('Respond to an AJAX request.')
             return ajax_response(params)
 
         # Without AJAX, proceed with the dumb auto-refresh mode.
+        logging.info('Respond with auto-refresh work-around.')
         start_resource_creation(params)
 
     if job_id is None:
@@ -362,10 +372,15 @@ def create_resource(resources, renaming,
     else:
         try:
             _create_resource(target_fn, resources, renaming)
-        except Exception as e:
+        except Exception:
+            logging.exception('Resource creation failed:')
             if log_exception:
                 with open(target_fn + '.log', 'w', encoding='utf8') as f:
-                    f.write('{}: {}\n'.format(e.__class__.__name__, e))
+                    f.write(
+                        'An internal error occurred. '
+                        'Please inform the webmaster at info@ontogene.org '
+                        'about this, indicating this error code: {}'
+                        .format(int(time.time())))
                 return
             raise
 

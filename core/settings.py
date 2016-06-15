@@ -49,6 +49,10 @@ rd_fail = "ask"
 # Terminology DB builder
 #
 
+# Web interface log
+
+log_file = rel('..', 'www', 'interface.log')
+
 # Paths for output, statistics and files related to batch processing
 
 path_download = rel('..', 'www', 'downloads')
