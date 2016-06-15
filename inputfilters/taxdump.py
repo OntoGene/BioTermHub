@@ -52,7 +52,7 @@ class RecordSet(AbstractRecordSet):
         '''
         Collect adjacent lines with the same ID.
         '''
-        with open(self.fn) as f:
+        with open(self.fn, encoding='utf-8') as f:
             concept = defaultdict(list)
             previous_id = None
             for line in f:

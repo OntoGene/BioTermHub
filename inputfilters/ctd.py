@@ -30,10 +30,10 @@ class RecordSet(AbstractRecordSet):
         'OMIM': 'CTD (OMIM)',
     }
 
-    def __init__(self, fn, mapping=None, exclude=(), **kwargs):
+    def __init__(self, mapping=None, exclude=(), **kwargs):
         # Do not give mapping to the superclass, since those fields are not
         # fixed for CTD.
-        super().__init__(fn, **kwargs)
+        super().__init__(**kwargs)
         # entity_type is fixed in the corresponding subclasses
         # (but not resource!).
         self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
@@ -82,7 +82,7 @@ class RecordSet(AbstractRecordSet):
         '''
         Iterate over the lines following the header lines.
         '''
-        with open(self.fn, newline='') as f:
+        with open(self.fn, encoding='utf-8', newline='') as f:
             for line in f:
                 # Skip initial lines until one without leading "#" is found.
                 if not line.startswith('#'):

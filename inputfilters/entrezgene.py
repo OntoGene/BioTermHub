@@ -52,7 +52,7 @@ class RecordSet(AbstractRecordSet):
         '''
         Parse the truncated TSV.
         '''
-        with open(self.fn, newline='') as f:
+        with open(self.fn, encoding='utf-8', newline='') as f:
             reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
             for row in reader:
                 if row['Symbol'] == 'NEWENTRY':

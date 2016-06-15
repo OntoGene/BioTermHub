@@ -69,7 +69,7 @@ class RecordSet(AbstractRecordSet):
         '''
         code_content = re.compile(r'([A-Z]{2}) {3}(.+)')
 
-        with open(self.fn) as f:
+        with open(self.fn, encoding='utf-8') as f:
             inside = False
             stanza = {}
             for line in f:
