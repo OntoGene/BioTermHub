@@ -36,7 +36,7 @@ from termhub.inputfilters import FILTERS
 LOGFILE = settings.log_file
 DOWNLOADDIR = settings.path_download
 SCRIPT_NAME = os.path.basename(__file__)
-DL_URL = './downloads/'
+DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
 CGI_URL = './index.py'
 WSGI_URL = '.'
 
@@ -62,7 +62,8 @@ def main():
     for entry in response_headers:
         print('{}: {}'.format(*entry))
     print()
-    print(output)
+    sys.stdout.flush()
+    sys.stdout.buffer.write(output)
 
 
 def application(environ, start_response):
