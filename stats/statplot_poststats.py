@@ -1,13 +1,13 @@
-from __future__ import division
-__author__ = 'vicawil'
+#!/usr/bin/env python3
+# coding: utf8
+
+# Author: Adrian van der Lek, 2015
 
 import matplotlib.cm as cm
 import operator as o
 
-import sys
 import re
 import os
-import os.path
 import matplotlib
 matplotlib.use('pdf')  # Choose a non-interactive backend; the default GTK causes an error unless logged in with X forwarding.
 import matplotlib.pyplot as plt
@@ -20,6 +20,11 @@ from termhub.stats import statistics_termfile
 
 STATSPATH = settings.path_stats
 
+
+def main():
+    plotstats("output.csv")
+
+
 def plotstats(filename):
     if not os.path.exists(STATSPATH):
         os.mkdir(STATSPATH)
@@ -29,17 +34,18 @@ def plotstats(filename):
 
     stats["Resource"] = overall_stats.resource_dict
     stats["Entity type"] = overall_stats.entity_type_dict
-    
-    
+
     for stat_set in ("Resource", "Entity type"):
         for group in stats[stat_set]:
-            freq_dists = (stats[stat_set][group].id_freq_dist(),
-                     stats[stat_set][group].term_freq_dist(),
-                     stats[stat_set][group].term_lw_freq_dist(),
-                     stats[stat_set][group].term_lw_nows_freq_dist())
-            
+            freq_dists = (
+                stats[stat_set][group].id_freq_dist(),
+                stats[stat_set][group].term_freq_dist(),
+                stats[stat_set][group].term_lw_freq_dist(),
+                stats[stat_set][group].term_lw_nows_freq_dist(),
+            )
             barPlt(freq_dists, group, 'ratio', 'count', group)
-        
+
+
 def barPlt(freqdist_list, title, xlab, ylab, group):
     # create the x-axis
     fig = plt.figure()
@@ -56,29 +62,31 @@ def barPlt(freqdist_list, title, xlab, ylab, group):
     ax.xaxis.set_major_formatter(FormatStrFormatter('%d'))
     ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
     ya = ax.get_yaxis()
-    ya.set_major_locator(MaxNLocator(nbins = 5, integer=True))
+    ya.set_major_locator(MaxNLocator(nbins=5, integer=True))
     xa = ax.get_xaxis()
     xa.set_major_locator(LogLocator(base=2))
-    
+
     offset = -0.2
-    
-    colors = ('red','green','blue','yellow')
+
+    colors = ('red', 'green', 'blue', 'yellow')
     for idx, counter in enumerate(freqdist_list):
-        key = [key + offset for key in counter.keys()]
+        key = [key + offset for key in counter]
         value = counter.values()
-        bar_plt = plt.bar(key, value, color = colors[idx], align = 'center', width = 0.1) # width argument slims down the bars
+        # width argument slims down the bars
+        plt.bar(key, value, color=colors[idx], align='center', width=0.1)
         offset += 0.1
     plt.hold(True)
-    
-    plt.xlabel(xlab, fontsize = 18)
-    plt.ylabel(ylab, fontsize = 18)
-    
-    plt.title(title, fontsize = 24)
+
+    plt.xlabel(xlab, fontsize=18)
+    plt.ylabel(ylab, fontsize=18)
+
+    plt.title(title, fontsize=24)
     ax.autoscale()
-    
-    plt.savefig(STATSPATH+'%s.png' % re.sub('[/\s]', '_', group), bbox_inches='tight')
+
+    fn = STATSPATH + '%s.png' % re.sub(r'[/\s]', '_', group)
+    plt.savefig(fn, bbox_inches='tight')
     plt.close(fig)
 
 
 if __name__ == "__main__":
-    plotstats("output.csv")
+    main()
