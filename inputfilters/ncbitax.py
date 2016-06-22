@@ -26,11 +26,24 @@ class RecordSet(AbstractRecordSet):
     entity_type = 'organism'
     dump_fn = ('names.dmp', 'nodes.dmp')
 
+    def __init__(self, ranks='species', **kwargs):
+        '''
+        Args:
+            ranks (str or sequence): include only these ranks
+                (taxa, eg. "kingdom", "superorder" etc.).
+                The special name "all" accepts all ranks.
+        '''
+        super().__init__(**kwargs)
+        self.valid_ranks = self._parse_rank_spec(ranks)
+
     def __iter__(self):
         '''
         Iterate over term entries (1 per synonym).
         '''
         for concept in self._iter_stanzas():
+            if concept['rank'] not in self.valid_ranks:
+                continue
+
             oid = next(self.oidgen)
 
             terms = self._extract_terms(concept)
@@ -131,3 +144,17 @@ class RecordSet(AbstractRecordSet):
         It seems to be always present, and there is only one per concept.
         '''
         return concept['scientific name'][0][0]  # first occ, first pair member
+
+    @staticmethod
+    def _parse_rank_spec(ranks):
+        if ranks == 'all':
+            return Universe()  # "contains" everything
+        if isinstance(ranks, str):
+            ranks = (ranks,)
+        return frozenset(ranks)
+
+
+class Universe(object):
+    'A dummy object that claims to contain everything.'
+    def __contains__(self, _):
+        return True
