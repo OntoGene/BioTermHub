@@ -11,6 +11,7 @@
 
 www/*
 !www/index.py
+!www/__init__.py
 
 cgi-bin
 
