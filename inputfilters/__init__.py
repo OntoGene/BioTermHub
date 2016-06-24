@@ -18,17 +18,21 @@ as well as www.index, thus it will be listed in the web GUI.
 '''
 
 
-from termhub.inputfilters import cellosaurus, chebi, ctd, entrezgene
-from termhub.inputfilters import mesh, ncbitax, uniprot
+from termhub.inputfilters import cl, cellosaurus, chebi, ctd, entrezgene
+from termhub.inputfilters import go, mesh, ncbitax, pro, so, uniprot
 
 
 FILTERS = {
     'cellosaurus': cellosaurus.RecordSet,
+    'cl': cl.RecordSet,
     'chebi': chebi.RecordSet,
     'ctd_chem': ctd.ChemRecordSet,
     'ctd_disease': ctd.DiseaseRecordSet,
     'entrezgene': entrezgene.RecordSet,
+    'go': go.RecordSet,
     'mesh': mesh.RecordSet,
     'ncbitax': ncbitax.RecordSet,
+    'pro': pro.RecordSet,
+    'so': so.RecordSet,
     'uniprot': uniprot.RecordSet,
 }
