@@ -86,6 +86,23 @@ class StatsCollector(object):
         avg = total_length / len(self.terms)
         return avg
 
+    def id_freq_dist(self):
+        'Terms per ID (synonymy).'
+        return freq_dist(self.synonyms)
+
+    def term_freq_dist(self):
+        'IDs per term (ambiguity).'
+        return freq_dist(self.ambiguous_terms)
+
+    def term_lw_freq_dist(self):
+        'IDs per lower-cased term (case-insensitive ambiguity).'
+        return freq_dist(self.ambiguous_terms_lower)
+
+    def term_lw_nows_freq_dist(self):
+        'IDs per lower-cased, alphanumeric-only term (normalised ambiguity).'
+        return freq_dist(self.ambiguous_terms_nows)
+
+
     def display_stats(self):
         '''
         Dump a textual description to STDOUT.
@@ -100,13 +117,13 @@ class StatsCollector(object):
         print('Average of Terms associated to one ID ("synonyms"):',
               average(self.synonyms))
 
-        print('FREQ DIST number of terms per id', freq_dist(self.synonyms))
-        print('FREQ DIST number of ids per term', freq_dist(self.ambiguous_terms))
+        print('FREQ DIST number of terms per id', self.id_freq_dist())
+        print('FREQ DIST number of ids per term', self.term_freq_dist())
         print('FREQ DIST number of ids per lower-cased term',
-              freq_dist(self.ambiguous_terms_lower))
+              self.term_lw_freq_dist())
         print('FREQ DIST number or ids per lower-cased term with '
               'non-alphanumeric characters removed',
-              freq_dist(self.ambiguous_terms_nows))
+              self.term_lw_nows_freq_dist())
 
         print('AVG Token Lenght', self.term_length_avg())
 
@@ -160,10 +177,10 @@ class OverallStats(StatsCollector):
         print('Average of ids per term with lowercased terms:', average(self.ambiguous_terms_lower))
         print('Average of ids per term with lowercased terms and non-alphabetical characters removed:', average(self.ambiguous_terms_nows))
 
-        print('FREQ DIST number of terms per id', freq_dist(self.synonyms))
-        print('FREQ DIST number of ids per term', freq_dist(self.ambiguous_terms))
-        print('FREQ DIST number of ids per term (terms are lowercased)', freq_dist(self.ambiguous_terms_lower))
-        print('FREQ DIST number of ids per term (terms are lowercased and symbols are removed', freq_dist(self.ambiguous_terms_nows))
+        print('FREQ DIST number of terms per id', self.id_freq_dist())
+        print('FREQ DIST number of ids per term', self.term_freq_dist())
+        print('FREQ DIST number of ids per term (terms are lowercased)', self.term_lw_freq_dist())
+        print('FREQ DIST number of ids per term (terms are lowercased and symbols are removed', self.term_lw_nows_freq_dist())
         print('AVG Token Lenght', self.term_length_avg())
 
         print('-----------')

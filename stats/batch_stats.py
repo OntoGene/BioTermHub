@@ -8,11 +8,12 @@
 import os
 import logging
 
-from termhub.core.settings import path_stats, path_batch
+from termhub.core.settings import path_stats, path_batch, email_conn
 from termhub.stats.statplot_poststats import plotstats
 from termhub.stats.email_sending import ConnectionSet, send_mail
 
 PENDING = os.path.join(path_batch, "pending")
+CREDENTIALS = ConnectionSet(*email_conn)
 
 
 def main():
@@ -25,10 +26,6 @@ def main():
     except IOError:
         logging.info("No pending requests, exiting ...")
         return
-
-    with open(os.path.join(path_batch, 'config')) as f:
-        conf_list = f.read().split(",")
-        cs = ConnectionSet(*conf_list)
 
     for request in pending:
         if not request.strip():
@@ -49,9 +46,9 @@ def main():
 
         logging.info("Sending message ...")
 
-        send_mail(cs.address,
+        send_mail(CREDENTIALS.address,
                   [recipient],
-                  cs,
+                  CREDENTIALS,
                   subject='OntoGene Bio Term Hub Statistics',
                   text=message,
                   files=files)

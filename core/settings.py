@@ -58,3 +58,12 @@ log_file = rel('..', 'www', 'interface.log')
 path_download = rel('..', 'www', 'downloads')
 path_stats = rel('..', 'www', 'stats')
 path_batch = rel('..', 'www', 'batch')
+
+# Email credentials.
+
+email_conn = (None,  # email address
+              None,  # server URL
+              None,  # port
+              None,  # user
+              None)  # password
+

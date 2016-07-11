@@ -74,7 +74,7 @@ def send_with_ssmtp(msg):
     Use Unix' sendmail/ssmtp command for sending.
     '''
     p = Popen(['sendmail', '-t', '-oi'], stdin=PIPE)
-    p.communicate(msg)
+    p.communicate(msg.encode('utf8'))
 
 
 def send_with_smtplib(msg, send_from, send_to, connection):

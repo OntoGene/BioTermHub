@@ -3,16 +3,15 @@
 
 # Author: Adrian van der Lek, 2015
 
-import matplotlib.cm as cm
-import operator as o
 
 import re
 import os
+import sys
 import matplotlib
 matplotlib.use('pdf')  # Choose a non-interactive backend; the default GTK causes an error unless logged in with X forwarding.
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator, MultipleLocator, AutoMinorLocator, ScalarFormatter, LinearLocator, AutoLocator, LogLocator
-from matplotlib.ticker import FormatStrFormatter, LogFormatter
+from matplotlib.ticker import MaxNLocator, LogLocator
+from matplotlib.ticker import FormatStrFormatter
 
 
 from termhub.core import settings
@@ -22,7 +21,7 @@ STATSPATH = settings.path_stats
 
 
 def main():
-    plotstats("output.csv")
+    plotstats(sys.argv[1])
 
 
 def plotstats(filename):
@@ -32,8 +31,8 @@ def plotstats(filename):
     overall_stats = statistics_termfile.process_file(filename)
     stats = {}
 
-    stats["Resource"] = overall_stats.resource_dict
-    stats["Entity type"] = overall_stats.entity_type_dict
+    stats["Resource"] = overall_stats.resources
+    stats["Entity type"] = overall_stats.entity_types
 
     for stat_set in ("Resource", "Entity type"):
         for group in stats[stat_set]:
@@ -83,7 +82,7 @@ def barPlt(freqdist_list, title, xlab, ylab, group):
     plt.title(title, fontsize=24)
     ax.autoscale()
 
-    fn = STATSPATH + '%s.png' % re.sub(r'[/\s]', '_', group)
+    fn = os.path.join(STATSPATH, '{}.png'.format(re.sub(r'[\W]+', '_', group)))
     plt.savefig(fn, bbox_inches='tight')
     plt.close(fig)
 
