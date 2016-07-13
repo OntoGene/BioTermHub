@@ -53,15 +53,21 @@ class RecordSet(AbstractRecordSet):
         Parse the truncated TSV.
         '''
         with open(self.fn, encoding='utf-8', newline='') as f:
-            reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
-            for row in reader:
-                if row['Symbol'] == 'NEWENTRY':
-                    # Skip these (placeholders for future addition?).
-                    continue
-
-                if row['Synonyms'] != '-':
-                    synonyms = row['Synonyms'].split('|')
-                else:
+            reader = csv.reader(f, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
+            for id_, symbol, synonyms in reader:
+                if synonyms == '-':
                     synonyms = []
+                else:
+                    synonyms = synonyms.split('|')
+                yield id_, symbol, synonyms
 
-                yield row['GeneID'], row['Symbol'], synonyms
+
+def preprocess(lines):
+    '''
+    Save some space by removing unused data right away.
+    '''
+    next(lines)  # Throw away the header line.
+    for line in lines:
+        fields = line.split('\t', 5)
+        if fields[2] != 'NEWENTRY':  # placeholders for future addition?
+            yield '\t'.join((fields[1], fields[2], fields[4])) + '\n'

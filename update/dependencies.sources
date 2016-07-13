@@ -2,14 +2,10 @@
 #
 # Source format: <full path to file with protocol scheme (e.g. http://)> | <preprocessor> (optional)
 #
-# Available preprocessors: ncbi, taxdump
-#
 # Note: Disable sources by prepending `#`
 # Date placeholders must be formatting directives readable by Python
 # `datetime.strftime()`, enclosed in curly braces
 # (See https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior)
-#
-# If the file(s) need preprocessing, add
 #
 # Recommendation: Put links with date placeholders *last*
 
@@ -20,10 +16,10 @@ ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/comple
 ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt
 
 # EntrezGene
-ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz | ncbi
+ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz | entrezgene
 
 # NCBI Taxonomy
-ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip | taxdump
+ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdmp.zip
 
 # CHEBI ontology
 ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo
