@@ -157,9 +157,11 @@ def input_page():
     '''
     html = etree.HTML(PAGE)
     html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
-    dump_labels = sorted(((c.dump_label(), n) for n, c in FILTERS.items()),
-                         key=lambda e: e[0].lower())
-    populate_checkboxes(html, dump_labels)
+    resources = [(id_, res.dump_label(),
+                  min(os.path.getmtime(p) for p in res.dump_fns()))
+                 for id_, res in FILTERS.items()]
+    resources.sort(key=lambda e: e[1].lower())
+    populate_checkboxes(html, resources)
     add_resource_labels(html)
     return html
 
@@ -179,9 +181,12 @@ def populate_checkboxes(doc, resources):
     '''
     tbl = doc.find('.//table[@id="tbl-checkboxes"]')
     atts = dict(type='checkbox', name='resources')
-    for label, id_ in resources:
+    now = time.time()
+    for id_, label, timestamp in resources:
         atts['value'] = id_
-        se(se(se(se(tbl, 'tr'), 'td'), 'p'), 'input', atts).tail = NBSP + label
+        row = se(tbl, 'tr')
+        se(se(se(row, 'td'), 'p'), 'input', atts).tail = NBSP + label
+        se(se(row, 'td'), 'p').text = human_timespan(now-timestamp) + ' ago'
     # Add a checkbox for the CTD-lookup flag.
     cell = se(tbl.getparent(), 'p')
     atts = dict(type='checkbox', name='flags', value='ctd_lookup')
@@ -189,6 +194,32 @@ def populate_checkboxes(doc, resources):
     se(cell, 'input', atts).tail = NBSP + label
     se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
                            'are selected)')
+
+
+def human_timespan(seconds):
+    '''
+    Human readable, rounded description of a time span.
+    '''
+    for unit, divisor, limit in time_units:
+        n = seconds / divisor
+        if n < limit:
+            return pluralise(unit, round(n))
+
+time_units = [
+    ('second', 1, 50),
+    ('minute', 60, 50),
+    ('hour', 60*60, 23),
+    ('day', 24*60*60, 6),
+    ('week', 7*24*60*60, 4.5),
+    ('month', 30.5*24*60*60, 11.5),
+    ('year', 365.25*24*60*60, float('inf'))
+]
+
+
+def pluralise(unit, count):
+    'Add "s" to unit if count is not 1.'
+    suffix = '' if count == 1 else 's'
+    return '{} {}{}'.format(count, unit, suffix)
 
 
 def add_resource_labels(doc):
@@ -497,8 +528,17 @@ PAGE = '''<!doctype html>
                 accept-charset="UTF-8">
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
-              <p><input type="checkbox" id="inp-select-all" name="all" onclick="checkAll(this)"/> select all</p>
-              <table id="tbl-checkboxes"></table>
+              <table id="tbl-checkboxes">
+                <tr>
+                  <th>Resource</th>
+                  <th>Last update</th>
+                </tr>
+                <tr>
+                  <td>
+                    <p><input type="checkbox" id="inp-select-all" name="all" onclick="checkAll(this)"/> <em>select all</em></p>
+                  </td>
+                </tr>
+              </table>
             </div>
             <hr/>
             <div id="div-renaming">
