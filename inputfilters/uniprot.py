@@ -23,7 +23,10 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'Swiss-Prot'
     entity_type = 'gene/protein'
+
     dump_fn = 'uniprot_sprot.xml'
+    remote = ('ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/'
+              'knowledgebase/complete/uniprot_sprot.xml.gz')
 
     def __iter__(self):
         '''
@@ -71,3 +74,7 @@ class RecordSet(AbstractRecordSet):
         '''
         ns = '{http://uniprot.org/uniprot}'
         return '/'.join('{}{}'.format(ns, tag) for tag in tags)
+
+    @classmethod
+    def update_info(cls):
+        return cls._update_info(['gz'])

@@ -20,6 +20,8 @@ class RecordSet(OboRecordSet):
     ambig_unit = "terms"
     resource = 'Cell Ontology'
     entity_type = 'cell'
+
     dump_fn = 'cl.obo'
+    remote = 'http://purl.obolibrary.org/obo/cl.obo'
 
     # TODO: maybe exclude entries with namespace != 'cell'

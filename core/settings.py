@@ -13,36 +13,30 @@ Configuration.
 import os
 
 
-HERE = os.path.realpath(os.path.dirname(__file__))
+ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 
 def rel(*args):
     '''
-    Construct a path relative to this file's location.
+    Construct a path relative to the package root.
     '''
-    return os.path.join(HERE, *args)
+    return os.path.join(ROOT, *args)
 
 
 #
 # Downloaded dumps path
 #
 
-# Note: If this is changed after the log file is initialized,
-# and timestamps and current versions of files are to be kept, make sure to
-# create the directory and move the files to the new location BEFORE
-# running an update. Otherwise, the old log file will be erased and all sources
-# redownloaded by default.
+# Download directory.
 
-path_dumps = rel('..', 'dumps')
+path_dumps = rel('dumps')
 
-# Force downloads. Ignores previous timestamps from the logfile.
-force = False
+# Do not attempt to update resources if they are younger than min_update_freq.
 
-# Behavior when the change date of a file cannot be retrieved remotely
-# Possible values: ask, force, force-fallback, skip
-#
-# (force-fallback: Don't attempt download from url with date placeholders
-# if remote change date check fails, fall back to previous year instead )
-rd_fail = "ask"
+min_update_freq = 24*60*60  # 1 day (in seconds)
+
+# Client-side timeout when downloading resource dumps.
+
+timeout = 10  # seconds
 
 
 #
@@ -51,13 +45,13 @@ rd_fail = "ask"
 
 # Web interface log
 
-log_file = rel('..', 'www', 'interface.log')
+log_file = rel('www', 'interface.log')
 
 # Paths for output, statistics and files related to batch processing
 
-path_download = rel('..', 'www', 'downloads')
-path_stats = rel('..', 'www', 'stats')
-path_batch = rel('..', 'www', 'batch')
+path_download = rel('www', 'downloads')
+path_stats = rel('www', 'stats')
+path_batch = rel('www', 'batch')
 
 # Email credentials.
 

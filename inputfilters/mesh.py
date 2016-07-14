@@ -10,6 +10,7 @@ Collect MeSH descriptions and supplements ("desc.xml", "supp.xml").
 
 
 from collections import namedtuple
+from datetime import datetime
 
 from lxml import etree
 
@@ -43,6 +44,8 @@ TREES = {
 DescEntry = namedtuple('DescEntry', 'id pref terms trees')
 SuppEntry = namedtuple('SuppEntry', 'id pref terms refs')
 
+YEAR = datetime.now().year
+
 
 class RecordSet(AbstractRecordSet):
     '''
@@ -52,7 +55,10 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = None  # Not a fixed field.
     entity_type = None  # Not a fixed field.
+
     dump_fn = ('desc.xml', 'supp.xml')
+    remote = tuple('ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/{}{}.gz'
+                   .format(level, YEAR) for level in ('desc', 'supp'))
 
     tree_type_defaults = {
         'B': 'organism',  # maybe "species" would be more consistent?
@@ -153,6 +159,10 @@ class RecordSet(AbstractRecordSet):
     @classmethod
     def dump_label(cls):
         return 'MeSH'
+
+    @classmethod
+    def update_info(cls):
+        return [(r, 'gz', fn) for r, fn in zip(cls.remote, cls.dump_fn)]
 
     @classmethod
     def resource_names(cls, trees=None):

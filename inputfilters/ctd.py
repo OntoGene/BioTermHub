@@ -94,6 +94,10 @@ class RecordSet(AbstractRecordSet):
     def resource_names(cls):
         return list(cls._resource_names.values())
 
+    @classmethod
+    def update_info(cls):
+        return cls._update_info(['gz'])
+
 
 class ChemRecordSet(RecordSet):
     '''
@@ -101,7 +105,9 @@ class ChemRecordSet(RecordSet):
     '''
 
     entity_type = 'chemical'
+
     dump_fn = 'CTD_chemicals.csv'
+    remote = 'http://ctdbase.org/reports/CTD_chemicals.csv.gz'
 
     @classmethod
     def dump_label(cls):
@@ -114,7 +120,9 @@ class DiseaseRecordSet(RecordSet):
     '''
 
     entity_type = 'disease'
+
     dump_fn = 'CTD_diseases.csv'
+    remote = 'http://ctdbase.org/reports/CTD_diseases.csv.gz'
 
     @classmethod
     def dump_label(cls):

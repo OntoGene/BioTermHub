@@ -22,7 +22,13 @@ class RecordSet(OboRecordSet):
     ambig_unit = "terms"
     resource = 'ChEBI'
     entity_type = 'chemical'
+
     dump_fn = 'chebi.obo'
+    remote = 'ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo'
+
+    # TODO: switch to the database dumps, where language info is available.
+    # -> compounds.tsv.gz and names.tsv.gz at
+    # ftp://ftp.ebi.ac.uk/pub/databases/chebi/Flat_file_tab_delimited/
 
     @classmethod
     def _relevant_synonym(cls, syntype):

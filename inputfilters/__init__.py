@@ -36,7 +36,3 @@ FILTERS = {
     'so': so.RecordSet,
     'uniprot': uniprot.RecordSet,
 }
-
-preprocessors = {
-    'entrezgene': entrezgene.preprocess,
-}

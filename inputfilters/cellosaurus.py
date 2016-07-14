@@ -23,7 +23,9 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'Cellosaurus'
     entity_type = 'cell_line'
+
     dump_fn = 'cellosaurus.txt'
+    remote = 'ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt'
 
     def __iter__(self):
         '''

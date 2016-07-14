@@ -25,7 +25,9 @@ class AbstractRecordSet(object):
     ambig_unit = None
     resource = None
     entity_type = None
+
     dump_fn = None
+    remote = None
 
     def __init__(self, fn=None, oidgen=None, mapping=None, collect_stats=False):
         self.fn = self._resolve_dump_fns(fn)
@@ -91,6 +93,26 @@ class AbstractRecordSet(object):
         self.stats["ids"] += 1
         self.stats["terms"] += terms_per_id
         self.stats["ratios"][terms_per_id, "terms/id"] += 1
+
+    @classmethod
+    def update_info(cls):
+        '''
+        Resource-specific instructions for the fetch module.
+
+        Return a list of pipelines:
+            For each remote address, create a sequence
+            resembling a Unix pipeline.
+            The first element is the URL, followed by 0..n
+            processing steps (eg. decompressing), ending
+            with the ultimate file name (base name).
+            The steps are either callables or names of
+            fetch_remote.RemoteChecker methods (eg. "gz").
+        '''
+        return cls._update_info()
+
+    @classmethod
+    def _update_info(cls, steps=()):
+        return [(cls.remote,) + tuple(steps) + (cls.dump_fn,)]
 
     @classmethod
     def dump_fns(cls):

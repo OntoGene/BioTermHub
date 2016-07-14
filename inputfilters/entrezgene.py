@@ -9,6 +9,7 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 '''
 
 
+import io
 import csv
 
 from termhub.inputfilters._base import AbstractRecordSet
@@ -23,7 +24,9 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'EntrezGene'
     entity_type = 'gene/protein'
+
     dump_fn = 'gene_info.trunc'
+    remote = 'ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz'
 
     def __iter__(self):
         '''
@@ -61,13 +64,19 @@ class RecordSet(AbstractRecordSet):
                     synonyms = synonyms.split('|')
                 yield id_, symbol, synonyms
 
+    @classmethod
+    def update_info(cls):
+        return [(cls.remote, 'gz', cls.preprocess, cls.dump_fn)]
 
-def preprocess(lines):
-    '''
-    Save some space by removing unused data right away.
-    '''
-    next(lines)  # Throw away the header line.
-    for line in lines:
-        fields = line.split('\t', 5)
-        if fields[2] != 'NEWENTRY':  # placeholders for future addition?
-            yield '\t'.join((fields[1], fields[2], fields[4])) + '\n'
+    @staticmethod
+    def preprocess(stream):
+        '''
+        Save some space by removing unused data right away.
+        '''
+        lines = io.TextIOWrapper(stream, encoding='utf-8')
+        next(lines)  # Throw away the header line.
+        for line in lines:
+            fields = line.split('\t', 5)
+            if fields[2] != 'NEWENTRY':  # placeholders for future addition?
+                line = '\t'.join((fields[1], fields[2], fields[4])) + '\n'
+                yield line.encode('utf-8')

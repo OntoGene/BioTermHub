@@ -20,4 +20,7 @@ class RecordSet(OboRecordSet):
     ambig_unit = "terms"
     resource = 'Sequence Ontology'
     entity_type = 'sequence'
+
     dump_fn = 'so-xp.obo'
+    remote = ('https://raw.githubusercontent.com/The-Sequence-Ontology/'
+              'SO-Ontologies/master/so-xp.obo')

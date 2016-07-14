@@ -21,7 +21,9 @@ class RecordSet(OboRecordSet):
     ambig_unit = "terms"
     resource = 'Gene Ontology'
     entity_type = None  # Not a fixed field.
+
     dump_fn = 'go.obo'
+    remote = 'http://purl.obolibrary.org/obo/go.obo'
 
     entity_type_defaults = ('biological_process',
                             'cellular_component',

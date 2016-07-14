@@ -24,7 +24,9 @@ class RecordSet(AbstractRecordSet):
     ambig_unit = "terms"
     resource = 'NCBI Taxonomy'
     entity_type = 'organism'
+
     dump_fn = ('names.dmp', 'nodes.dmp')
+    remote = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
 
     def __init__(self, ranks='species', **kwargs):
         '''
@@ -152,6 +154,12 @@ class RecordSet(AbstractRecordSet):
         if isinstance(ranks, str):
             ranks = (ranks,)
         return frozenset(ranks)
+
+    @classmethod
+    def update_info(cls):
+        # `fn` is needed twice: first as extraction target,
+        # second as output file name.
+        return [(cls.remote, 'tar', [(fn, fn) for fn in cls.dump_fn])]
 
 
 class Universe(object):

@@ -20,6 +20,8 @@ class RecordSet(OboRecordSet):
     ambig_unit = "terms"
     resource = 'Protein Ontology'
     entity_type = 'gene/protein'
+
     dump_fn = 'pro.obo'
+    remote = 'ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/pro.obo'
 
     # TODO: maybe exclude entries with namespace != 'gene'
