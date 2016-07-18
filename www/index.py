@@ -15,6 +15,7 @@ import re
 import cgi
 import multiprocessing as mp
 import time
+import datetime as dt
 import math
 import glob
 import logging
@@ -30,6 +31,7 @@ if PACKAGEPATH not in sys.path:
 from termhub.core import settings
 from termhub.core.aggregate import RecordSetContainer
 from termhub.inputfilters import FILTERS
+from termhub.update.fetch_remote import RemoteChecker
 
 
 # Config globals.
@@ -47,6 +49,9 @@ NBSP = '\xA0'
 WAIT_MESSAGE = ('Please wait while the resource is being created '
                 '(this may take a few minutes, '
                 'depending on the size of the resource).')
+with open(os.path.join(HERE, 'template.html'), encoding='utf8') as f:
+    PAGE = f.read()
+    PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
 
 
 def main():
@@ -95,6 +100,7 @@ def main_handler(fields, self_url):
 
     # Respond to the user requests.
     creation_request = fields.getlist('resources')
+    update_request = fields.getfirst('update-request')
     job_id = fields.getfirst('dlid')
     zipped = fields.getfirst('zipped')
     logging.info('Processing request: %r', fields)
@@ -113,12 +119,34 @@ def main_handler(fields, self_url):
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
             logging.info('Respond to an AJAX request.')
-            return ajax_response(params)
+            # Run the aggregator and return only when finished.
+            create_resource(*params)
+            outcome = handle_download_request(job_id, zipped, False)
+            return response(outcome)
 
         # Without AJAX, proceed with the dumb auto-refresh mode.
         logging.info('Respond with auto-refresh work-around.')
         start_resource_creation(params)
 
+    elif update_request:
+        # Update request only works with AJAX.
+        remote = RemoteChecker(update_request)
+        if remote.has_changed():
+            remote.update()
+            msg = 'Successfully updated.'
+        else:
+            msg = 'Already up-to-date.'
+        p = etree.Element('p')
+        p.text = msg
+        return response(p)
+
+    return build_page(self_url, fields, creation_request, job_id, zipped)
+
+
+def build_page(self_url, fields, creation_request, job_id, zipped):
+    '''
+    Complete page needed for initial loading and JS-free creation request.
+    '''
     if job_id is None:
         # Empty form.
         html = input_page()
@@ -141,10 +169,15 @@ def main_handler(fields, self_url):
     # Serialise the complete page.
     html.find('.//a[@id="anchor-title"]').set('href', self_url)
     html.find('.//a[@id="anchor-reset"]').set('href', self_url)
-    output = etree.tostring(html, method='HTML', encoding='UTF-8',
-                            xml_declaration=True, pretty_print=True,
-                            doctype='<!doctype html>')
-    # HTTP boilerplate.
+
+    return response(html, xml_declaration=True, doctype='<!doctype html>')
+
+
+def response(node, **kwargs):
+    '''
+    Serialise HTML and create headers.
+    '''
+    output = etree.tostring(node, method='HTML', encoding='UTF-8', **kwargs)
     response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
 
@@ -157,10 +190,8 @@ def input_page():
     '''
     html = etree.HTML(PAGE)
     html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
-    resources = [(id_, res.dump_label(),
-                  min(os.path.getmtime(p) for p in res.dump_fns()))
-                 for id_, res in FILTERS.items()]
-    resources.sort(key=lambda e: e[1].lower())
+    resources = [RemoteChecker(id_) for id_ in FILTERS]
+    resources.sort(key=lambda r: r.resource.dump_label().lower())
     populate_checkboxes(html, resources)
     add_resource_labels(html)
     return html
@@ -181,12 +212,16 @@ def populate_checkboxes(doc, resources):
     '''
     tbl = doc.find('.//table[@id="tbl-checkboxes"]')
     atts = dict(type='checkbox', name='resources')
-    now = time.time()
-    for id_, label, timestamp in resources:
-        atts['value'] = id_
+    for remote in resources:
+        atts['value'] = remote.name  # = ID
+        label = remote.resource.dump_label()
+        last_checked = remote.stat.checked
+        # last_checked = human_timespan(now-last_checked) + ' ago'
+        last_checked = dt.date.fromtimestamp(last_checked).isoformat()
         row = se(tbl, 'tr')
         se(se(se(row, 'td'), 'p'), 'input', atts).tail = NBSP + label
-        se(se(row, 'td'), 'p').text = human_timespan(now-timestamp) + ' ago'
+        se(se(row, 'td'), 'p').text = last_checked
+        se(row, 'td').append(update_button(remote.name))
     # Add a checkbox for the CTD-lookup flag.
     cell = se(tbl.getparent(), 'p')
     atts = dict(type='checkbox', name='flags', value='ctd_lookup')
@@ -194,6 +229,17 @@ def populate_checkboxes(doc, resources):
     se(cell, 'input', atts).tail = NBSP + label
     se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
                            'are selected)')
+
+
+def update_button(id_):
+    '''
+    Create an AJAX request button for updating a resource.
+    '''
+    # Wrap it in a div, so that the button can easily be replaced.
+    div = etree.Element('div', id='div-update-{}'.format(id_))
+    jscall = 'update_resource({!r})'.format(id_)
+    se(div, 'input', type='button', value='Update', onclick=jscall)
+    return div
 
 
 def human_timespan(seconds):
@@ -308,21 +354,6 @@ def base36digest(octets):
     return d
 
 digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
-
-def ajax_response(params):
-    '''
-    Run the pipeline and return an HTML fragment when finished.
-    '''
-    create_resource(*params)
-    job_id, zipped = params[4], params[2]
-    outcome = handle_download_request(job_id, zipped, False)
-
-    output = etree.tostring(outcome, method='HTML', encoding='UTF-8')
-    response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
-                        ('Content-Length', str(len(output)))]
-
-    return output, response_headers
 
 
 def start_resource_creation(params):
@@ -442,168 +473,6 @@ def _create_resource(target_fn, rsc, renaming):
     '''
     rsc.write_all(target_fn + '.tmp', mapping=renaming)
     os.rename(target_fn + '.tmp', target_fn)
-
-
-PAGE = '''<!doctype html>
-<html>
-<head>
-  <meta charset="UTF-8"/>
-  <title>OntoGene Bio Term Hub</title>
-  <link rel='stylesheet' type='text/css'
-    href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'/>
-  <style>
-    body { background:WhiteSmoke; }
-    td { padding: 0cm 0.2cm 0cm 0.2cm; }
-    .hidden { display: none; }
-    .visible {}
-  </style>
-  <script type="text/javascript">
-    // The "select all" checkbox.
-    function checkAll(bx) {
-      var cbs = document.getElementsByTagName('input');
-      for (var i=cbs.length; i--;) {
-        if(cbs[i].type == 'checkbox') {
-          cbs[i].checked = bx.checked;
-        }
-      }
-    }
-
-    // AJAX stuff.
-    onload = function() {
-      var form = document.getElementById('form-res');
-      form.addEventListener('submit', function(ev) {
-
-        var xmlhttp = new XMLHttpRequest(),
-            fdata = new FormData(form),
-            result_div = document.getElementById('div-result'),
-            inp_div = document.getElementById('div-input-form'),
-            resp_div = document.getElementById('div-download-page');
-
-        // Replace the form div with the response div.
-        inp_div.setAttribute('class', 'hidden');
-        resp_div.setAttribute('class', 'visible');
-
-        // Mark this request as originating from AJAX.
-        fdata.append("requested-through", "ajax");
-
-        // Status handling.
-        xmlhttp.onreadystatechange = function() {
-          if (xmlhttp.readyState == 4) {
-            if (xmlhttp.status == 200) {
-              result_div.innerHTML = xmlhttp.responseText;
-            } else {
-              result_div.innerHTML = "Error " + xmlhttp.status + " occurred";
-            }
-          } else {
-            result_div.innerHTML = WAIT_MESSAGE;
-          }
-        }
-
-        // Data transmission.
-        xmlhttp.open("POST", 'index.py', true);
-        xmlhttp.timeout = 1800000;  // 30 minutes
-        xmlhttp.send(fdata);
-
-        // Prevent reloading the page on submit.
-        ev.preventDefault();
-      }, false);
-    }
-  </script>
-</head>
-<body>
-  <center>
-    <h1 class="page-header">
-      <a id="anchor-title" style="color: black; text-decoration: none;">
-        OntoGene Bio Term Hub
-      </a>
-    </h1>
-  </center>
-  <center>
-    <div id="div-msg"></div>
-    <div style="width: 80%; padding-bottom: 1cm;">
-      <div id="div-input-form">
-        <h3>Resource Selection</h3>
-        <div style="text-align: left">
-          <form id="form-res" role="form" method="post"
-                accept-charset="UTF-8">
-            <div id="div-checkboxes">
-              <label>Please select the resources to be included:</label>
-              <table id="tbl-checkboxes">
-                <tr>
-                  <th>Resource</th>
-                  <th>Last update</th>
-                </tr>
-                <tr>
-                  <td>
-                    <p><input type="checkbox" id="inp-select-all" name="all" onclick="checkAll(this)"/> <em>select all</em></p>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <hr/>
-            <div id="div-renaming">
-              <p>Use the following text boxes to change the labeling of resources and entity types.
-                You may use regular expressions (see the examples below).</p>
-              <p>You can define multiple pattern-replacement pairs
-                by using corresponding lines in the left/right box.</p>
-              <label>Resources:</label>
-              <table>
-                <tr>
-                  <td><textarea rows="3" cols="35" name="resource-std" placeholder="[pattern]"></td>
-                  <td><textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></td>
-                </tr>
-                <tr>
-                  <td>Example: MeSH.* → MeSH</td>
-                </tr>
-              </table>
-              <label>Entity types:</label>
-              <table>
-                <tr>
-                  <td><textarea rows="3" cols="35" name="entity_type-std" placeholder="[pattern]"></td>
-                  <td><textarea rows="3" cols="35" name="entity_type-custom" placeholder="[replacement]"></td>
-                </tr>
-                <tr>
-                  <td>Example: (organism|species) → organism</td>
-                </tr>
-              </table>
-            </div>
-            <hr/>
-            <div style="padding-bottom: .3cm;">
-              <p>
-                <label>Send me an e-mail with resource statistics plots:</label>
-                <input type="text" name="plot-email" placeholder="user@example.com" />
-              </p>
-              <input type="submit" value="Create resource" />&nbsp;&nbsp;&nbsp;
-              <input type="checkbox" name="zipped" checked="checked" value="true" />&nbsp;download as Zip archive
-            </div>
-          </form>
-        </div>
-        <hr/>
-        <table>
-          <tr>
-            <th>Existing resource labels:</th>
-            <th>Existing entity-type labels:</th>
-          </tr>
-          <tr style="vertical-align: top;">
-            <td id="td-res-ids"></td>
-            <td id="td-ent-ids"></td>
-          </tr>
-        </table>
-      </div>
-      <div id="div-download-page">
-        <center>
-          <h3>Download</h3>
-          <div id="div-result"></div>
-          <hr/>
-          <p><a id="anchor-reset">Reset</a></p>
-        </center>
-      </div>
-    </div>
-  </center>
-</body>
-</html>
-'''
-PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
 
 
 if __name__ == '__main__':

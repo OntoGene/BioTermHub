@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <title>OntoGene Bio Term Hub</title>
+  <link rel='stylesheet' type='text/css'
+    href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'/>
+  <style>
+    body { background:WhiteSmoke; }
+    td { padding: 0cm 0.2cm 0cm 0.2cm; }
+    .hidden { display: none; }
+    .visible {}
+  </style>
+  <script type="text/javascript">
+    // The "select all" checkbox.
+    function checkAll(bx) {
+      var cbs = document.getElementsByTagName('input');
+      for (var i=cbs.length; i--;) {
+        if(cbs[i].type == 'checkbox') {
+          cbs[i].checked = bx.checked;
+        }
+      }
+    }
+
+
+    // AJAX stuff.
+
+    // Actual AJAX mechanism.
+    function ajax_request(fdata, target_node, wait_msg) {
+      var xmlhttp = new XMLHttpRequest();
+
+      // Mark this request as originating from AJAX.
+      fdata.append("requested-through", "ajax");
+
+      // Status handling.
+      xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4) {
+          if (xmlhttp.status == 200) {
+            target_node.innerHTML = xmlhttp.responseText;
+          } else {
+            target_node.innerHTML = "Error " + xmlhttp.status + " occurred";
+          }
+        } else {
+          target_node.innerHTML = wait_msg;
+        }
+      }
+
+      // Data transmission.
+      xmlhttp.open("POST", 'index.py', true);
+      xmlhttp.timeout = 1800000;  // 30 minutes
+      xmlhttp.send(fdata);
+    }
+
+    // Wrapper for the update buttons.
+    function update_resource(name) {
+      var result_div = document.getElementById('div-update-' + name),
+          fdata = new FormData();
+
+      fdata.append('update-request', name);
+
+      // Post the AJAX request.
+      ajax_request(fdata, result_div, 'Updating...');
+    }
+
+    onload = function() {
+      // Place an event listener on the main form.
+      // It suppresses the normal page-replacing request on
+      // form submission.
+      var main_form = document.getElementById('form-res');
+      main_form.addEventListener('submit', function(ev) {
+
+        var result_div = document.getElementById('div-result'),
+            inp_div = document.getElementById('div-input-form'),
+            resp_div = document.getElementById('div-download-page'),
+            fdata = new FormData(main_form);
+
+        // Replace the form div with the response div.
+        inp_div.setAttribute('class', 'hidden');
+        resp_div.setAttribute('class', 'visible');
+
+        // Post the AJAX request.
+        ajax_request(fdata, result_div, WAIT_MESSAGE);
+
+        // Prevent reloading the page on submit.
+        ev.preventDefault();
+
+      }, false);
+    }
+  </script>
+</head>
+<body>
+  <center>
+    <h1 class="page-header">
+      <a id="anchor-title" style="color: black; text-decoration: none;">
+        OntoGene Bio Term Hub
+      </a>
+    </h1>
+  </center>
+  <center>
+    <div id="div-msg"></div>
+    <div style="width: 80%; padding-bottom: 1cm;">
+      <div id="div-input-form">
+        <h3>Resource Selection</h3>
+        <div style="text-align: left">
+          <form id="form-res" role="form" method="post"
+                accept-charset="UTF-8">
+            <div id="div-checkboxes">
+              <label>Please select the resources to be included:</label>
+              <p><input type="checkbox" id="inp-select-all" name="all" onclick="checkAll(this)"/> <em>select all</em></p>
+              <table id="tbl-checkboxes"></table>
+            </div>
+            <hr/>
+            <div id="div-renaming">
+              <p>Use the following text boxes to change the labeling of resources and entity types.
+                You may use regular expressions (see the examples below).</p>
+              <p>You can define multiple pattern-replacement pairs
+                by using corresponding lines in the left/right box.</p>
+              <label>Resources:</label>
+              <table>
+                <tr>
+                  <td>
+                    <textarea rows="3" cols="35" name="resource-std" placeholder="[pattern]"></textarea>
+                  </td>
+                  <td>
+                    <textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Example: MeSH.* → MeSH</td>
+                </tr>
+              </table>
+              <label>Entity types:</label>
+              <table>
+                <tr>
+                  <td>
+                    <textarea rows="3" cols="35" name="entity_type-std" placeholder="[pattern]"></textarea>
+                  </td>
+                  <td>
+                    <textarea rows="3" cols="35" name="entity_type-custom" placeholder="[replacement]"></textarea>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Example: (organism|species) → organism</td>
+                </tr>
+              </table>
+            </div>
+            <hr/>
+            <div style="padding-bottom: .3cm;">
+              <p>
+                <label>Send me an e-mail with resource statistics plots:</label>
+                <input type="text" name="plot-email" placeholder="user@example.com" />
+              </p>
+              <input type="submit" value="Create resource" />&nbsp;&nbsp;&nbsp;
+              <input type="checkbox" name="zipped" checked="checked" value="true" />&nbsp;download as Zip archive
+            </div>
+          </form>
+        </div>
+        <hr/>
+        <table>
+          <tr>
+            <th>Existing resource labels:</th>
+            <th>Existing entity-type labels:</th>
+          </tr>
+          <tr style="vertical-align: top;">
+            <td id="td-res-ids"></td>
+            <td id="td-ent-ids"></td>
+          </tr>
+        </table>
+      </div>
+      <div id="div-download-page">
+        <center>
+          <h3>Download</h3>
+          <div id="div-result"></div>
+          <hr/>
+          <p><a id="anchor-reset">Reset</a></p>
+        </center>
+      </div>
+    </div>
+  </center>
+</body>
+</html>

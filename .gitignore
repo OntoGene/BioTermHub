@@ -9,9 +9,9 @@
 .*
 !/.gitignore
 
-www/*
-!www/index.py
-!www/__init__.py
+www/downloads/
+www/stats/
+www/batch/
 
 cgi-bin
 
