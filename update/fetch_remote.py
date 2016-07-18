@@ -236,10 +236,11 @@ class StatLog(object):
     def write_log(self):
         'Write updated values to disk.'
         os.makedirs(settings.rel('update', 'logs'), exist_ok=True)
-        with open(self._logfn, 'w') as f:
+        with open(self._logfn + '.tmp', 'w') as f:
             entries = [(self.modified, self.checked)] + list(self.sizes.items())
             for entry in entries:
                 f.write('{}\t{}\n'.format(*entry))
+        os.rename(self._logfn + '.tmp', self._logfn)
 
 
 if __name__ == '__main__':

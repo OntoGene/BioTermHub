@@ -26,7 +26,7 @@
     // AJAX stuff.
 
     // Actual AJAX mechanism.
-    function ajax_request(fdata, target_node, wait_msg) {
+    function ajax_request(fdata, target_node, wait_msg, callback) {
       var xmlhttp = new XMLHttpRequest();
 
       // Mark this request as originating from AJAX.
@@ -37,6 +37,9 @@
         if (xmlhttp.readyState == 4) {
           if (xmlhttp.status == 200) {
             target_node.innerHTML = xmlhttp.responseText;
+            if (typeof(callback)!=='undefined') {
+              callback()
+            }
           } else {
             target_node.innerHTML = "Error " + xmlhttp.status + " occurred";
           }
@@ -54,9 +57,11 @@
     // Wrapper for the update buttons.
     function update_resource(name) {
       var result_div = document.getElementById('div-update-' + name),
+          button = document.getElementById('btn-update-' + name),
           fdata = new FormData();
 
       fdata.append('update-request', name);
+      button.setAttribute('disabled', 'disabled');
 
       // Post the AJAX request.
       ajax_request(fdata, result_div, 'Updating...');
@@ -85,6 +90,22 @@
         ev.preventDefault();
 
       }, false);
+
+      // Check if any resource has been changed since the last update.
+      var resource_names = RESOURCE_NAMES;
+      for (var i=resource_names.length; i--;) {
+        var id = resource_names[i],
+            result_div = document.getElementById('div-update-' + id),
+            fdata = new FormData();
+
+        fdata.append('check-request', id);
+
+        ajax_request(fdata, result_div, 'Checking for remote changes...',
+                     function() {
+          var button = document.getElementById('btn-update-' + id);
+          button.removeAttribute('disabled');
+        });
+      }
     }
   </script>
 </head>

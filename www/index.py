@@ -52,6 +52,7 @@ WAIT_MESSAGE = ('Please wait while the resource is being created '
 with open(os.path.join(HERE, 'template.html'), encoding='utf8') as f:
     PAGE = f.read()
     PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
+    PAGE = PAGE.replace('RESOURCE_NAMES', repr(list(FILTERS)))
 
 
 def main():
@@ -100,6 +101,7 @@ def main_handler(fields, self_url):
 
     # Respond to the user requests.
     creation_request = fields.getlist('resources')
+    check_request = fields.getfirst('check-request')
     update_request = fields.getfirst('update-request')
     job_id = fields.getfirst('dlid')
     zipped = fields.getfirst('zipped')
@@ -128,16 +130,23 @@ def main_handler(fields, self_url):
         logging.info('Respond with auto-refresh work-around.')
         start_resource_creation(params)
 
-    elif update_request:
-        # Update request only works with AJAX.
-        remote = RemoteChecker(update_request)
+    elif check_request:
+        # Check request only works with AJAX.
+        remote = RemoteChecker(check_request)
         if remote.has_changed():
-            remote.update()
-            msg = 'Successfully updated.'
+            msg = 'Update available.'
         else:
-            msg = 'Already up-to-date.'
+            msg = 'Up-to-date.'
         p = etree.Element('p')
         p.text = msg
+        return response(p)
+
+    elif update_request:
+        # Update request also only works with AJAX.
+        remote = RemoteChecker(update_request)
+        remote.update()
+        p = etree.Element('p')
+        p.text = 'Up-to-date.'
         return response(p)
 
     return build_page(self_url, fields, creation_request, job_id, zipped)
@@ -216,11 +225,11 @@ def populate_checkboxes(doc, resources):
         atts['value'] = remote.name  # = ID
         label = remote.resource.dump_label()
         last_checked = remote.stat.checked
-        # last_checked = human_timespan(now-last_checked) + ' ago'
         last_checked = dt.date.fromtimestamp(last_checked).isoformat()
         row = se(tbl, 'tr')
         se(se(se(row, 'td'), 'p'), 'input', atts).tail = NBSP + label
-        se(se(row, 'td'), 'p').text = last_checked
+        se(se(se(row, 'td'), 'div', id='div-update-{}'.format(remote.name)),
+           'p').text = last_checked
         se(row, 'td').append(update_button(remote.name))
     # Add a checkbox for the CTD-lookup flag.
     cell = se(tbl.getparent(), 'p')
@@ -235,37 +244,10 @@ def update_button(id_):
     '''
     Create an AJAX request button for updating a resource.
     '''
-    # Wrap it in a div, so that the button can easily be replaced.
-    div = etree.Element('div', id='div-update-{}'.format(id_))
     jscall = 'update_resource({!r})'.format(id_)
-    se(div, 'input', type='button', value='Update', onclick=jscall)
-    return div
-
-
-def human_timespan(seconds):
-    '''
-    Human readable, rounded description of a time span.
-    '''
-    for unit, divisor, limit in time_units:
-        n = seconds / divisor
-        if n < limit:
-            return pluralise(unit, round(n))
-
-time_units = [
-    ('second', 1, 50),
-    ('minute', 60, 50),
-    ('hour', 60*60, 23),
-    ('day', 24*60*60, 6),
-    ('week', 7*24*60*60, 4.5),
-    ('month', 30.5*24*60*60, 11.5),
-    ('year', 365.25*24*60*60, float('inf'))
-]
-
-
-def pluralise(unit, count):
-    'Add "s" to unit if count is not 1.'
-    suffix = '' if count == 1 else 's'
-    return '{} {}{}'.format(count, unit, suffix)
+    return etree.Element('input', type='button', value='Update',
+                         id='btn-update-{}'.format(id_),
+                         onclick=jscall, disabled='disabled')
 
 
 def add_resource_labels(doc):
