@@ -100,12 +100,28 @@ def main_handler(fields, self_url):
         datefmt='%Y-%m-%d %H:%M:%S')
 
     # Respond to the user requests.
+    logging.info('Processing request: %r', fields)
+    try:
+        if 'check-request' in fields:
+            resp = check_request(fields.getfirst('check-request'))
+        elif 'update-request' in fields:
+            resp = update_request(fields.getfirst('update-request'))
+        else:
+            resp = general_request(fields, self_url)
+    except Exception:
+        logging.exception('Runtime error.')
+        raise
+    else:
+        return resp
+
+
+def general_request(fields, self_url):
+    '''
+    Respond to a non-specific or creation request.
+    '''
     creation_request = fields.getlist('resources')
-    check_request = fields.getfirst('check-request')
-    update_request = fields.getfirst('update-request')
     job_id = fields.getfirst('dlid')
     zipped = fields.getfirst('zipped')
-    logging.info('Processing request: %r', fields)
 
     if creation_request:
         # A creation request has been submitted.
@@ -130,26 +146,34 @@ def main_handler(fields, self_url):
         logging.info('Respond with auto-refresh work-around.')
         start_resource_creation(params)
 
-    elif check_request:
-        # Check request only works with AJAX.
-        remote = RemoteChecker(check_request)
-        if remote.has_changed():
-            msg = 'Update available.'
-        else:
-            msg = 'Up-to-date.'
-        p = etree.Element('p')
-        p.text = msg
-        return response(p)
-
-    elif update_request:
-        # Update request also only works with AJAX.
-        remote = RemoteChecker(update_request)
-        remote.update()
-        p = etree.Element('p')
-        p.text = 'Up-to-date.'
-        return response(p)
-
     return build_page(self_url, fields, creation_request, job_id, zipped)
+
+
+def check_request(name):
+    '''
+    Check the last-modified date.
+    '''
+    # Check request only works with AJAX.
+    remote = RemoteChecker(name)
+    if remote.has_changed():
+        msg = 'Update available.'
+    else:
+        msg = 'Up-to-date.'
+    p = etree.Element('p')
+    p.text = msg
+    return response(p)
+
+
+def update_request(name):
+    '''
+    Update a resource from remote.
+    '''
+    # Update request also only works with AJAX.
+    remote = RemoteChecker(name)
+    remote.update()
+    p = etree.Element('p')
+    p.text = 'Up-to-date.'
+    return response(p)
 
 
 def build_page(self_url, fields, creation_request, job_id, zipped):
