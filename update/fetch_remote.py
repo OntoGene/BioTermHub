@@ -61,7 +61,7 @@ class RemoteChecker(object):
             resource = FILTERS[name]
         self.name = name
         self.resource = resource
-        self.stat = StatLog(name)
+        self.stat = StatLog(name, resource)
 
     def last_check(self):
         '''
@@ -76,7 +76,7 @@ class RemoteChecker(object):
         try:
             return time.time()-self.stat.modified <= settings.min_update_freq
         except TypeError:
-            # There is no stat log yet.
+            # The resource has never been downloaded.
             return False
 
     def has_changed(self):
@@ -90,8 +90,8 @@ class RemoteChecker(object):
             answer |= current_size != previous_size
         try:
             self.stat.set(checked=int(time.time()))
-        except TypeError:
-            # There is no stat log yet.
+        except ValueError:
+            # The resource has never been downloaded.
             pass
         return answer
 
@@ -206,7 +206,7 @@ class RemoteChecker(object):
 
 class StatLog(object):
     '''Cached reading/writing of the dump stat log.'''
-    def __init__(self, name):
+    def __init__(self, name, resource):
         self._logfn = settings.rel('update', 'logs', '{}.log'.format(name))
         self.sizes = {}
         try:
@@ -220,16 +220,28 @@ class StatLog(object):
                     except ValueError:
                         # No size yet (parsed "None").
                         pass
-        except OSError:
-            modified, checked = None, None
+        except FileNotFoundError:
+            modified = checked = self.init_value(resource)
         self.modified = modified
         self.checked = checked
+
+    @staticmethod
+    def init_value(resource):
+        "Initialise with the file's m-time."
+        try:
+            return min(int(os.path.getmtime(fn)) for fn in resource.dump_fns())
+        except FileNotFoundError:
+            return None
 
     def set(self, **kwargs):
         'Update the cached and on-disk values.'
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if self.checked < self.modified:
+        # Make sure we don't write "None" into the log file.
+        if self.modified is None:
+            raise ValueError('The `modified` date cannot be None.')
+        # The `checked` timestamp should never be older than `modified`.
+        if self.checked is None or self.checked < self.modified:
             self.checked = self.modified
         self.write_log()
 

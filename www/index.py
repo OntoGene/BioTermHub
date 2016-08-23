@@ -225,7 +225,10 @@ def populate_checkboxes(doc, resources):
         atts['value'] = remote.name  # = ID
         label = remote.resource.dump_label()
         last_checked = remote.stat.checked
-        last_checked = dt.date.fromtimestamp(last_checked).isoformat()
+        try:
+            last_checked = dt.date.fromtimestamp(last_checked).isoformat()
+        except TypeError:
+            last_checked = 'unknown'
         row = se(tbl, 'tr')
         se(se(se(row, 'td'), 'p'), 'input', atts).tail = NBSP + label
         se(se(se(row, 'td'), 'div', id='div-update-{}'.format(remote.name)),
