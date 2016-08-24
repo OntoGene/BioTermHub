@@ -79,17 +79,36 @@ class RemoteChecker(object):
             # The resource has never been downloaded.
             return False
 
-    def has_changed(self):
+    def has_changed(self, check_interval=settings.min_check_freq):
         '''
         Check if the size of the remote resource has changed.
         '''
+        # Check cached values.
+        if self.stat.has_changed:
+            # No need to check again: We don't expect the remote to roll back
+            # changes.
+            return True
+        try:
+            if time.time()-self.stat.checked <= check_interval:
+                # Was recently checked, don't bother the remote with another
+                # request.
+                # The value must be False: otherwise stat.has_changed would
+                # have been True.
+                return False
+        except TypeError:
+            # Has never been checked before.
+            pass
+
+        # Check remotely.
         answer = False
         for address, *_ in self.resource.update_info():
             previous_size = self.stat.sizes.get(address)
             current_size = self._content_size(address)
-            answer |= current_size != previous_size
+            if current_size != previous_size:
+                answer = True
+                break
         try:
-            self.stat.set(checked=int(time.time()))
+            self.stat.just_checked(answer)
         except ValueError:
             # The resource has never been downloaded.
             pass
@@ -108,7 +127,7 @@ class RemoteChecker(object):
         for address, *steps in self.resource.update_info():
             size = self._download(address, steps)
             self.stat.sizes[address] = size
-        self.stat.set(modified=int(time.time()))
+        self.stat.just_modified()
 
     def _download(self, address, steps):
         if address.startswith('ftp'):
@@ -212,7 +231,7 @@ class StatLog(object):
         try:
             # Get any previous stat info.
             with open(self._logfn) as f:
-                modified, checked = [int(n) for n in next(f).split()]
+                modified, checked, changed = [int(n) for n in next(f).split()]
                 for line in f:
                     fn, size = line.rsplit(maxsplit=1)
                     try:
@@ -221,37 +240,47 @@ class StatLog(object):
                         # No size yet (parsed "None").
                         pass
         except FileNotFoundError:
-            modified = checked = self.init_value(resource)
+            modified = checked = self._init_time(resource)
+            # If the resource is not present yet (modified is None),
+            # then an update is needed for sure.
+            changed = modified is None
         self.modified = modified
         self.checked = checked
+        self.has_changed = bool(changed)
 
     @staticmethod
-    def init_value(resource):
+    def _init_time(resource):
         "Initialise with the file's m-time."
         try:
             return min(int(os.path.getmtime(fn)) for fn in resource.dump_fns())
         except FileNotFoundError:
             return None
 
-    def set(self, **kwargs):
-        'Update the cached and on-disk values.'
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    def just_modified(self):
+        'Update the `modified` value.'
+        self.modified = int(time.time())
+        # The `checked` timestamp should never be older than `modified`.
+        self.checked = self.modified
+        self.has_changed = False
+        self._write_log()
+
+    def just_checked(self, outcome):
+        'Update the `checked` and `has_changed` values.'
         # Make sure we don't write "None" into the log file.
         if self.modified is None:
             raise ValueError('The `modified` date cannot be None.')
-        # The `checked` timestamp should never be older than `modified`.
-        if self.checked is None or self.checked < self.modified:
-            self.checked = self.modified
-        self.write_log()
+        self.checked = int(time.time())
+        self.has_changed = outcome
+        self._write_log()
 
-    def write_log(self):
+    def _write_log(self):
         'Write updated values to disk.'
         os.makedirs(settings.rel('update', 'logs'), exist_ok=True)
         with open(self._logfn + '.tmp', 'w') as f:
-            entries = [(self.modified, self.checked)] + list(self.sizes.items())
-            for entry in entries:
-                f.write('{}\t{}\n'.format(*entry))
+            f.write('{}\t{}\t{:d}\n'
+                    .format(self.modified, self.checked, self.has_changed))
+            for fn, size in self.sizes.items():
+                f.write('{}\t{}\n'.format(fn, size))
         os.rename(self._logfn + '.tmp', self._logfn)
 
 

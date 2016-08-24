@@ -34,6 +34,10 @@ path_dumps = rel('dumps')
 
 min_update_freq = 24*60*60  # 1 day (in seconds)
 
+# Do not check for changes more often than min_check_freq.
+
+min_check_freq = 4*60*60  # 4 hours
+
 # Client-side timeout when downloading resource dumps.
 
 timeout = 10  # seconds
