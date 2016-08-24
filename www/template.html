@@ -67,6 +67,16 @@
       ajax_request(fdata, result_div, 'Updating...');
     }
 
+    // Wrapper for defining anonymous functions inside a loop.
+    // This is necessary to bind "name" to a separate closure in each iteration.
+    function button_disabler(name) {
+      var name = name;
+      return function() {
+        var button = document.getElementById('btn-update-' + name);
+        button.removeAttribute('disabled');
+      }
+    }
+
     onload = function() {
       // Place an event listener on the main form.
       // It suppresses the normal page-replacing request on
@@ -101,10 +111,7 @@
         fdata.append('check-request', id);
 
         ajax_request(fdata, result_div, 'Checking for remote changes...',
-                     function() {
-          var button = document.getElementById('btn-update-' + id);
-          button.removeAttribute('disabled');
-        });
+                     button_disabler(id));
       }
     }
   </script>
