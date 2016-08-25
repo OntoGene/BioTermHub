@@ -19,8 +19,6 @@ import gzip
 import tarfile
 import zipfile
 
-import requests
-
 from termhub.core import settings
 from termhub.inputfilters import FILTERS
 
@@ -116,9 +114,16 @@ class RemoteChecker(object):
 
     @staticmethod
     def _content_size(address):
-        req = urllib.request.Request(address, method='HEAD')
-        resp = urllib.request.urlopen(req)
-        return resp.headers.get('content-length')
+        try:
+            req = urllib.request.Request(address, method='HEAD')
+            resp = urllib.request.urlopen(req)
+            size = int(resp.headers.get('content-length'))
+        except Exception:
+            logging.exception('Remote size check failed.')
+            raise
+        finally:
+            resp.close()
+        return size
 
     def update(self):
         '''
@@ -130,33 +135,13 @@ class RemoteChecker(object):
         self.stat.just_modified()
 
     def _download(self, address, steps):
-        if address.startswith('ftp'):
-            call = self._download_ftp
-        else:
-            call = self._download_http
         try:
-            size = call(address, steps)
+            r = urllib.request.urlopen(address, timeout=settings.timeout)
+            size = int(r.headers.get('content-length'))
+            self._pipe(r, *steps)
         except Exception:
             logging.exception('Download failed')
             raise
-        else:
-            return size
-
-    def _download_ftp(self, address, steps):
-        try:
-            r = urllib.request.urlopen(address, timeout=settings.timeout)
-            size = r.headers.get('content-length')
-            self._pipe(r, *steps)
-        finally:
-            r.close()
-        return size
-
-    def _download_http(self, address, steps):
-        try:
-            r = requests.get(address, stream=True, timeout=settings.timeout)
-            r.raise_for_status()  # throw an exception on HTTP error codes
-            size = r.headers.get('content-length')
-            self._pipe(r.raw, *steps)
         finally:
             r.close()
         return size

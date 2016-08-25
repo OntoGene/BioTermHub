@@ -37,8 +37,8 @@
         if (xmlhttp.readyState == 4) {
           if (xmlhttp.status == 200) {
             target_node.innerHTML = xmlhttp.responseText;
-            if (typeof(callback)!=='undefined') {
-              callback()
+            if (typeof(callback) !== 'undefined') {
+              callback(xmlhttp.responseText);
             }
           } else {
             target_node.innerHTML = "Error " + xmlhttp.status + " occurred";
@@ -54,6 +54,25 @@
       xmlhttp.send(fdata);
     }
 
+    // Check if there is an update for this resource.
+    function check_resource(name) {
+      var name = name,  // Make sure this is bound to the local closure.
+          result_div = document.getElementById('div-update-' + name),
+          fdata = new FormData();
+
+      // Actions to take on success.
+      function callback(response) {
+        if (response == '<p>Update available.</p>') {
+          var button = document.getElementById('btn-update-' + name);
+          button.removeAttribute('disabled');
+        }
+      }
+
+      fdata.append('check-request', name);
+      ajax_request(fdata, result_div, 'Checking for remote changes...',
+                   callback);
+    }
+
     // Wrapper for the update buttons.
     function update_resource(name) {
       var result_div = document.getElementById('div-update-' + name),
@@ -65,16 +84,6 @@
 
       // Post the AJAX request.
       ajax_request(fdata, result_div, 'Updating...');
-    }
-
-    // Wrapper for defining anonymous functions inside a loop.
-    // This is necessary to bind "name" to a separate closure in each iteration.
-    function button_disabler(name) {
-      var name = name;
-      return function() {
-        var button = document.getElementById('btn-update-' + name);
-        button.removeAttribute('disabled');
-      }
     }
 
     onload = function() {
@@ -104,14 +113,7 @@
       // Check if any resource has been changed since the last update.
       var resource_names = RESOURCE_NAMES;
       for (var i=resource_names.length; i--;) {
-        var id = resource_names[i],
-            result_div = document.getElementById('div-update-' + id),
-            fdata = new FormData();
-
-        fdata.append('check-request', id);
-
-        ajax_request(fdata, result_div, 'Checking for remote changes...',
-                     button_disabler(id));
+        check_resource(resource_names[i]);
       }
     }
   </script>
