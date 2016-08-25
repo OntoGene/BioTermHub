@@ -271,10 +271,9 @@ def update_button(id_):
     '''
     Create an AJAX request button for updating a resource.
     '''
-    jscall = 'update_resource({!r})'.format(id_)
-    return etree.Element('input', type='button', value='Update',
+    return etree.Element('input', type='button', value='...',
                          id='btn-update-{}'.format(id_),
-                         onclick=jscall, disabled='disabled')
+                         disabled='disabled')
 
 
 def add_resource_labels(doc):

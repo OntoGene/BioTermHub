@@ -26,7 +26,7 @@
     // AJAX stuff.
 
     // Actual AJAX mechanism.
-    function ajax_request(fdata, target_node, wait_msg, callback) {
+    function ajax_request(fdata, target_node, wait_msg, success, failure) {
       var xmlhttp = new XMLHttpRequest();
 
       // Mark this request as originating from AJAX.
@@ -37,11 +37,16 @@
         if (xmlhttp.readyState == 4) {
           if (xmlhttp.status == 200) {
             target_node.innerHTML = xmlhttp.responseText;
-            if (typeof(callback) !== 'undefined') {
-              callback(xmlhttp.responseText);
+            // Success callback.
+            if (typeof(success) !== 'undefined') {
+              success(xmlhttp.responseText);
             }
           } else {
             target_node.innerHTML = "Error " + xmlhttp.status + " occurred";
+            // Failure callback.
+            if (typeof(failure) !== 'undefined') {
+              failure();
+            }
           }
         } else {
           target_node.innerHTML = wait_msg;
@@ -58,22 +63,34 @@
     function check_resource(name) {
       var name = name,  // Make sure this is bound to the local closure.
           result_div = document.getElementById('div-update-' + name),
+          button = document.getElementById('btn-update-' + name),
           fdata = new FormData();
 
-      // Actions to take on success.
-      function callback(response) {
-        if (response == '<p>Update available.</p>') {
-          var button = document.getElementById('btn-update-' + name);
+      // Callback actions.
+      function success(response) {
+        if (response == '<p>Up-to-date.</p>') {
+          button.setAttribute('disabled', 'disabled');
+          button.setAttribute('value', '...');
+        } else if (response == '<p>Update available.</p>') {
           button.removeAttribute('disabled');
+          button.setAttribute('value', 'Update');
+          button.setAttribute('onclick', 'update_resource("' + name + '")');
         }
+      }
+      function failure() {
+        button.removeAttribute('disabled');
+        button.setAttribute('value', 'Check again');
+        button.setAttribute('onclick', 'check_resource("' + name + '")');
       }
 
       fdata.append('check-request', name);
+      button.setAttribute('disabled', 'disabled');
+      button.setAttribute('value', '...');
       ajax_request(fdata, result_div, 'Checking for remote changes...',
-                   callback);
+                   success, failure);
     }
 
-    // Wrapper for the update buttons.
+    // Post an update request.
     function update_resource(name) {
       var result_div = document.getElementById('div-update-' + name),
           button = document.getElementById('btn-update-' + name),
@@ -81,8 +98,7 @@
 
       fdata.append('update-request', name);
       button.setAttribute('disabled', 'disabled');
-
-      // Post the AJAX request.
+      button.setAttribute('value', '...');
       ajax_request(fdata, result_div, 'Updating...');
     }
 
