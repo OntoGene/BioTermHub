@@ -331,7 +331,7 @@ def job_hash(rsc, renaming):
     Create a hash value considering all options for this job.
     '''
     key = hashlib.sha1()
-    for name, rec in rsc.resources:
+    for name, rec, _ in rsc.resources:
         # Update with the resource selection.
         key.update(name.encode('utf8'))
         # For each dump file, add the last-modified time to the hash.

@@ -51,10 +51,9 @@ class RecordSetContainer(object):
                              Example for changing the MeSH subtrees:
                                 ... mesh={'tree_types': {'A': 'anatomy'}} ...
         '''
-        self.resources = [(name, FILTERS[name])
+        self.resources = [(name, FILTERS[name], params.get(name, {}))
                           for name in sorted(resources, key=self._sort_args)]
         self.flags = frozenset(flags)
-        self.filter_params = params
 
         self.stats = OrderedDict()
         self.ambig_units = {}
@@ -76,7 +75,7 @@ class RecordSetContainer(object):
             # Check if any associated duplicates are
             # 1) present and 2) have their cross-lookup flag set.
             for dup in CROSS_REFS[resource]:
-                present = any(n == dup for n, c in self.resources)
+                present = any(n == dup for n, _, _ in self.resources)
                 flag = CROSS_DUPLICATES[dup][0]
                 if present and flag in self.flags:
                     return True
@@ -87,7 +86,7 @@ class RecordSetContainer(object):
         Iterate over the readily initialised inputfilters.
         '''
         oidgen = Base36Generator()
-        for name, constr in self.resources:
+        for name, constr, custom_params in self.resources:
             params = dict(oidgen=oidgen, mapping=mapping)
             # Check if a cross-lookup has to be performed for the resource
             # and if so, pass the corresponding lookup set.
@@ -96,7 +95,7 @@ class RecordSetContainer(object):
                 if flag in self.flags:
                     params['exclude'] = self.cross_lookup[ref]
             # Add any filter-specific params.
-            params.update(self.filter_params.get(name, {}))
+            params.update(custom_params)
             # Create the filter instance and collect some properties.
             recordset = constr(**params)
             self.stats[name] = recordset.stats
@@ -144,13 +143,14 @@ class RecordSetContainer(object):
 
         self.stats["total"] = total
 
-    def write_all(self, filename, mapping=None):
+    def write_all(self, filename, mapping=None, header=True):
         '''
         Concatenate all resources' data into a large TSV file.
         '''
         with open(filename, 'wt', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, dialect=TSVDialect)
-            writer.writerow(Fields._fields)
+            if header:
+                writer.writerow(Fields._fields)
 
             for recordset, resource in self.iter_resources(mapping):
                 if self.check_cross_lookup(resource):
