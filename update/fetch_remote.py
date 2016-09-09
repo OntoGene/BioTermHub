@@ -122,7 +122,10 @@ class RemoteChecker(object):
             logging.exception('Remote size check failed.')
             raise
         finally:
-            resp.close()
+            try:
+                resp.close()
+            except NameError:
+                pass
         return size
 
     def update(self):
