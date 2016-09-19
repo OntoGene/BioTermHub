@@ -100,7 +100,7 @@
       fdata.append('update-request', name);
       button.setAttribute('disabled', 'disabled');
       button.setAttribute('value', '...');
-      ajax_request(fdata, result_div, 'Updating...');
+      ajax_request(fdata, result_div, 'Updating (might take a few minutes)...');
     }
 
     onload = function() {
@@ -194,10 +194,19 @@
               </table>
             </div>
             <hr/>
-            <div style="padding-bottom: .3cm;">
+            <div>
               <p>
                 <label>Send me an e-mail with resource statistics plots:</label>
-                <input type="text" name="plot-email" placeholder="user@example.com" />
+                <input type="text" name="plot-email" placeholder="user@example.com" /><br/>
+                (The plots are created and sent around midnight CET.)
+              </p>
+            </div>
+            <hr/>
+            <div style="padding-bottom: .3cm;">
+              <p>
+                <strong>Disclaimer:</strong> The Bio Term Hub is a derivative service providing access to publicly available terminology resources.
+                Licenses and agreements might apply to individual resources;
+                please refer to the original sources.
               </p>
               <input type="submit" value="Create resource" />&nbsp;&nbsp;&nbsp;
               <input type="checkbox" name="zipped" checked="checked" value="true" />&nbsp;download as Zip archive

@@ -248,15 +248,15 @@ def populate_checkboxes(doc, resources):
     for remote in resources:
         atts['value'] = remote.name  # = ID
         label = remote.resource.dump_label()
-        last_checked = remote.stat.checked
+        last_modified = remote.stat.modified
         try:
-            last_checked = dt.date.fromtimestamp(last_checked).isoformat()
+            last_modified = dt.date.fromtimestamp(last_modified).isoformat()
         except TypeError:
-            last_checked = 'unknown'
+            last_modified = 'unknown'
         row = se(tbl, 'tr')
         se(se(se(row, 'td'), 'p'), 'input', atts).tail = NBSP + label
         se(se(se(row, 'td'), 'div', id='div-update-{}'.format(remote.name)),
-           'p').text = last_checked
+           'p').text = last_modified
         se(row, 'td').append(update_button(remote.name))
     # Add a checkbox for the CTD-lookup flag.
     cell = se(tbl.getparent(), 'p')
