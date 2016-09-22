@@ -11,6 +11,7 @@ Configuration.
 
 
 import os
+import argparse
 
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
@@ -20,6 +21,64 @@ def rel(*args):
     Construct a path relative to the package root.
     '''
     return os.path.join(ROOT, *args)
+
+
+def main():
+    '''
+    Run as script: list the settings.
+    '''
+    ap = argparse.ArgumentParser(
+        description='List the current configuration as key: value pairs.')
+    ap.add_argument(
+        '-d', '--directories', action='store_true',
+        help='list directory paths only')
+    ap.add_argument(
+        '-f', '--files', action='store_true',
+        help='list file paths only')
+    ap.add_argument(
+        '-a', '--all', action='store_true',
+        help='list all settings (default)')
+    ap.add_argument(
+        '-v', '--values-only', action='store_true',
+        help='suppress keys')
+    ap.add_argument(
+        '-r', '--relative-paths', nargs='?', const=os.path.curdir,
+        metavar='PATH',
+        help='list paths relative to the CWD (or to PATH if given)')
+    args = ap.parse_args()
+    if not (args.directories or args.files):
+        args.all = True  # no scope options == all
+
+    settings = sorted(
+        (k, v) for k, v in globals().items()
+        if not k.startswith('__')              # no special stuff
+        and not k.isupper()                    # no constants
+        and isinstance(v, (int, str, tuple)))  # no functions/modules
+
+    if not args.all:
+        settings = [
+            (k, v) for k, v in settings
+            if (args.directories and k.startswith('path'))
+            or (args.files and k.endswith('file'))
+        ]
+
+    if args.relative_paths is not None:
+        def relpath(k, v):
+            'If v is a path, convert it to relative.'
+            if k.startswith('path') or k.endswith('file'):
+                v = os.path.relpath(v, args.relative_paths)
+            return (k, v)
+        settings = [
+            relpath(k, v) for k, v in settings
+        ]
+
+    if args.values_only:
+        template = '{1}'
+    else:
+        template = '{0}:\t{1}'
+
+    for k, v in settings:
+        print(template.format(k, v))
 
 
 #
@@ -50,6 +109,7 @@ timeout = 10  # seconds
 # Web interface log
 
 log_file = rel('www', 'interface.log')
+path_update_logs = rel('update', 'logs')
 
 # Paths for output, statistics and files related to batch processing
 
@@ -65,3 +125,7 @@ email_conn = (None,  # email address
               None,  # user
               None)  # password
 
+
+
+if __name__ == '__main__':
+    main()

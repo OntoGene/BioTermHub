@@ -1,6 +1,5 @@
-HERE := $(dir $(lastword $(MAKEFILE_LIST)))
-WWWDIRS := $(addprefix $(HERE),dumps update/logs www/stats www/batch)
-LOGFILE := $(HERE)www/interface.log
+WWWDIRS := $(shell core/settings.py -dvr)
+LOGFILE := $(shell core/settings.py -fvr)
 
 init: $(WWWDIRS) $(LOGFILE)
 

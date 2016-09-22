@@ -214,7 +214,8 @@ class RemoteChecker(object):
 class StatLog(object):
     '''Cached reading/writing of the dump stat log.'''
     def __init__(self, name, resource):
-        self._logfn = settings.rel('update', 'logs', '{}.log'.format(name))
+        self._logfn = os.path.join(settings.path_update_logs,
+                                   '{}.log'.format(name))
         self.sizes = {}
         try:
             # Get any previous stat info.
@@ -263,7 +264,7 @@ class StatLog(object):
 
     def _write_log(self):
         'Write updated values to disk.'
-        os.makedirs(settings.rel('update', 'logs'), exist_ok=True)
+        os.makedirs(settings.path_update_logs, exist_ok=True)
         with open(self._logfn + '.tmp', 'w') as f:
             f.write('{}\t{}\t{:d}\n'
                     .format(self.modified, self.checked, self.has_changed))
