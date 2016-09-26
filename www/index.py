@@ -126,13 +126,13 @@ def general_request(fields, self_url):
     if creation_request:
         # A creation request has been submitted.
         rsc = RecordSetContainer(resources=creation_request,
-                                 flags=fields.getlist('flags'))
-        renaming = parse_renaming(fields)
-        job_id = job_hash(rsc, renaming)
+                                 flags=fields.getlist('flags'),
+                                 mapping=parse_renaming(fields))
+        job_id = job_hash(rsc)
 
         plot_email = fields.getfirst('plot-email')
         log_exception = True
-        params = (rsc, renaming, zipped, plot_email, job_id, log_exception)
+        params = (rsc, zipped, plot_email, job_id, log_exception)
 
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
@@ -326,7 +326,7 @@ def parse_renaming(fields):
     return m
 
 
-def job_hash(rsc, renaming):
+def job_hash(rsc):
     '''
     Create a hash value considering all options for this job.
     '''
@@ -342,8 +342,8 @@ def job_hash(rsc, renaming):
     for flag in rsc.flags:
         key.update(flag.encode('utf8'))
     # Update with any renaming rules.
-    for level in sorted(renaming):
-        for entry in sorted(renaming[level].items()):
+    for level in sorted(rsc.mapping or ()):
+        for entry in sorted(rsc.mapping[level].items()):
             for e in entry:
                 key.update(e.encode('utf8'))
     return base36digest(key.digest())
@@ -423,14 +423,14 @@ def zipname(fn):
     return fn[:-4] + '.zip'
 
 
-def create_resource(resources, renaming,
+def create_resource(resources,
                     zipped=False, plot_email=None,
                     job_id=None, log_exception=False):
     '''
     Run the Bio Term Hub resource creation pipeline, if necessary.
     '''
     if job_id is None:
-        job_id = job_hash(resources, renaming)
+        job_id = job_hash(resources)
     target_fn = os.path.join(DOWNLOADDIR, job_id + '.csv')
     target_fn = os.path.abspath(target_fn)
     r_value = target_fn
@@ -442,7 +442,7 @@ def create_resource(resources, renaming,
         os.utime(target_fn, None)
     else:
         try:
-            _create_resource(target_fn, resources, renaming)
+            _create_resource(target_fn, resources)
         except Exception:
             logging.exception('Resource creation failed:')
             if log_exception:
@@ -475,11 +475,11 @@ def create_resource(resources, renaming,
     return r_value
 
 
-def _create_resource(target_fn, rsc, renaming):
+def _create_resource(target_fn, rsc):
     '''
     Run the Bio Term Hub resource creation pipeline.
     '''
-    rsc.write_all(target_fn + '.tmp', mapping=renaming)
+    rsc.write_all(target_fn + '.tmp')
     os.rename(target_fn + '.tmp', target_fn)
 
 

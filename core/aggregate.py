@@ -39,7 +39,7 @@ class RecordSetContainer(object):
     '''
     Handler for multiple inputfilter instances.
     '''
-    def __init__(self, resources=(), flags=(), **params):
+    def __init__(self, resources=(), flags=(), mapping=None, **params):
         '''
         Args:
             resources (sequence): resource name, as found in FILTERS
@@ -53,6 +53,7 @@ class RecordSetContainer(object):
         '''
         self.resources = [(name, FILTERS[name], params.get(name, {}))
                           for name in sorted(resources, key=self._sort_args)]
+        self.mapping = mapping
         self.flags = frozenset(flags)
 
         self.stats = OrderedDict()
@@ -81,13 +82,15 @@ class RecordSetContainer(object):
                     return True
         return False
 
-    def iter_resources(self, mapping=None):
+    def iter_resources(self, **kwargs):
         '''
         Iterate over the readily initialised inputfilters.
         '''
         oidgen = Base36Generator()
         for name, constr, custom_params in self.resources:
-            params = dict(oidgen=oidgen, mapping=mapping)
+            # Copy the global default params and override them with kwargs.
+            params = dict(oidgen=oidgen, mapping=self.mapping)
+            params.update(kwargs)
             # Check if a cross-lookup has to be performed for the resource
             # and if so, pass the corresponding lookup set.
             if name in CROSS_DUPLICATES:
@@ -143,7 +146,7 @@ class RecordSetContainer(object):
 
         self.stats["total"] = total
 
-    def write_all(self, filename, mapping=None, header=True):
+    def write_all(self, filename, header=True, **kwargs):
         '''
         Concatenate all resources' data into a large TSV file.
         '''
@@ -151,17 +154,21 @@ class RecordSetContainer(object):
             writer = csv.writer(f, dialect=TSVDialect)
             if header:
                 writer.writerow(Fields._fields)
+            writer.writerows(self.iter_rows(**kwargs))
 
-            for recordset, resource in self.iter_resources(mapping):
-                if self.check_cross_lookup(resource):
-                    # Iterate with cross-lookup handling.
-                    for row in recordset:
-                        # Keep all ID-term pairs in memory, so that they can be
-                        # skipped in the duplicate resource.
-                        self.cross_lookup[resource].add(
-                            (row.original_id, row.term))
-                        writer.writerow(row)
-                else:
-                    # Without cross-lookup handling .writerows() can be used,
-                    # which seems to be a bit faster than repeated .writerow().
-                    writer.writerows(recordset)
+    def iter_rows(self, **kwargs):
+        '''
+        Iterate over all rows of all resources.
+        '''
+        for recordset, resource in self.iter_resources(**kwargs):
+            if self.check_cross_lookup(resource):
+                # Iterate with cross-lookup handling.
+                for row in recordset:
+                    # Keep all ID-term pairs in memory, so that they can be
+                    # skipped in the duplicate resource.
+                    self.cross_lookup[resource].add(
+                        (row.original_id, row.term))
+                    yield row
+            else:
+                # No cross-lookup handling.
+                yield from recordset
