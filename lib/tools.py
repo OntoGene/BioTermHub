@@ -5,12 +5,18 @@
 # Modified: Lenz Furrer, 2016
 
 
+'''
+Miscellaneous helper tools.
+'''
+
+
 import csv
-from collections import OrderedDict, Callable, Counter, namedtuple
+from collections import OrderedDict, Counter, namedtuple
 
 
 # Fields of the output TSV.
-Fields = namedtuple('Fields', 'oid resource original_id term preferred_term entity_type')
+Fields = namedtuple('Fields', 'oid resource original_id '
+                              'term preferred_term entity_type')
 
 
 class TSVDialect(csv.Dialect):
@@ -25,14 +31,34 @@ class TSVDialect(csv.Dialect):
     strict = False
 
 
+class CacheOneIterator(object):
+    'Iterator rewindable by one step.'
+    def __init__(self, iterable):
+        self.iterable = iter(iterable)
+        self.proceed = True
+        self.current = None
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.proceed:
+            self.current = next(self.iterable)
+        else:
+            self.proceed = True
+        return self.current
+
+    def rewind(self):
+        'On the subsequent call to next(), yield the last item again.'
+        self.proceed = False
+
+
 class DefaultOrderedDict(OrderedDict):
-    # http://stackoverflow.com/a/6190500
     # Source: http://stackoverflow.com/a/6190500/562769
     def __init__(self, default_factory=None, *a, **kw):
-        if (default_factory is not None and
-           not isinstance(default_factory, Callable)):
+        if default_factory is not None and not callable(default_factory):
             raise TypeError('first argument must be callable')
-        OrderedDict.__init__(self, *a, **kw)
+        super().__init__(*a, **kw)
         self.default_factory = default_factory
 
     def __getitem__(self, key):
@@ -59,6 +85,7 @@ class DefaultOrderedDict(OrderedDict):
 
     def __copy__(self):
         return DefaultOrderedDict(self.default_factory, self)
+
 
 class StatDict(DefaultOrderedDict):
     def __init__(self):

@@ -32,6 +32,7 @@ from termhub.core import settings
 from termhub.core.aggregate import RecordSetContainer
 from termhub.inputfilters import FILTERS
 from termhub.update.fetch_remote import RemoteChecker
+from termhub.lib.postfilters import RegexFilter
 
 
 # Config globals.
@@ -125,9 +126,11 @@ def general_request(fields, self_url):
 
     if creation_request:
         # A creation request has been submitted.
-        rsc = RecordSetContainer(resources=creation_request,
-                                 flags=fields.getlist('flags'),
-                                 mapping=parse_renaming(fields))
+        rsc = RecordSetContainer(
+            resources=creation_request,
+            flags=fields.getlist('flags'),
+            mapping=parse_renaming(fields),
+            postfilter=fields.getfirst('postfilter') and RegexFilter().test)
         job_id = job_hash(rsc)
 
         plot_email = fields.getfirst('plot-email')
@@ -259,12 +262,13 @@ def populate_checkboxes(doc, resources):
            'p').text = last_modified
         se(row, 'td').append(update_button(remote.name))
     # Add a checkbox for the CTD-lookup flag.
-    cell = se(tbl.getparent(), 'p')
-    atts = dict(type='checkbox', name='flags', value='ctd_lookup')
-    label = 'skip CTD entries that are MeSH duplicates'
-    se(cell, 'input', atts).tail = NBSP + label
-    se(cell, 'br').tail = ('(has no effect unless both CTD and MeSH '
-                           'are selected)')
+    labels = ('skip CTD entries that are MeSH duplicates',
+              '(has no effect unless both CTD and MeSH are selected)')
+    checkbox_par(tbl.getparent(), labels, name='flags', value='ctd_lookup')
+    # Add another checkbox for removing short terms.
+    label = 'remove very short terms (1 or 2 characters) and plain numbers'
+    checkbox_par(tbl.getparent(), [label],
+                 name='postfilter', value='true', checked='checked')
 
 
 def update_button(id_):
@@ -274,6 +278,17 @@ def update_button(id_):
     return etree.Element('input', type='button', value='...',
                          id='btn-update-{}'.format(id_),
                          disabled='disabled')
+
+
+def checkbox_par(parent, labels, name, value, **kwargs):
+    '''
+    Append a <p> with a labeled checkbox.
+    '''
+    par = se(parent, 'p')
+    atts = dict(type='checkbox', name=name, value=value, **kwargs)
+    se(par, 'input', atts).tail = NBSP + labels[0]
+    for tail in labels[1:]:
+        se(par, 'br').tail = tail
 
 
 def add_resource_labels(doc):
@@ -338,12 +353,14 @@ def job_hash(rsc):
         for path in rec.dump_fns():
             # Update with the timestamps (whole-second precision is enough).
             key.update(str(int(os.path.getmtime(path))).encode('utf8'))
-    # Update with the "skip" flag ("ctd_lookup").
+    # Update with the "skip" flag ("ctd_lookup") and the postfilter flag.
     for flag in rsc.flags:
         key.update(flag.encode('utf8'))
+    if rsc.postfilter:
+        key.update(b'postfilter')
     # Update with any renaming rules.
-    for level in sorted(rsc.mapping or ()):
-        for entry in sorted(rsc.mapping[level].items()):
+    for level in sorted(rsc.params.get('mapping', ())):
+        for entry in sorted(rsc.params['mapping'][level].items()):
             for e in entry:
                 key.update(e.encode('utf8'))
     return base36digest(key.digest())
@@ -479,7 +496,7 @@ def _create_resource(target_fn, rsc):
     '''
     Run the Bio Term Hub resource creation pipeline.
     '''
-    rsc.write_all(target_fn + '.tmp')
+    rsc.write_tsv(target_fn + '.tmp')
     os.rename(target_fn + '.tmp', target_fn)
 
 

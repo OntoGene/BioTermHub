@@ -14,7 +14,7 @@ import csv
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
-from termhub.lib.tools import StatDict, Fields, TSVDialect
+from termhub.lib.tools import StatDict, Fields, TSVDialect, CacheOneIterator
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
@@ -39,22 +39,24 @@ class RecordSetContainer(object):
     '''
     Handler for multiple inputfilter instances.
     '''
-    def __init__(self, resources=(), flags=(), mapping=None, **params):
+    def __init__(self, resources=(), flags=(), postfilter=None, **params):
         '''
         Args:
             resources (sequence): resource name, as found in FILTERS
             flags (sequence): flags for eg. cross-lookup
-            params (kwargs): additional params passed on to the filters.
-                             Each param name must match the corresponding
-                             resource name. The argument must be a dict,
-                             which is unpacked in the filter constructor.
+            params (kwargs): additional params.
+                             Filter-specific params can be specified through
+                             nesting, ie. the key matches a resource name
+                             and the value is a dict, which is unpacked in
+                             the filter constructor.
                              Example for changing the MeSH subtrees:
                                 ... mesh={'tree_types': {'A': 'anatomy'}} ...
         '''
-        self.resources = [(name, FILTERS[name], params.get(name, {}))
+        self.resources = [(name, FILTERS[name], params.pop(name, {}))
                           for name in sorted(resources, key=self._sort_args)]
-        self.mapping = mapping
         self.flags = frozenset(flags)
+        self.postfilter = postfilter
+        self.params = params  # remaining params -- passed on to the filters
 
         self.stats = OrderedDict()
         self.ambig_units = {}
@@ -88,17 +90,18 @@ class RecordSetContainer(object):
         '''
         oidgen = Base36Generator()
         for name, constr, custom_params in self.resources:
-            # Copy the global default params and override them with kwargs.
-            params = dict(oidgen=oidgen, mapping=self.mapping)
-            params.update(kwargs)
+            # Prepare cascaded parameter overriding.
+            params = dict(oidgen=oidgen)
             # Check if a cross-lookup has to be performed for the resource
             # and if so, pass the corresponding lookup set.
             if name in CROSS_DUPLICATES:
                 flag, ref = CROSS_DUPLICATES[name]
                 if flag in self.flags:
                     params['exclude'] = self.cross_lookup[ref]
-            # Add any filter-specific params.
+            # Override with any global, filter-specific, and local params.
+            params.update(self.params)
             params.update(custom_params)
+            params.update(kwargs)
             # Create the filter instance and collect some properties.
             recordset = constr(**params)
             self.stats[name] = recordset.stats
@@ -146,20 +149,44 @@ class RecordSetContainer(object):
 
         self.stats["total"] = total
 
-    def write_all(self, filename, header=True, **kwargs):
+    def write_tsv(self, filename, **kwargs):
         '''
         Concatenate all resources' data into a large TSV file.
         '''
         with open(filename, 'wt', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, dialect=TSVDialect)
-            if header:
-                writer.writerow(Fields._fields)
             writer.writerows(self.iter_rows(**kwargs))
 
     def iter_rows(self, **kwargs):
         '''
         Iterate over all rows of all resources.
         '''
+        # Mix in parameters defined in the constructor.
+        params = dict(self.params, postfilter=self.postfilter)
+        params.update(kwargs)
+        return self._iter_rows(**params)
+
+    def _iter_rows(self, header=True, postfilter=None, **kwargs):
+        if header:
+            yield Fields._fields
+        if postfilter is not None:
+            yield from self._filtered_rows(postfilter, **kwargs)
+        else:
+            yield from self._all_rows(**kwargs)
+
+    def _filtered_rows(self, test, oidgen=None, **kwargs):
+        if oidgen is None:
+            oidgen = CacheOneIterator(Base36Generator())
+        for row in self._all_rows(oidgen=oidgen, **kwargs):
+            if test(row):
+                # Successfully passed the filter.
+                yield row
+            else:
+                # Did not pass.
+                # Rewind the OID counter by one, avoiding gaps.
+                oidgen.rewind()
+
+    def _all_rows(self, **kwargs):
         for recordset, resource in self.iter_resources(**kwargs):
             if self.check_cross_lookup(resource):
                 # Iterate with cross-lookup handling.
