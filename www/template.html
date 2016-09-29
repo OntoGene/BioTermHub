@@ -23,6 +23,21 @@
       }
     }
 
+    // Expand/collapse advanced settings.
+    function toggle_advanced(name) {
+      var d = document.getElementById('div-' + name),
+          b = document.getElementById('btn-' + name);
+      if (d.getAttribute('class') == 'hidden') {
+        // Expand.
+        d.setAttribute('class', 'visible');
+        b.setAttribute('value', '▼');
+      } else {
+        // Collapse.
+        d.setAttribute('class', 'hidden');
+        b.setAttribute('value', '▶');
+      }
+    }
+
 
     // AJAX stuff.
 
@@ -159,44 +174,63 @@
               <table id="tbl-checkboxes"></table>
             </div>
             <hr/>
-            <div id="div-renaming">
+            <label>Renaming</label>
+            <input type="button" id="btn-renaming" onclick="toggle_advanced('renaming');" value="▶"/>
+            <div id="div-renaming" class="hidden">
               <p>Use the following text boxes to change the labeling of resources and entity types.
                 You may use regular expressions (see the examples below).</p>
               <p>You can define multiple pattern-replacement pairs
                 by using corresponding lines in the left/right box.</p>
-              <label>Resources:</label>
-              <table>
-                <tr>
-                  <td>
-                    <textarea rows="3" cols="35" name="resource-std" placeholder="[pattern]"></textarea>
-                  </td>
-                  <td>
-                    <textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></textarea>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Example: MeSH.* → MeSH</td>
-                </tr>
-              </table>
-              <label>Entity types:</label>
-              <table>
-                <tr>
-                  <td>
-                    <textarea rows="3" cols="35" name="entity_type-std" placeholder="[pattern]"></textarea>
-                  </td>
-                  <td>
-                    <textarea rows="3" cols="35" name="entity_type-custom" placeholder="[replacement]"></textarea>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Example: (organism|species) → organism</td>
-                </tr>
-              </table>
+              <div style="float: left; padding-right: .2cm; padding-bottom: .2cm">
+                <label>Resources:</label>
+                <table>
+                  <tr>
+                    <td>
+                      <textarea rows="3" cols="35" name="resource-std" placeholder="[pattern]"></textarea>
+                    </td>
+                    <td>
+                      <textarea rows="3" cols="35" name="resource-custom" placeholder="[replacement]"></textarea>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Example: MeSH.* → MeSH</td>
+                  </tr>
+                </table>
+                <label>Entity types:</label>
+                <table>
+                  <tr>
+                    <td>
+                      <textarea rows="3" cols="35" name="entity_type-std" placeholder="[pattern]"></textarea>
+                    </td>
+                    <td>
+                      <textarea rows="3" cols="35" name="entity_type-custom" placeholder="[replacement]"></textarea>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Example: (organism|species) → organism</td>
+                  </tr>
+                </table>
+              </div>
+              <div style="float: left;">
+                <table>
+                  <tr>
+                    <th>Existing resource labels:</th>
+                    <th>Existing entity-type labels:</th>
+                  </tr>
+                  <tr style="vertical-align: top;">
+                    <td id="td-res-ids"></td>
+                    <td id="td-ent-ids"></td>
+                  </tr>
+                </table>
+              </div>
+              <div style="clear: both"></div>
             </div>
             <hr/>
-            <div>
+            <label>Statistics</label>
+            <input type="button" id="btn-statistics" onclick="toggle_advanced('statistics');" value="▶"/>
+            <div id="div-statistics" class="hidden">
               <p>
-                <label>Send me an e-mail with resource statistics plots:</label>
+                Send me an e-mail with resource statistics plots:
                 <input type="text" name="plot-email" placeholder="user@example.com" /><br/>
                 (The plots are created and sent around midnight CET.)
               </p>
@@ -213,17 +247,6 @@
             </div>
           </form>
         </div>
-        <hr/>
-        <table>
-          <tr>
-            <th>Existing resource labels:</th>
-            <th>Existing entity-type labels:</th>
-          </tr>
-          <tr style="vertical-align: top;">
-            <td id="td-res-ids"></td>
-            <td id="td-ent-ids"></td>
-          </tr>
-        </table>
       </div>
       <div id="div-download-page">
         <center>
