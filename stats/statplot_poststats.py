@@ -19,14 +19,21 @@ from termhub.stats import statistics_termfile
 
 STATSPATH = settings.path_stats
 
+BAR_COLORS = 'red green blue yellow'.split()
+
 
 def main():
+    '''
+    Run as script: process the given term list.
+    '''
     plotstats(sys.argv[1])
 
 
 def plotstats(filename):
-    if not os.path.exists(STATSPATH):
-        os.mkdir(STATSPATH)
+    '''
+    Create an ambiguity/synonymy plot for each resource and entity type.
+    '''
+    os.makedirs(STATSPATH, exist_ok=True)
 
     overall_stats = statistics_termfile.process_file(filename)
     stats = {}
@@ -42,10 +49,17 @@ def plotstats(filename):
                 stats[stat_set][group].term_lw_freq_dist(),
                 stats[stat_set][group].term_lw_nows_freq_dist(),
             )
-            barPlt(freq_dists, group, 'ratio', 'count', group)
+            fn = os.path.join(STATSPATH,
+                              '{}.png'.format(re.sub(r'[\W]+', '_', group)))
+            drawbars(freq_dists, group, 'ratio', 'count', fn)
+    fn = os.path.join(STATSPATH, 'Legend.png')
+    drawlegend(fn)
 
 
-def barPlt(freqdist_list, title, xlab, ylab, group):
+def drawbars(freqdists, title, xlab, ylab, fn):
+    '''
+    Draw a bar plot for a freqency distribution.
+    '''
     # create the x-axis
     fig = plt.figure()
     ax = plt.subplot(111) # we create a variable for the subplot so we can access the axes
@@ -53,9 +67,11 @@ def barPlt(freqdist_list, title, xlab, ylab, group):
     # set the top and right axes to invisible
     # matplotlib calls the axis lines spines
     ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)# turn off ticks where there is no spine
+    ax.spines['right'].set_visible(False)
+    # turn off ticks where there is no spine
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
+
     ax.set_xscale('log', nonposx='clip')
     ax.set_yscale('log', nonposy='clip')
     ax.xaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -67,12 +83,13 @@ def barPlt(freqdist_list, title, xlab, ylab, group):
 
     offset = -0.2
 
-    colors = ('red', 'green', 'blue', 'yellow')
-    for idx, counter in enumerate(freqdist_list):
+    colors = iter(BAR_COLORS)
+    for counter in freqdists:
         key = [key + offset for key in counter]
         value = counter.values()
+        color = next(colors)
         # width argument slims down the bars
-        plt.bar(key, value, color=colors[idx], align='center', width=0.1)
+        plt.bar(key, value, color=color, align='center', width=0.1)
         offset += 0.1
     plt.hold(True)
 
@@ -82,7 +99,23 @@ def barPlt(freqdist_list, title, xlab, ylab, group):
     plt.title(title, fontsize=24)
     ax.autoscale()
 
-    fn = os.path.join(STATSPATH, '{}.png'.format(re.sub(r'[\W]+', '_', group)))
+    plt.savefig(fn, bbox_inches='tight')
+    plt.close(fig)
+
+
+def drawlegend(fn):
+    '''
+    Write the common legend into a separate file.
+    '''
+    fig = plt.figure()
+    rects = [matplotlib.patches.Rectangle((0, 0), 1, 1, color=c)
+             for c in BAR_COLORS]
+    labels = ['terms per ID',
+              'IDs per term',
+              'IDs per lower-cased term',
+              'IDs per lower-cased, punctuation-stripped term']
+    fig.legend(rects, labels, 'center')
+    fig.set_size_inches(3.9, 1.2)
     plt.savefig(fn, bbox_inches='tight')
     plt.close(fig)
 
