@@ -38,7 +38,7 @@ from termhub.update.fetch_remote import RemoteChecker
 LOGFILE = settings.log_file
 DOWNLOADDIR = settings.path_download
 SCRIPT_NAME = os.path.basename(__file__)
-DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/downloads/'
+DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/'
 CGI_URL = './index.py'
 WSGI_URL = '.'
 
