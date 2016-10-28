@@ -65,6 +65,7 @@ class RecordSet(AbstractRecordSet):
             synonyms = set(s.text
                            for t in syn_tags
                            for s in entry.iterfind(t))
+            entry.clear()
             yield id_, pref, synonyms
 
     @staticmethod
