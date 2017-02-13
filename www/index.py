@@ -39,9 +39,7 @@ from termhub.lib.postfilters import RegexFilter
 LOGFILE = settings.log_file
 DOWNLOADDIR = settings.path_download
 SCRIPT_NAME = os.path.basename(__file__)
-DL_URL = 'http://kitt.cl.uzh.ch/kitt/biodb/'
-CGI_URL = './index.py'
-WSGI_URL = '.'
+DL_URL = './downloads/'
 
 
 # Some shorthands.
@@ -62,8 +60,7 @@ def main():
     '''
     fields = cgi.FieldStorage()
 
-    url = CGI_URL
-    output, response_headers = main_handler(fields, url)
+    output, response_headers = main_handler(fields)
 
     # HTTP response.
     for entry in response_headers:
@@ -79,8 +76,7 @@ def application(environ, start_response):
     '''
     fields = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
-    url = WSGI_URL
-    output, response_headers = main_handler(fields, url)
+    output, response_headers = main_handler(fields)
 
     # HTTP response.
     status = '200 OK'
@@ -89,7 +85,7 @@ def application(environ, start_response):
     return [output]
 
 
-def main_handler(fields, self_url):
+def main_handler(fields):
     '''
     Main program logic, used in both WSGI and CGI mode.
     '''
@@ -108,7 +104,7 @@ def main_handler(fields, self_url):
         elif 'update-request' in fields:
             resp = update_request(fields.getfirst('update-request'))
         else:
-            resp = general_request(fields, self_url)
+            resp = general_request(fields)
     except Exception:
         logging.exception('Runtime error.')
         raise
@@ -116,7 +112,7 @@ def main_handler(fields, self_url):
         return resp
 
 
-def general_request(fields, self_url):
+def general_request(fields):
     '''
     Respond to a non-specific or creation request.
     '''
@@ -149,7 +145,7 @@ def general_request(fields, self_url):
         logging.info('Respond with auto-refresh work-around.')
         start_resource_creation(params)
 
-    return build_page(self_url, fields, creation_request, job_id, zipped)
+    return build_page(fields, creation_request, job_id, zipped)
 
 
 def check_request(name):
@@ -179,7 +175,7 @@ def update_request(name):
     return response(p)
 
 
-def build_page(self_url, fields, creation_request, job_id, zipped):
+def build_page(fields, creation_request, job_id, zipped):
     '''
     Complete page needed for initial loading and JS-free creation request.
     '''
@@ -195,7 +191,7 @@ def build_page(self_url, fields, creation_request, job_id, zipped):
         html.find('.//*[@id="div-result"]').append(result)
         if result.text == WAIT_MESSAGE:
             # Add auto-refresh to the page.
-            link = '{}?dlid={}'.format(self_url, job_id)
+            link = '.?dlid={}'.format(job_id)
             if zipped:
                 link += '&zipped=true'
             se(html.find('head'), 'meta',
@@ -203,8 +199,8 @@ def build_page(self_url, fields, creation_request, job_id, zipped):
                 'content': "5; url={}".format(link)})
 
     # Serialise the complete page.
-    html.find('.//a[@id="anchor-title"]').set('href', self_url)
-    html.find('.//a[@id="anchor-reset"]').set('href', self_url)
+    html.find('.//a[@id="anchor-title"]').set('href', '.')
+    html.find('.//a[@id="anchor-reset"]').set('href', '.')
 
     return response(html, xml_declaration=True, doctype='<!doctype html>')
 

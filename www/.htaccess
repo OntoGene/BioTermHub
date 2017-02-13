@@ -1,0 +1,5 @@
+DirectoryIndex index.cgi
+
+AddHandler cgi-script .cgi
+
+Options +ExecCGI
