@@ -5,7 +5,7 @@
 
 
 '''
-Collect Sequence Ontology entries ("so-xp.obo").
+Collect Sequence Ontology entries ("so.obo").
 '''
 
 
@@ -21,6 +21,6 @@ class RecordSet(OboRecordSet):
     resource = 'Sequence Ontology'
     entity_type = 'sequence'
 
-    dump_fn = 'so-xp.obo'
+    dump_fn = 'so.obo'
     remote = ('https://raw.githubusercontent.com/The-Sequence-Ontology/'
-              'SO-Ontologies/master/so-xp.obo')
+              'SO-Ontologies/master/so.obo')
