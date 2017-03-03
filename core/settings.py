@@ -82,12 +82,21 @@ def main():
 
 
 #
+# All data written by the services must be under /mnt/system/ now.
+#
+
+def scratch(*args):
+    'Path relative to /mnt/system/.../scratch/.'
+    scr = '/mnt/system/services/httpd/scratch/ontogene/biotermhub'
+    return os.path.join(scr, *args)
+
+#
 # Downloaded dumps path
 #
 
 # Download directory.
 
-path_dumps = rel('dumps')
+path_dumps = scratch('dumps')
 
 # Do not attempt to update resources if they are younger than min_update_freq.
 
@@ -108,14 +117,15 @@ timeout = 10  # seconds
 
 # Web interface log
 
-log_file = rel('www', 'interface.log')
-path_update_logs = rel('update', 'logs')
+path_log = scratch('log')
+log_file = os.path.join(path_log, 'interface.log')
+path_update_logs = scratch('dumps', 'updates')
 
 # Paths for output, statistics and files related to batch processing
 
-path_download = rel('www', 'downloads')
-path_stats = rel('www', 'stats')
-path_batch = rel('www', 'batch')
+path_download = scratch('downloads')
+path_stats = scratch('stats')
+path_batch = scratch('batch')
 
 # Email credentials.
 

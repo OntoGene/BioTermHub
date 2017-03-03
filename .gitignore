@@ -10,10 +10,10 @@
 !/.gitignore
 !www/.htaccess
 
-www/downloads/
-www/stats/
-www/batch/
+www/downloads
+www/stats
+www/batch
 
 cgi-bin
 
-dumps/
+/dumps
