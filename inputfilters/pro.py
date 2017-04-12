@@ -5,7 +5,7 @@
 
 
 '''
-Collect Protein Ontology entries ("pro.obo").
+Collect Protein Ontology entries ("pro_nonreasoned.obo").
 '''
 
 
@@ -21,7 +21,8 @@ class RecordSet(OboRecordSet):
     resource = 'Protein Ontology'
     entity_type = 'gene/protein'
 
-    dump_fn = 'pro.obo'
-    remote = 'ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/pro.obo'
+    dump_fn = 'pro_nonreasoned.obo'
+    remote = ('ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/'
+              'pro_nonreasoned.obo')
 
     # TODO: maybe exclude entries with namespace != 'gene'
