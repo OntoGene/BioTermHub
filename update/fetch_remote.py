@@ -47,9 +47,12 @@ def fetch(which=FILTERS.keys()):
     for name in which:
         remote = RemoteChecker(name)
         if remote.sufficiently_recent():
-            continue
-        if remote.has_changed():
+            logging.info('Skipping %s (recent update)', name)
+        elif remote.has_changed():
+            logging.info('Updating %s ...', name)
             remote.update()
+        else:
+            logging.info('No change for %s', name)
 
 
 class RemoteChecker(object):
