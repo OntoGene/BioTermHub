@@ -10,33 +10,97 @@ Filters for suppressing certain output rows.
 
 
 import re
+import csv
+import gzip
 
-from termhub.lib.tools import Fields
-
-
-__all__ = ('RegexFilter', 'THREEALNUM_ONEALPH')
-
-
-# Predefined RegExes.
-alph = r'[^\W\d_]'
-alnum = r'[^\W_]'
-num = r'\d'
-
-# At least three alpha-numerical characters and at least one alphabetical.
-THREEALNUM_ONEALPH = '|'.join(r'{}.*?{}.*?{}'.format(*x)
-                              for x in ((alph, alnum, alnum),
-                                        (num, alph, alnum),
-                                        (num, num, alph)))
+from termhub.core import settings
+from termhub.lib.tools import Fields, TSVDialect
 
 
-class RegexFilter(object):
+__all__ = ('RegexFilter', 'CommonWordFilter', 'EntrezGeneFilter')
+
+
+class _BaseFilter:
+    def test(self, row):
+        '''
+        Does this row pass the filter?
+        '''
+        raise NotImplementedError
+
+
+class RegexFilter(_BaseFilter):
     '''
     Only allow terms that match a given regular expression.
     '''
-    def __init__(self, pattern=THREEALNUM_ONEALPH, field='term'):
+
+    # Predefined RegExes.
+    _alph = r'[^\W\d_]'
+    _alnum = r'[^\W_]'
+    _num = r'\d'
+
+    # At least three alpha-numerical characters and at least one alphabetical.
+    THREEALNUM_ONEALPH = '|'.join(r'{}.*?{}.*?{}'.format(*x)
+                                  for x in ((_alph, _alnum, _alnum),
+                                            (_num, _alph, _alnum),
+                                            (_num, _num, _alph)))
+
+    def __init__(self, pattern=None, field='term'):
+        if pattern is None:
+            pattern = self.THREEALNUM_ONEALPH
+
         self.pattern = re.compile(pattern)
         self.field = Fields._fields.index(field)
 
     def test(self, row):
-        'Does this row pass the filter?'
         return bool(self.pattern.search(row[self.field]))
+
+
+class EntrezGeneFilter(_BaseFilter):
+    '''
+    Remove hopeless general-vocaulary terms from EntrezGene records.
+    '''
+    undesired = frozenset(
+        '''act
+           and
+           all
+           but
+           camp
+           can
+           cap
+           cell
+           chip
+           damage
+           early
+           end
+           for
+           had
+           has
+           large
+           light
+           not
+           ray
+           rat
+           the
+           type
+           via
+           was
+           with'''.split())
+
+    def test(self, row):
+        if row.resource == 'EntrezGene' and row.term.lower() in self.undesired:
+            return False
+        return True
+
+
+class CommonWordFilter(_BaseFilter):
+    '''
+    Remove frequent words based on Google n-grams.
+    '''
+    def __init__(self, threshold=1e-4):
+        with gzip.open(settings.gen_voc_db_file, 'rt', encoding='utf8') as f:
+            rows = csv.reader(f, dialect=TSVDialect)
+            self.frequent = frozenset(ngram for ngram, _, freq in rows
+                                      if float(freq) >= threshold)
+
+    def test(self, row):
+        return row.term not in self.frequent

@@ -90,6 +90,7 @@ def scratch(*args):
     scr = '/mnt/system/services/httpd/scratch/ontogene/biotermhub'
     return os.path.join(scr, *args)
 
+
 #
 # Downloaded dumps path
 #
@@ -109,6 +110,16 @@ min_check_freq = 4*60*60  # 4 hours
 # Client-side timeout when downloading resource dumps.
 
 timeout = 10  # seconds
+
+
+#
+# Google-books n-grams for the common-words postfilter
+#
+
+gen_voc_year_threshold = 1990
+gen_voc_occ_threshold = 1e-7
+gen_voc_db_file = scratch(
+    'dumps', 'googlebooks-1grams-f-{}.tsv.gz'.format(gen_voc_occ_threshold))
 
 
 #
