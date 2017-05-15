@@ -34,9 +34,14 @@ def main():
         'resources', nargs='*', choices=sorted(FILTERS)+['all'],
         metavar='resource', default='all',
         help='any subset of: %(choices)s')
+    ap.add_argument(
+        '-q', '--quiet', action='store_true',
+        help='no progress info')
     args = ap.parse_args()
     if 'all' in args.resources:
         args.resources = sorted(FILTERS)
+    logging.basicConfig(format='%(asctime)s: %(message)s',
+                        level=logging.WARNING if args.quiet else logging.INFO)
     fetch(args.resources)
 
 
