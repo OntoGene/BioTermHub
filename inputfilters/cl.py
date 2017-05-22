@@ -23,5 +23,6 @@ class RecordSet(OboRecordSet):
 
     dump_fn = 'cl.obo'
     remote = 'http://purl.obolibrary.org/obo/cl.obo'
+    source_ref = 'http://obofoundry.org/ontology/cl.html'
 
     # TODO: maybe exclude entries with namespace != 'cell'

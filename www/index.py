@@ -254,6 +254,7 @@ def populate_checkboxes(doc, resources):
             last_modified = 'unknown'
         row = se(tbl, 'tr')
         se(se(se(row, 'td'), 'p'), 'input', atts).tail = NBSP + label
+        se(row, 'td').append(source_link(remote.resource.source_ref))
         se(se(se(row, 'td'), 'div', id='div-update-{}'.format(remote.name)),
            'p').text = last_modified
         se(row, 'td').append(update_button(remote.name))
@@ -265,6 +266,15 @@ def populate_checkboxes(doc, resources):
     label = 'remove very short terms (1 or 2 characters) and plain numbers'
     checkbox_par(tbl.getparent(), [label],
                  name='postfilter', value='true', checked='checked')
+
+
+def source_link(href):
+    '''
+    Create a link to a source's reference website.
+    '''
+    p = etree.XML('<p>(→ <a>source</a>)</p>')
+    p[0].set('href', href)
+    return p
 
 
 def update_button(id_):

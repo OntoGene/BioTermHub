@@ -59,6 +59,7 @@ class RecordSet(AbstractRecordSet):
     dump_fn = ('desc.xml', 'supp.xml')
     remote = tuple('ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/{}{}.gz'
                    .format(level, YEAR) for level in ('desc', 'supp'))
+    source_ref = 'https://www.nlm.nih.gov/pubs/factsheets/mesh.html'
 
     tree_type_defaults = {
         'B': 'organism',  # maybe "species" would be more consistent?

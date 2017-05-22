@@ -25,6 +25,8 @@ class RecordSet(AbstractRecordSet):
     resource = None  # varying values
     entity_type = None  # fixed value in subclasses
 
+    source_ref = 'http://ctdbase.org/'
+
     _resource_names = {
         'MESH': 'CTD (MESH)',
         'OMIM': 'CTD (OMIM)',

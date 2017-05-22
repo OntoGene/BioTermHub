@@ -24,6 +24,7 @@ class RecordSet(OboRecordSet):
 
     dump_fn = 'go.obo'
     remote = 'http://purl.obolibrary.org/obo/go.obo'
+    source_ref = 'http://geneontology.org/'
 
     entity_type_defaults = ('biological_process',
                             'cellular_component',

@@ -27,6 +27,7 @@ class RecordSet(AbstractRecordSet):
     dump_fn = 'uniprot_sprot.xml'
     remote = ('ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/'
               'knowledgebase/complete/uniprot_sprot.xml.gz')
+    source_ref = 'http://web.expasy.org/docs/swiss-prot_guideline.html'
 
     def __iter__(self):
         '''

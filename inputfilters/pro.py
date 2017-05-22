@@ -24,5 +24,6 @@ class RecordSet(OboRecordSet):
     dump_fn = 'pro_nonreasoned.obo'
     remote = ('ftp://ftp.pir.georgetown.edu/databases/ontology/pro_obo/'
               'pro_nonreasoned.obo')
+    source_ref = 'http://pir20.georgetown.edu/pro/'
 
     # TODO: maybe exclude entries with namespace != 'gene'

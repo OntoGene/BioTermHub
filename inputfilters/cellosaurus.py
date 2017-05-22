@@ -26,6 +26,7 @@ class RecordSet(AbstractRecordSet):
 
     dump_fn = 'cellosaurus.txt'
     remote = 'ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt'
+    source_ref = 'http://web.expasy.org/cellosaurus/'
 
     def __iter__(self):
         '''

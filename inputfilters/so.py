@@ -24,3 +24,4 @@ class RecordSet(OboRecordSet):
     dump_fn = 'so.obo'
     remote = ('https://raw.githubusercontent.com/The-Sequence-Ontology/'
               'SO-Ontologies/master/so.obo')
+    source_ref = 'http://www.sequenceontology.org/'

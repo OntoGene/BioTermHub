@@ -27,6 +27,7 @@ class RecordSet(AbstractRecordSet):
 
     dump_fn = ('names.dmp', 'nodes.dmp')
     remote = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
+    source_ref = 'https://www.ncbi.nlm.nih.gov/taxonomy'
 
     def __init__(self, ranks='species', **kwargs):
         '''

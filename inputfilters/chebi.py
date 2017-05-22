@@ -25,6 +25,7 @@ class RecordSet(OboRecordSet):
 
     dump_fn = 'chebi.obo'
     remote = 'ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo'
+    source_ref = 'https://www.ebi.ac.uk/chebi/'
 
     # TODO: switch to the database dumps, where language info is available.
     # -> compounds.tsv.gz and names.tsv.gz at

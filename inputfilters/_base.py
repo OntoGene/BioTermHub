@@ -28,6 +28,7 @@ class AbstractRecordSet(object):
 
     dump_fn = None
     remote = None
+    source_ref = None
 
     def __init__(self, fn=None, oidgen=None, mapping=None, collect_stats=False):
         self.fn = self._resolve_dump_fns(fn)

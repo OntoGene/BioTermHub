@@ -27,6 +27,7 @@ class RecordSet(AbstractRecordSet):
 
     dump_fn = 'gene_info.trunc'
     remote = 'ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz'
+    source_ref = 'https://www.ncbi.nlm.nih.gov/gene/'
 
     def __iter__(self):
         '''
