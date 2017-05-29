@@ -26,4 +26,18 @@ class RecordSet(OboRecordSet):
               'pro_nonreasoned.obo')
     source_ref = 'http://pir20.georgetown.edu/pro/'
 
-    # TODO: maybe exclude entries with namespace != 'gene'
+    def _iter_stanzas(self):
+        '''
+        Wrap the superclass method for excluding non-gene records.
+        '''
+        for concept in super()._iter_stanzas():
+            if concept['id'].startswith('PR:'):
+                # This is the bulk of the data.
+                # For some reason, PR stanzas don't have a namespace.
+                yield concept
+            elif concept['id'].startswith('NCBIGene:'):
+                # Skip Entrez Gene -- we provide it separately already.
+                continue
+            elif concept['entity_type'] == 'gene':
+                # Include all other genes.
+                yield concept

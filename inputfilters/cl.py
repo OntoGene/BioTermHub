@@ -25,4 +25,10 @@ class RecordSet(OboRecordSet):
     remote = 'http://purl.obolibrary.org/obo/cl.obo'
     source_ref = 'http://obofoundry.org/ontology/cl.html'
 
-    # TODO: maybe exclude entries with namespace != 'cell'
+    def _iter_stanzas(self):
+        '''
+        Wrap the superclass method for excluding non-cell records.
+        '''
+        for concept in super()._iter_stanzas():
+            if concept['id'].startswith('CL:'):
+                yield concept
