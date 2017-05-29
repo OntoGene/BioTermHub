@@ -17,7 +17,6 @@ class RecordSet(OboRecordSet):
     Record collector for Gene Ontology.
     '''
 
-    ambig_unit = "terms"
     resource = 'Gene Ontology'
     entity_type = None  # Not a fixed field.
 

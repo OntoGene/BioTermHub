@@ -22,7 +22,6 @@ class AbstractRecordSet(object):
     Record collector abstract base.
     '''
 
-    ambig_unit = None
     resource = None
     entity_type = None
 

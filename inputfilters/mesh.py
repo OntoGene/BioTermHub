@@ -52,7 +52,6 @@ class RecordSet(AbstractRecordSet):
     Record collector for MeSH.
     '''
 
-    ambig_unit = "terms"
     resource = None  # Not a fixed field.
     entity_type = None  # Not a fixed field.
 

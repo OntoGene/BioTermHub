@@ -20,7 +20,6 @@ class RecordSet(AbstractRecordSet):
     Record collector for Cellosaurus.
     '''
 
-    ambig_unit = "terms"
     resource = 'Cellosaurus'
     entity_type = 'cell_line'
 

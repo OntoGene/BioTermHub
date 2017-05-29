@@ -21,7 +21,6 @@ class RecordSet(AbstractRecordSet):
     Record collector for NCBI Taxonomy dumps.
     '''
 
-    ambig_unit = "terms"
     resource = 'NCBI Taxonomy'
     entity_type = 'organism'
 

@@ -59,7 +59,6 @@ class RecordSetContainer(object):
         self.params = params  # remaining params -- passed on to the filters
 
         self.stats = OrderedDict()
-        self.ambig_units = {}
         self.cross_lookup = defaultdict(set)
 
     @staticmethod
@@ -105,7 +104,6 @@ class RecordSetContainer(object):
             # Create the filter instance and collect some properties.
             recordset = constr(**params)
             self.stats[name] = recordset.stats
-            self.ambig_units[name] = recordset.ambig_unit
             yield recordset, name
 
     def calcstats(self):
@@ -115,23 +113,14 @@ class RecordSetContainer(object):
         total = StatDict()
         total["ratios"]["terms/id"] = Counter()
         total["ratios"]["ids/term"] = Counter()
-        for recordset, stats in self.stats.items():
+        for stats in self.stats.values():
 
-            if self.ambig_units[recordset] == "terms":
-                try:
-                    stats['avg. terms/id'] = stats["terms"]/stats["ids"]
-                except ZeroDivisionError:
-                    stats['avg. terms/id'] = 0
+            try:
+                stats['avg. terms/id'] = stats["terms"]/stats["ids"]
+            except ZeroDivisionError:
+                stats['avg. terms/id'] = 0
 
-                total["ratios"]["terms/id"] += stats["ratios"]
-
-            elif self.ambig_units[recordset] == "ids":
-                try:
-                    stats['avg. ids/term'] = stats["ids"]/stats["terms"]
-                except ZeroDivisionError:
-                    stats['avg. ids/term'] = 0
-
-                total["ratios"]["ids/term"] += stats["ratios"]
+            total["ratios"]["terms/id"] += stats["ratios"]
 
             total["terms"] += stats["terms"]
             total["ids"] += stats["ids"]

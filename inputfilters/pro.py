@@ -17,7 +17,6 @@ class RecordSet(OboRecordSet):
     Record collector for Protein Ontology.
     '''
 
-    ambig_unit = "terms"
     resource = 'Protein Ontology'
     entity_type = 'gene/protein'
 

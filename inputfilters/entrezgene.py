@@ -21,7 +21,6 @@ class RecordSet(AbstractRecordSet):
     Record collector for EntrezGene dumps.
     '''
 
-    ambig_unit = "terms"
     resource = 'EntrezGene'
     entity_type = 'gene/protein'
 

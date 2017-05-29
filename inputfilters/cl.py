@@ -17,7 +17,6 @@ class RecordSet(OboRecordSet):
     Record collector for Cell Ontology.
     '''
 
-    ambig_unit = "terms"
     resource = 'Cell Ontology'
     entity_type = 'cell'
 

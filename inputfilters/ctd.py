@@ -22,7 +22,6 @@ class RecordSet(AbstractRecordSet):
     Abstract record collector for CTD.
     '''
 
-    ambig_unit = "terms"
     resource = None  # varying values
     entity_type = None  # fixed value in subclasses
 

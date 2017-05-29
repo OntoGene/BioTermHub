@@ -17,7 +17,6 @@ class RecordSet(OboRecordSet):
     Record collector for Sequence Ontology.
     '''
 
-    ambig_unit = "terms"
     resource = 'Sequence Ontology'
     entity_type = 'sequence'
 

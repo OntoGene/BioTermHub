@@ -19,7 +19,6 @@ class RecordSet(OboRecordSet):
     Record collector for ChEBI.
     '''
 
-    ambig_unit = "terms"
     resource = 'ChEBI'
     entity_type = 'chemical'
 

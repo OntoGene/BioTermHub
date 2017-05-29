@@ -20,7 +20,6 @@ class RecordSet(AbstractRecordSet):
     Record collector for UniProt.
     '''
 
-    ambig_unit = "terms"
     resource = 'Swiss-Prot'
     entity_type = 'gene/protein'
 
