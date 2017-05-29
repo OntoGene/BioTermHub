@@ -32,13 +32,15 @@ class OboRecordSet(AbstractRecordSet):
             if self.collect_stats:
                 self.update_stats(len(terms))
 
+            entity_type = self._get_entity_type(concept)
+
             for term in terms:
                 entry = Fields(oid,
                                self.resource,
                                concept['id'],
                                term,
                                concept['pref'],
-                               self.entity_type)
+                               entity_type)
                 yield entry
 
     def _iter_stanzas(self):
@@ -90,6 +92,12 @@ class OboRecordSet(AbstractRecordSet):
     @classmethod
     def _relevant_synonym(cls, syntype):
         '''
-        Select synonym type.
+        Subclass hook for filtering by synonym type.
         '''
         return True
+
+    def _get_entity_type(self, concept):
+        '''
+        Subclass hook for configuring the entity type.
+        '''
+        return self.entity_type

@@ -10,7 +10,6 @@ Collect Gene Ontology entries ("go.obo").
 
 
 from termhub.inputfilters._obo import OboRecordSet
-from termhub.lib.tools import Fields
 
 
 class RecordSet(OboRecordSet):
@@ -42,29 +41,11 @@ class RecordSet(OboRecordSet):
             name: self.mapping(mapping, 'entity_type', name)
             for name in self._entity_types}
 
-    def __iter__(self):
+    def _get_entity_type(self, concept):
         '''
-        Iterate over term entries (1 per synonym).
+        Perform eventual entity type renaming.
         '''
-        for concept in self._iter_stanzas():
-            oid = next(self.oidgen)
-
-            terms = concept['synonyms']
-            terms.add(concept['pref'])
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
-            entity_type = self._entity_type_mapping[concept['entity_type']]
-
-            for term in terms:
-                entry = Fields(oid,
-                               self.resource,
-                               concept['id'],
-                               term,
-                               concept['pref'],
-                               entity_type)
-                yield entry
+        return self._entity_type_mapping[concept['entity_type']]
 
     @classmethod
     def entity_type_names(cls):

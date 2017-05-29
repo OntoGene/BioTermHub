@@ -61,4 +61,3 @@ class Base36Generator(object):
     @staticmethod
     def _format(digits):
         return ''.join(reversed(digits))
-

@@ -11,6 +11,7 @@ Collect CTD chemicals and diseases
 
 
 import csv
+import itertools as it
 
 from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
@@ -85,12 +86,8 @@ class RecordSet(AbstractRecordSet):
         Iterate over the lines following the header lines.
         '''
         with open(self.fn, encoding='utf-8', newline='') as f:
-            for line in f:
-                # Skip initial lines until one without leading "#" is found.
-                if not line.startswith('#'):
-                    yield line
-                    break
-            yield from f
+            # Skip initial lines until one without leading "#" is found.
+            yield from it.dropwhile(lambda line: line.startswith('#'), f)
 
     @classmethod
     def resource_names(cls):
