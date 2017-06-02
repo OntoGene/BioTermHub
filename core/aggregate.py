@@ -14,7 +14,7 @@ import csv
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
-from termhub.lib.tools import StatDict, Fields, TSVDialect, CacheOneIterator
+from termhub.lib.tools import StatDict, Fields, TSVDialect
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
@@ -158,22 +158,10 @@ class RecordSetContainer(object):
     def _iter_rows(self, header=True, postfilter=None, **kwargs):
         if header:
             yield Fields._fields
+        rows = self._all_rows(**kwargs)
         if postfilter is not None:
-            yield from self._filtered_rows(postfilter, **kwargs)
-        else:
-            yield from self._all_rows(**kwargs)
-
-    def _filtered_rows(self, test, oidgen=None, **kwargs):
-        if oidgen is None:
-            oidgen = CacheOneIterator(Base36Generator())
-        for row in self._all_rows(oidgen=oidgen, **kwargs):
-            if test(row):
-                # Successfully passed the filter.
-                yield row
-            else:
-                # Did not pass.
-                # Rewind the OID counter by one, avoiding gaps.
-                oidgen.rewind()
+            rows = filter(postfilter, rows)
+        yield from rows
 
     def _all_rows(self, **kwargs):
         for recordset, resource in self.iter_resources(**kwargs):

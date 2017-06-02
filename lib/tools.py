@@ -31,28 +31,6 @@ class TSVDialect(csv.Dialect):
     strict = False
 
 
-class CacheOneIterator(object):
-    'Iterator rewindable by one step.'
-    def __init__(self, iterable):
-        self.iterable = iter(iterable)
-        self.proceed = True
-        self.current = None
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.proceed:
-            self.current = next(self.iterable)
-        else:
-            self.proceed = True
-        return self.current
-
-    def rewind(self):
-        'On the subsequent call to next(), yield the last item again.'
-        self.proceed = False
-
-
 class DefaultOrderedDict(OrderedDict):
     # Source: http://stackoverflow.com/a/6190500/562769
     def __init__(self, default_factory=None, *a, **kw):
