@@ -5,10 +5,11 @@
 
 
 '''
-Collect MeSH descriptions and supplements ("desc.xml", "supp.xml").
+Collect MeSH descriptions and supplements ("mesh-{desc,supp}.json.pile").
 '''
 
 
+import json
 from collections import namedtuple
 from datetime import datetime
 
@@ -55,13 +56,13 @@ class RecordSet(AbstractRecordSet):
     resource = None  # Not a fixed field.
     entity_type = None  # Not a fixed field.
 
-    dump_fn = ('desc.xml', 'supp.xml')
+    dump_fn = ('mesh-desc.json.pile', 'mesh-supp.json.pile')
     remote = tuple('ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/{}{}.gz'
                    .format(level, YEAR) for level in ('desc', 'supp'))
     source_ref = 'https://www.nlm.nih.gov/pubs/factsheets/mesh.html'
 
     tree_type_defaults = {
-        'B': 'organism',  # maybe "species" would be more consistent?
+        'B': 'organism',
         'C': 'disease',
         'D': 'chemical',
     }
@@ -109,8 +110,9 @@ class RecordSet(AbstractRecordSet):
         '''
         ref_trees = {}
         for entry in self._iter_desc():
-            ref_trees[entry.id] = entry.trees
-            for tree in entry.trees.intersection(self._tree_types):
+            trees = set(entry.trees)
+            ref_trees[entry.id] = trees
+            for tree in trees.intersection(self._tree_types):
                 resource = self._desc_names[tree]
                 yield entry, tree, resource
         for entry in self._iter_supp():
@@ -123,7 +125,30 @@ class RecordSet(AbstractRecordSet):
         '''
         Iterate over DescriptorRecord entries.
         '''
-        for _, record in etree.iterparse(self.fn[0], tag='DescriptorRecord'):
+        return self._get_json_pile(self.fn[0], DescEntry)
+
+    def _iter_supp(self):
+        '''
+        Iterate over SupplementalRecord entries.
+        '''
+        return self._get_json_pile(self.fn[1], SuppEntry)
+
+    @staticmethod
+    def _get_json_pile(fn, container):
+        '''
+        JSON pile: text file with one JSON fragment per line.
+        '''
+        with open(fn, encoding='ascii') as f:
+            for line in f:
+                entry = container(*json.loads(line))
+                yield entry
+
+    @classmethod
+    def _prep_desc(cls, stream):
+        '''
+        Preprocess DescriptorRecord entries and save them in a JSON pile.
+        '''
+        for _, record in etree.iterparse(stream, tag='DescriptorRecord'):
             # DescriptorName/String seems to be always the same as
             # .//Term[@RecordPreferredTermYN="Y"]/String,
             # so it's probably safe to use either as preferred term.
@@ -132,29 +157,30 @@ class RecordSet(AbstractRecordSet):
             # .//ConceptName/String to the terms set,
             # as these are all included in the .//Term/String nodes.
 
-            entry = DescEntry(
+            line = json.dumps((
                 record.find('DescriptorUI').text,
                 record.find('DescriptorName/String').text,
-                set(n.text for n in record.iterfind('.//Term/String')),
-                set(n.text[0] for n in record.iterfind('.//TreeNumber')),
-            )
+                tuple(set(n.text for n in record.iterfind('.//Term/String'))),
+                [n.text[0] for n in record.iterfind('.//TreeNumber')],
+            )) + '\n'
             record.clear()
-            yield entry
+            yield line.encode('ascii')
 
-    def _iter_supp(self):
+    @classmethod
+    def _prep_supp(cls, stream):
         '''
-        Iterate over SupplementalRecord entries.
+        Preprocess SupplementalRecord entries and save them in a JSON pile.
         '''
-        for _, record in etree.iterparse(self.fn[1], tag='SupplementalRecord'):
-            entry = SuppEntry(
+        for _, record in etree.iterparse(stream, tag='SupplementalRecord'):
+            line = json.dumps((
                 record.find('SupplementalRecordUI').text,
                 record.find('SupplementalRecordName/String').text,
-                set(n.text for n in record.iterfind('.//Term/String')),
-                set(n.text.lstrip('*') # What does the * mean in ref IDs?
-                    for n in record.iterfind('.//DescriptorUI')),
-            )
+                tuple(set(n.text for n in record.iterfind('.//Term/String'))),
+                [n.text.lstrip('*') # What does the * mean in ref IDs?
+                 for n in record.iterfind('.//DescriptorUI')],
+            )) + '\n'
             record.clear()
-            yield entry
+            yield line.encode('ascii')
 
     @classmethod
     def dump_label(cls):
@@ -162,7 +188,8 @@ class RecordSet(AbstractRecordSet):
 
     @classmethod
     def update_info(cls):
-        return [(r, 'gz', fn) for r, fn in zip(cls.remote, cls.dump_fn)]
+        steps = zip(cls.remote, (cls._prep_desc, cls._prep_supp), cls.dump_fn)
+        return [(r, 'gz', prep, fn) for r, prep, fn in steps]
 
     @classmethod
     def resource_names(cls, trees=None):
