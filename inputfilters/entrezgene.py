@@ -10,7 +10,6 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 
 
 import io
-import csv
 
 from termhub.inputfilters._base import AbstractRecordSet
 from termhub.lib.tools import Fields
@@ -32,12 +31,8 @@ class RecordSet(AbstractRecordSet):
         '''
         Iterate over term entries (1 per synonym).
         '''
-        for id_, pref, synonyms in self._iter_concepts():
-
+        for id_, pref, terms in self._iter_concepts():
             oid = next(self.oidgen)
-
-            terms = set(synonyms)
-            terms.add(pref)
 
             if self.collect_stats:
                 self.update_stats(len(terms))
@@ -55,14 +50,10 @@ class RecordSet(AbstractRecordSet):
         '''
         Parse the truncated TSV.
         '''
-        with open(self.fn, encoding='utf-8', newline='') as f:
-            reader = csv.reader(f, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
-            for id_, symbol, synonyms in reader:
-                if synonyms == '-':
-                    synonyms = []
-                else:
-                    synonyms = synonyms.split('|')
-                yield id_, symbol, synonyms
+        with open(self.fn, encoding='utf-8') as f:
+            for line in f:
+                id_, pref, *terms = line.rstrip('\n').split('\t')
+                yield id_, pref, terms
 
     @classmethod
     def update_info(cls):
@@ -76,7 +67,10 @@ class RecordSet(AbstractRecordSet):
         lines = io.TextIOWrapper(stream, encoding='utf-8')
         next(lines)  # Throw away the header line.
         for line in lines:
-            fields = line.split('\t', 5)
-            if fields[2] != 'NEWENTRY':  # placeholders for future addition?
-                line = '\t'.join((fields[1], fields[2], fields[4])) + '\n'
+            _, id_, symbol, _, synonyms, _ = line.split('\t', 5)
+            if symbol != 'NEWENTRY':  # placeholders for future addition?
+                terms = set((symbol,))
+                if synonyms != '-':
+                    terms.update(synonyms.split('|'))
+                line = '{}\t{}\t{}\n'.format(id_, symbol, '\t'.join(terms))
                 yield line.encode('utf-8')
