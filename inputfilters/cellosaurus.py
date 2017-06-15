@@ -11,11 +11,10 @@ Collect Cellosaurus entries ("cellosaurus.txt").
 
 import re
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
-class RecordSet(AbstractRecordSet):
+class RecordSet(IterConceptRecordSet):
     '''
     Record collector for Cellosaurus.
     '''
@@ -27,28 +26,6 @@ class RecordSet(AbstractRecordSet):
     remote = 'ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt'
     source_ref = 'http://web.expasy.org/cellosaurus/'
 
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
-        for id_, pref, synonyms in self._iter_concepts():
-            oid = next(self.oidgen)
-
-            terms = set(synonyms)
-            terms.add(pref)
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
-            for term in terms:
-                entry = Fields(oid,
-                               self.resource,
-                               id_,
-                               term,
-                               pref,
-                               self.entity_type)
-                yield entry
-
     def _iter_concepts(self):
         '''
         Extract the relevant information from Cellosaurus.
@@ -56,10 +33,12 @@ class RecordSet(AbstractRecordSet):
         synonym_sep = re.compile(r'\s*;\s*')
 
         for stanza in self._iter_stanzas():
-            synonyms = stanza.get('SY', [])
-            if synonyms:
-                synonyms = synonym_sep.split(synonyms)
-            yield stanza['AC'], stanza['ID'], synonyms
+            id_ = stanza['AC']   # accession number
+            pref = stanza['ID']  # unstable identifier
+            terms = set((pref,))
+            if 'SY' in stanza:   # synonyms
+                terms.update(synonym_sep.split(stanza['SY']))
+            yield id_, pref, terms
 
     def _iter_stanzas(self):
         '''

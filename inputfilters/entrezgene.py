@@ -11,11 +11,10 @@ Parse NCBI's EntrezGene dump ("gene_info.trunc").
 
 import io
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
-class RecordSet(AbstractRecordSet):
+class RecordSet(IterConceptRecordSet):
     '''
     Record collector for EntrezGene dumps.
     '''
@@ -26,34 +25,6 @@ class RecordSet(AbstractRecordSet):
     dump_fn = 'gene_info.trunc'
     remote = 'ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz'
     source_ref = 'https://www.ncbi.nlm.nih.gov/gene/'
-
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
-        for id_, pref, terms in self._iter_concepts():
-            oid = next(self.oidgen)
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
-            for term in terms:
-                entry = Fields(oid,
-                               self.resource,
-                               id_,
-                               term,
-                               pref,
-                               self.entity_type)
-                yield entry
-
-    def _iter_concepts(self):
-        '''
-        Parse the truncated TSV.
-        '''
-        with open(self.fn, encoding='utf-8') as f:
-            for line in f:
-                id_, pref, *terms = line.rstrip('\n').split('\t')
-                yield id_, pref, terms
 
     @classmethod
     def update_info(cls):

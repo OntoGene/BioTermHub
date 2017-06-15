@@ -11,11 +11,10 @@ Collect UniProt proteins ("uniprot_sprot.xml").
 
 from lxml import etree
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
-class RecordSet(AbstractRecordSet):
+class RecordSet(IterConceptRecordSet):
     '''
     Record collector for UniProt.
     '''
@@ -27,34 +26,6 @@ class RecordSet(AbstractRecordSet):
     remote = ('ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/'
               'knowledgebase/complete/uniprot_sprot.xml.gz')
     source_ref = 'http://web.expasy.org/docs/swiss-prot_guideline.html'
-
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
-        for id_, pref, terms in self._iter_concepts():
-            oid = next(self.oidgen)
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
-            for term in terms:
-                entry = Fields(oid,
-                               self.resource,
-                               id_,
-                               term,
-                               pref,
-                               self.entity_type)
-                yield entry
-
-    def _iter_concepts(self):
-        '''
-        Get the pre-extracted information from TSV.
-        '''
-        with open(self.fn, encoding='utf-8') as f:
-            for line in f:
-                id_, pref, *terms = line.rstrip('\n').split('\t')
-                yield id_, pref, terms
 
     @classmethod
     def preprocess(cls, stream):

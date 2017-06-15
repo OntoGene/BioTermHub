@@ -5,7 +5,7 @@
 
 
 '''
-Abstract base class for RecordSet.
+Base classes for the RecordSet subclasses.
 '''
 
 
@@ -14,7 +14,7 @@ import re
 
 from termhub.core import settings
 from termhub.lib.base36gen import Base36Generator
-from termhub.lib.tools import StatDict
+from termhub.lib.tools import StatDict, Fields
 
 
 class AbstractRecordSet(object):
@@ -137,3 +137,37 @@ class AbstractRecordSet(object):
         except AttributeError:
             # fn is a tuple/list/...
             return tuple(os.path.join(directory, n) for n in fn)
+
+
+class IterConceptRecordSet(AbstractRecordSet):
+    '''
+    Base class for RecordSet subclasses with a canonical _iter_concepts method.
+    '''
+
+    def __iter__(self):
+        '''
+        Iterate over term entries (1 per synonym).
+        '''
+        for id_, pref, terms in self._iter_concepts():
+            oid = next(self.oidgen)
+
+            if self.collect_stats:
+                self.update_stats(len(terms))
+
+            for term in terms:
+                entry = Fields(oid,
+                               self.resource,
+                               id_,
+                               term,
+                               pref,
+                               self.entity_type)
+                yield entry
+
+    def _iter_concepts(self):
+        '''
+        Iterate over ID/pref/terms triples.
+        '''
+        with open(self.fn, encoding='utf-8') as f:
+            for line in f:
+                id_, pref, *terms = line.rstrip('\n').split('\t')
+                yield id_, pref, terms
