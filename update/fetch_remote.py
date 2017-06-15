@@ -172,11 +172,12 @@ class RemoteChecker(object):
             time.sleep(next(interval))
         logging.warning('Concurrent update has ended.')
 
-    def _download(self, address, steps):
+    @staticmethod
+    def _download(address, steps):
         try:
             r = urllib.request.urlopen(address, timeout=settings.timeout)
             size = int(r.headers.get('content-length'))
-            self._pipe(r, *steps)
+            Pipeline.run(r, *steps)
         except Exception:
             logging.exception('Download failed')
             raise
@@ -184,7 +185,20 @@ class RemoteChecker(object):
             r.close()
         return size
 
-    def _pipe(self, stream, nextstep, *remaining):
+
+class Pipeline:
+    '''
+    Pull-pipeline for filtering a stream.
+    '''
+    @classmethod
+    def run(cls, *steps):
+        '''
+        Start the pipeline.
+        '''
+        cls._pipe(*steps)
+
+    @classmethod
+    def _pipe(cls, stream, nextstep, *remaining):
         '''
         Control a processing pipeline mechanism.
         '''
@@ -192,10 +206,10 @@ class RemoteChecker(object):
             # More steps to come. Continue piping.
             if callable(nextstep):
                 # A preprocessor function.
-                self._pipe(nextstep(stream), *remaining)
+                cls._pipe(nextstep(stream), *remaining)
             else:
                 # One of the decompression methods ('gz', 'zip').
-                call = getattr(self, '_{}'.format(nextstep))
+                call = getattr(cls, nextstep)
                 call(stream, remaining)
         else:
             # `nextstep` is a file name.
@@ -205,32 +219,41 @@ class RemoteChecker(object):
                     f.write(chunk)
             os.rename(fn + '.tmp', fn)
 
-    def _gz(self, stream, steps):
+    @classmethod
+    def gz(cls, stream, steps):
+        '''
+        Decompress a gzipped stream.
+        '''
         with gzip.open(stream, 'rb') as f:
-            self._pipe(f, *steps)
+            cls._pipe(f, *steps)
 
-    def _tar(self, stream, steps):
-        targets = self._step_forking(*steps)
+    @classmethod
+    def tar(cls, stream, steps):
+        '''
+        Unpack a tar archive.
+        '''
+        targets = cls._fork(*steps)
         with tarfile.open(fileobj=stream, mode='r|*') as t:
             for info in iter(t.next, None):
                 if info.name in targets:
                     f = t.extractfile(info)
-                    self._pipe(f, *targets[info.name])
+                    cls._pipe(f, *targets[info.name])
                     f.close()
 
-    def _zip(self, stream, steps):
+    @classmethod
+    def zip(cls, stream, steps):
         '''
-        Usage of _zip() is discouraged, since it requires
+        Usage of zip() is discouraged, since it requires
         random access to the file (cannot stream).
         '''
-        targets = self._step_forking(*steps)
+        targets = cls._fork(*steps)
         with zipfile.ZipFile(io.BytesIO(stream.read())) as z:
             for member, remaining in targets.items():
                 with z.open(member) as f:
-                    self._pipe(f, *remaining)
+                    cls._pipe(f, *remaining)
 
     @staticmethod
-    def _step_forking(nextstep, *remaining):
+    def _fork(nextstep, *remaining):
         '''
         Resolve a forking in the steps sequence.
 
