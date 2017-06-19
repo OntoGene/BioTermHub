@@ -258,6 +258,11 @@ def populate_checkboxes(doc, resources):
         se(se(se(row, 'td'), 'div', id='div-update-{}'.format(remote.name)),
            'p').text = last_modified
         se(row, 'td').append(update_button(remote.name))
+    # Move the instructions to the last column, spanning all rows.
+    instructions = doc.find('.//td[@id="cell-instructions"]')
+    instructions.set('rowspan', str(len(resources)))
+    tbl[1].append(instructions)
+    tbl.remove(tbl[0])  # remove the (now empty) first row.
     # Add a checkbox for the CTD-lookup flag.
     labels = ('skip CTD entries that are MeSH duplicates',
               '(has no effect unless both CTD and MeSH are selected)')

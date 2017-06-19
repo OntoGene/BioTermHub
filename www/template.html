@@ -11,6 +11,7 @@
     .page-heading { padding-bottom:9px; margin:40px 0 20px; }
     .hidden { display: none; }
     .visible {}
+    #cell-instructions { width: 550px; padding: 0cm 0.2cm 0cm 1.0cm }
   </style>
   <script type="text/javascript">
     // The "select all" checkbox.
@@ -173,7 +174,16 @@
             <div id="div-checkboxes">
               <label>Please select the resources to be included:</label>
               <p><input type="checkbox" id="inp-select-all" name="all" onclick="checkAll(this)"/> <em>select all</em></p>
-              <table id="tbl-checkboxes"></table>
+              <table id="tbl-checkboxes">
+                <tr>
+                  <td id="cell-instructions">
+                    <p>The Bio Term Hub provides access to biomedical terminology resources in a unified format. We envision its main use as a basis for text mining systems.</p>
+                    <p>Select any of the external resources on the left to obtain a custom terminology list. The list is a tab-separated table including terms (names, synonyms), preferred name, concept identifier, entity type, and original resource. The contents of the last two fields can be modified using replacement patterns (uncover the <strong>Renaming</strong> section below using the triangle button). Submit your request with the <strong>Create resource</strong> button at the bottom of the page.</p>
+                    <p>Aggregating, filtering, reformatting, and optionally renaming all this information takes time. Creation time mainly depends on the size of each resource. Compiling a list of all terminologies except for EntrezGene takes approximately 90&nbsp;seconds; however, EntrezGene is very large, and processing it requires 3 to 4&nbsp;minutes.</p>
+                    <p>The requested terminology list is compiled on the fly, based on local copies of the external terminology resources. Whenever one of the local copies becomes out-of-date with respect to its remote source, an <strong>Update</strong> button is shown next to the corresponding resource name. This button triggers downloading the latest version to our server. Please note that, due to data volume and bandwidth restrictions, updating may take several minutes for some of the resource.</p>
+                  </td>
+                </tr>
+              </table>
             </div>
             <hr/>
             <label>Renaming</label>
