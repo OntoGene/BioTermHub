@@ -227,7 +227,16 @@ class StatLog(object):
     def __init__(self, name, resource):
         self._logfn = os.path.join(settings.path_update_logs,
                                    '{}.log'.format(name))
+        self._dumpfns = resource.dump_fns()
+
         self.sizes = {}
+        self.modified = None
+        self.checked = None
+        self.has_changed = None
+
+        self._read_log()
+
+    def _read_log(self):
         try:
             # Get any previous stat info.
             with open(self._logfn) as f:
@@ -240,7 +249,7 @@ class StatLog(object):
                         # No size yet (parsed "None").
                         pass
         except FileNotFoundError:
-            modified = checked = self._init_time(resource)
+            modified = checked = self._init_time()
             # If the resource is not present yet (modified is None),
             # then an update is needed for sure.
             changed = modified is None
@@ -248,11 +257,10 @@ class StatLog(object):
         self.checked = checked
         self.has_changed = bool(changed)
 
-    @staticmethod
-    def _init_time(resource):
+    def _init_time(self):
         "Initialise with the file's m-time."
         try:
-            return min(int(os.path.getmtime(fn)) for fn in resource.dump_fns())
+            return min(int(os.path.getmtime(fn)) for fn in self._dumpfns)
         except FileNotFoundError:
             return None
 
