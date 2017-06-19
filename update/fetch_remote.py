@@ -35,6 +35,9 @@ def main():
         metavar='resource', default='all',
         help='any subset of: %(choices)s')
     ap.add_argument(
+        '-f', '--force', action='store_true',
+        help='force a new download, even if up-to-date')
+    ap.add_argument(
         '-q', '--quiet', action='store_true',
         help='no progress info')
     args = ap.parse_args()
@@ -42,18 +45,18 @@ def main():
         args.resources = sorted(FILTERS)
     logging.basicConfig(format='%(asctime)s: %(message)s',
                         level=logging.WARNING if args.quiet else logging.INFO)
-    fetch(args.resources)
+    fetch(args.resources, args.force)
 
 
-def fetch(which=FILTERS.keys()):
+def fetch(which=FILTERS.keys(), force=False):
     '''
     Determine remote updates and download changed resources.
     '''
     for name in which:
         remote = RemoteChecker(name)
-        if remote.sufficiently_recent():
+        if not force and remote.sufficiently_recent():
             logging.info('Skipping %s (recent update)', name)
-        elif remote.has_changed():
+        elif force or remote.has_changed():
             logging.info('Updating %s ...', name)
             remote.update()
         else:
