@@ -5,11 +5,12 @@
 
 
 '''
-Parse NCBI's Taxonomy dump ("names.dmp" and "nodes.dmp").
+Parse NCBI's Taxonomy dump ("names.dmp" and "nodes.dmp" -> "ncbitax.tsv").
 '''
 
 
 import re
+import codecs
 from collections import defaultdict
 
 from termhub.inputfilters._base import AbstractRecordSet
@@ -24,7 +25,8 @@ class RecordSet(AbstractRecordSet):
     resource = 'NCBI Taxonomy'
     entity_type = 'organism'
 
-    dump_fn = ('names.dmp', 'nodes.dmp')
+    dump_fn = 'ncbitax.tsv'
+    targets = ('names.dmp', 'nodes.dmp')  # archive members
     remote = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
     source_ref = 'https://www.ncbi.nlm.nih.gov/taxonomy'
 
@@ -42,14 +44,11 @@ class RecordSet(AbstractRecordSet):
         '''
         Iterate over term entries (1 per synonym).
         '''
-        for concept in self._iter_stanzas():
-            if concept['rank'] not in self.valid_ranks:
+        for id_, rank, pref, terms in self._iter_concepts():
+            if rank not in self.valid_ranks:
                 continue
 
             oid = next(self.oidgen)
-
-            terms = self._extract_terms(concept)
-            pref = self._get_preferred(concept)
 
             if self.collect_stats:
                 self.update_stats(len(terms))
@@ -57,34 +56,55 @@ class RecordSet(AbstractRecordSet):
             for term in terms:
                 entry = Fields(oid,
                                self.resource,
-                               concept['id'],
+                               id_,
                                term,
                                pref,
                                self.entity_type)
                 yield entry
 
-    def _iter_stanzas(self):
+    def _iter_concepts(self):
+        '''
+        Iterate over ID/rank/pref/terms quadruples.
+        '''
+        with open(self.fn, encoding='utf-8') as f:
+            for line in f:
+                id_, rank, pref, *terms = line.rstrip('\n').split('\t')
+                yield id_, rank, pref, terms
+
+    @classmethod
+    def preprocess(cls, streams):
+        '''
+        Join names.dmp and nodes.dmp and extract ID, terms, rank.
+        '''
+        streams = [codecs.getreader('utf8')(s) for s in streams]
+        for concept in cls._iter_stanzas(*streams):
+            id_, rank = concept['id'], concept['rank']
+            pref = cls._get_preferred(concept)
+            terms = cls._extract_terms(concept)
+            line = '{}\t{}\t{}\t{}\n'.format(id_, rank, pref, '\t'.join(terms))
+            yield line.encode('utf-8')
+
+    @staticmethod
+    def _iter_stanzas(names, nodes):
         '''
         Collect adjacent lines with the same ID.
         '''
-        with open(self.fn[0], encoding='utf-8') as names, \
-                open(self.fn[1], encoding='utf-8') as nodes:
-            concept = defaultdict(list)
-            node_id = None
-            previous_id = None
-            for line in names:
-                line = line.rstrip("\t|\r\n").split("\t|\t")
-                id_, name, unique_name, name_class = line
-                while node_id != id_:
-                    node_id, rank = next(nodes).split('\t|\t', 3)[::2]
-                if id_ != previous_id:
-                    if concept:
-                        yield dict(concept)
-                        concept.clear()
-                    concept['id'] = id_
-                    concept['rank'] = rank
-                    previous_id = id_
-                concept[name_class].append((name, unique_name))
+        concept = defaultdict(list)
+        node_id = None
+        previous_id = None
+        for line in names:
+            line = line.rstrip("\t|\r\n").split("\t|\t")
+            id_, name, unique_name, name_class = line
+            while node_id != id_:
+                node_id, rank = next(nodes).split('\t|\t', 3)[::2]
+            if id_ != previous_id:
+                if concept:
+                    yield dict(concept)
+                    concept.clear()
+                concept['id'] = id_
+                concept['rank'] = rank
+                previous_id = id_
+            concept[name_class].append((name, unique_name))
         if concept:
             yield dict(concept)
 
@@ -157,9 +177,12 @@ class RecordSet(AbstractRecordSet):
 
     @classmethod
     def update_info(cls):
-        # `fn` is needed twice: first as extraction target,
-        # second as output file name.
-        return [(cls.remote, 'tar', [(fn, fn) for fn in cls.dump_fn])]
+        # The "tar" step requires a forking: a list of branches.
+        # Each branch is a steps sequence, where the first element is the name
+        # of the targeted archive member.
+        # Here, the steps sequence is really just the member name.
+        branches = [(t,) for t in cls.targets]
+        return cls._update_info(('tar', branches, cls.preprocess))
 
 
 class Universe(object):
