@@ -60,7 +60,8 @@ def main():
     '''
     fields = cgi.FieldStorage()
 
-    output, response_headers = main_handler(fields)
+    output, response_headers, status = main_handler(fields)
+    response_headers.insert(0, ('Status', status))
 
     # HTTP response.
     for entry in response_headers:
@@ -76,10 +77,9 @@ def application(environ, start_response):
     '''
     fields = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
 
-    output, response_headers = main_handler(fields)
+    output, response_headers, status = main_handler(fields)
 
     # HTTP response.
-    status = '200 OK'
     start_response(status, response_headers)
 
     return [output]
@@ -154,13 +154,17 @@ def check_request(name):
     '''
     # Check request only works with AJAX.
     remote = RemoteChecker(name)
-    if remote.has_changed():
+    kwargs = {}
+    if remote.stat.concurrent_update():
+        msg = 'Concurrent update...'
+        kwargs['status'] = '202 Accepted'
+    elif remote.has_changed():
         msg = 'Update available.'
     else:
         msg = 'Up-to-date.'
     p = etree.Element('p')
     p.text = msg
-    return response(p)
+    return response(p, **kwargs)
 
 
 def update_request(name):
@@ -169,7 +173,7 @@ def update_request(name):
     '''
     # Update request also only works with AJAX.
     remote = RemoteChecker(name)
-    remote.update()
+    remote.update(wait=True)
     p = etree.Element('p')
     p.text = 'Up-to-date.'
     return response(p)
@@ -205,7 +209,7 @@ def build_page(fields, creation_request, job_id, zipped):
     return response(html, xml_declaration=True, doctype='<!doctype html>')
 
 
-def response(node, **kwargs):
+def response(node, status='200 OK', **kwargs):
     '''
     Serialise HTML and create headers.
     '''
@@ -213,7 +217,7 @@ def response(node, **kwargs):
     response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
                         ('Content-Length', str(len(output)))]
 
-    return output, response_headers
+    return output, response_headers, status
 
 
 def input_page():

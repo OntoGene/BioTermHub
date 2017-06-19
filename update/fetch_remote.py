@@ -15,6 +15,7 @@ import time
 import argparse
 import logging
 import urllib.request
+import itertools as it
 import gzip
 import tarfile
 import zipfile
@@ -139,14 +140,37 @@ class RemoteChecker(object):
                 pass
         return size
 
-    def update(self):
+    def update(self, wait=False):
         '''
         Replace all resource dumps belonging to this resource.
+
+        If an update is already running, execution is prevented.
+        If `wait` is False (the default), an exception is raised.
+        Otherwise, the call blocks until the concurrent process
+        has ended, then exits with a warning.
         '''
+        if self.stat.concurrent_update():
+            if wait:
+                self._wait_concurrent()
+                return
+            else:
+                raise RuntimeError('Concurrent update in progress')
+
         for address, *steps in self.resource.update_info():
             size = self._download(address, steps)
             self.stat.sizes[address] = size
         self.stat.just_modified()
+
+    def _wait_concurrent(self):
+        logging.warning('Waiting for a concurrent update.')
+        max_interval = settings.concurrent_update_wait_interval
+        # Start with 1s, then increase exponentially up to the max.
+        inc = it.takewhile(lambda x: x < max_interval,
+                           (2**n for n in it.count()))
+        interval = it.chain(inc, it.repeat(max_interval))
+        while self.stat.concurrent_update():
+            time.sleep(next(interval))
+        logging.warning('Concurrent update has ended.')
 
     def _download(self, address, steps):
         try:
@@ -290,6 +314,16 @@ class StatLog(object):
             for fn, size in self.sizes.items():
                 f.write('{}\t{}\n'.format(fn, size))
         os.rename(self._logfn + '.tmp', self._logfn)
+
+    def concurrent_update(self):
+        'Check if another process is currently updating.'
+        for fn in self._dumpfns:
+            fn += '.tmp'
+            if os.path.exists(fn):
+                change_age = time.time() - os.path.getmtime(fn)
+                if change_age < settings.concurrent_update_dead:
+                    return True
+        return False
 
 
 if __name__ == '__main__':

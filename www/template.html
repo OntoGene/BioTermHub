@@ -45,7 +45,7 @@
     // AJAX stuff.
 
     // Actual AJAX mechanism.
-    function ajax_request(fdata, target_node, wait_msg, success, failure) {
+    function ajax_request(fdata, target_node, wait_msg, success, failure, followup) {
       var xmlhttp = new XMLHttpRequest();
 
       // Mark this request as originating from AJAX.
@@ -60,6 +60,9 @@
             if (typeof(success) !== 'undefined') {
               success(xmlhttp.responseText);
             }
+          } else if (xmlhttp.status == 202 && typeof(followup) !== 'undefined') {
+            // Follow-up callback.
+            followup();
           } else {
             target_node.innerHTML = "Error " + xmlhttp.status + " occurred";
             // Failure callback.
@@ -96,6 +99,9 @@
           button.setAttribute('onclick', 'update_resource("' + name + '")');
         }
       }
+      function followup() {
+        update_resource(name);
+      }
       function failure() {
         button.removeAttribute('disabled');
         button.setAttribute('value', 'Check again');
@@ -106,7 +112,7 @@
       button.setAttribute('disabled', 'disabled');
       button.setAttribute('value', '...');
       ajax_request(fdata, result_div, 'Checking for remote changes...',
-                   success, failure);
+                   success, failure, followup);
     }
 
     // Post an update request.

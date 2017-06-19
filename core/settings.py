@@ -111,6 +111,14 @@ min_check_freq = 4*60*60  # 4 hours
 
 timeout = 10  # seconds
 
+# When checking for concurrent updates, ignore temp files older than this.
+
+concurrent_update_dead = 120  # seconds
+
+# When waiting for a concurrent update to finish, wait this long between checks.
+
+concurrent_update_wait_interval = 15  # seconds
+
 
 #
 # Google-books n-grams for the common-words postfilter
