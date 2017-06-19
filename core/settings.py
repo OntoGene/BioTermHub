@@ -119,6 +119,11 @@ concurrent_update_dead = 120  # seconds
 
 concurrent_update_wait_interval = 15  # seconds
 
+# Processing multiple archive members in parallel requires temp-files;
+# keep them in memory up to this size.
+
+tempfile_buffer_size = 2**30  # Bytes (0: never write to disk)
+
 
 #
 # Google-books n-grams for the common-words postfilter

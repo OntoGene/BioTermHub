@@ -19,6 +19,8 @@ import itertools as it
 import gzip
 import tarfile
 import zipfile
+import tempfile
+from collections import OrderedDict
 
 from termhub.core import settings
 from termhub.inputfilters import FILTERS
@@ -212,12 +214,24 @@ class Pipeline:
                 call = getattr(cls, nextstep)
                 call(stream, remaining)
         else:
-            # `nextstep` is a file name.
-            fn = os.path.join(settings.path_dumps, nextstep)
+            # `nextstep` is the last step.
+            cls._final(stream, nextstep)
+
+    @classmethod
+    def _final(cls, stream, step):
+        if isinstance(step, str):
+            # A filename.
+            fn = os.path.join(settings.path_dumps, step)
             with open(fn + '.tmp', 'wb') as f:
-                for chunk in stream:
-                    f.write(chunk)
+                f.writelines(stream)
             os.rename(fn + '.tmp', fn)
+        elif hasattr(step, 'write'):
+            # An open file for writing.
+            for chunk in stream:
+                step.write(chunk)
+        else:
+            # A callable, which is responsible for writing the output.
+            step(stream)
 
     @classmethod
     def gz(cls, stream, steps):
@@ -232,13 +246,18 @@ class Pipeline:
         '''
         Unpack a tar archive.
         '''
-        targets = cls._fork(*steps)
+        targets, merged_steps = cls._fork(*steps)
+        temps = {}
         with tarfile.open(fileobj=stream, mode='r|*') as t:
             for info in iter(t.next, None):
                 if info.name in targets:
                     f = t.extractfile(info)
-                    cls._pipe(f, *targets[info.name])
+                    remaining = cls._merge(targets[info.name], merged_steps,
+                                           info.name, targets, temps)
+                    cls._pipe(f, *remaining)
                     f.close()
+                    if info.name in temps:
+                        temps[info.name].seek(0)
 
     @classmethod
     def zip(cls, stream, steps):
@@ -246,11 +265,16 @@ class Pipeline:
         Usage of zip() is discouraged, since it requires
         random access to the file (cannot stream).
         '''
-        targets = cls._fork(*steps)
+        targets, merged_steps = cls._fork(*steps)
+        temps = {}
         with zipfile.ZipFile(io.BytesIO(stream.read())) as z:
             for member, remaining in targets.items():
                 with z.open(member) as f:
+                    remaining = cls._merge(remaining, merged_steps,
+                                           member, targets, temps)
                     cls._pipe(f, *remaining)
+                if member in temps:
+                    temps[member].seek(0)
 
     @staticmethod
     def _fork(nextstep, *remaining):
@@ -259,14 +283,41 @@ class Pipeline:
 
         Extracting multiple files from a single archive means
         there is a forking in the steps sequence.
-        The next step is a list of extraction targets.
-        Each target must be given as a sequence with the
-        target member as first element.
+        The next step is a list of branches.
+        Each branch must be given as a sequence with the
+        target member to be extracted as first element.
         Any remaining steps on the top-level are seen as
-        common to all targets.  They need to be copied to
-        the step sequence of each target.
+        common to all targets.
         '''
-        return {target[0]: tuple(target[1:])+remaining for target in nextstep}
+        branches = OrderedDict((br[0], tuple(br[1:])) for br in nextstep)
+        return branches, remaining
+
+    @staticmethod
+    def _merge(branch_steps, merged_steps, name, targets, temps):
+        '''
+        Merge previously forked branches.
+
+        If merging is needed, the output of all but the last
+        branch is buffered in temporary files.
+        If this is the last-called branch, return a function
+        that bundles all branches' output and returns them
+        in a list in the right order.
+        '''
+        if not merged_steps:
+            # No merging needed.
+            return branch_steps
+        elif len(temps) < len(targets)-1:
+            # Non-last branch: write to a temp. file.
+            tf = tempfile.SpooledTemporaryFile(
+                max_size=settings.tempfile_buffer_size)
+            temps[name] = tf
+            return branch_steps + (tf,)
+        else:
+            # Last branch: merging function.
+            def _merge(f):
+                streams = [temps.get(n, f) for n in targets]
+                return streams
+            return branch_steps + (_merge,) + merged_steps
 
 
 class StatLog(object):
