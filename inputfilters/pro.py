@@ -37,6 +37,6 @@ class RecordSet(OboRecordSet):
             elif concept['id'].startswith('NCBIGene:'):
                 # Skip Entrez Gene -- we provide it separately already.
                 continue
-            elif concept['entity_type'] == 'gene':
+            elif 'entity_type' in concept and concept['entity_type'] == 'gene':
                 # Include all other genes.
                 yield concept
