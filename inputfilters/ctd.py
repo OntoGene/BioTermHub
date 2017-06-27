@@ -92,9 +92,9 @@ class RecordSet(AbstractRecordSet):
     def resource_names(cls):
         return list(cls._resource_names.values())
 
-    @classmethod
-    def update_info(cls):
-        return cls._update_info(['gz'])
+    @staticmethod
+    def _update_steps():
+        return ('gz',)
 
 
 class ChemRecordSet(RecordSet):

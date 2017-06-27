@@ -108,11 +108,11 @@ class AbstractRecordSet(object):
             The steps are either callables or names of
             fetch_remote.RemoteChecker methods (eg. "gz").
         '''
-        return cls._update_info()
+        return [(cls.remote,) + cls._update_steps() + (cls.dump_fn,)]
 
-    @classmethod
-    def _update_info(cls, steps=()):
-        return [(cls.remote,) + tuple(steps) + (cls.dump_fn,)]
+    @staticmethod
+    def _update_steps():
+        return ()
 
     @classmethod
     def dump_fns(cls):

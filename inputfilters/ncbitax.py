@@ -176,13 +176,13 @@ class RecordSet(AbstractRecordSet):
         return frozenset(ranks)
 
     @classmethod
-    def update_info(cls):
+    def _update_steps(cls):
         # The "tar" step requires a forking: a list of branches.
         # Each branch is a steps sequence, where the first element is the name
         # of the targeted archive member.
         # Here, the steps sequence is really just the member name.
         branches = [(t,) for t in cls.targets]
-        return cls._update_info(('tar', branches, cls.preprocess))
+        return ('tar', branches, cls.preprocess)
 
 
 class Universe(object):

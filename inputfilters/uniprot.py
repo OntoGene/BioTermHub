@@ -66,5 +66,5 @@ class RecordSet(IterConceptRecordSet):
         return text.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ')
 
     @classmethod
-    def update_info(cls):
-        return cls._update_info(['gz', cls.preprocess])
+    def _update_steps(cls):
+        return ('gz', cls.preprocess)

@@ -27,8 +27,8 @@ class RecordSet(IterConceptRecordSet):
     source_ref = 'https://www.ncbi.nlm.nih.gov/gene/'
 
     @classmethod
-    def update_info(cls):
-        return [(cls.remote, 'gz', cls.preprocess, cls.dump_fn)]
+    def _update_steps(cls):
+        return ('gz', cls.preprocess)
 
     @staticmethod
     def preprocess(stream):
