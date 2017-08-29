@@ -132,9 +132,9 @@ class AbstractRecordSet(object):
 
     @staticmethod
     def _construct_path(directory, fn):
-        try:
+        if isinstance(fn, str):
             return os.path.join(directory, fn)
-        except AttributeError:
+        else:
             # fn is a tuple/list/...
             return tuple(os.path.join(directory, n) for n in fn)
 
