@@ -203,9 +203,6 @@ def build_page(fields, creation_request, job_id, zipped):
                 'content': "5; url={}".format(link)})
 
     # Serialise the complete page.
-    html.find('.//a[@id="anchor-title"]').set('href', '.')
-    html.find('.//a[@id="anchor-reset"]').set('href', '.')
-
     return response(html, xml_declaration=True, doctype='<!doctype html>')
 
 
@@ -226,6 +223,7 @@ def input_page():
     '''
     html = etree.HTML(PAGE)
     html.find('.//div[@id="div-download-page"]').set('class', 'hidden')
+    html.find('.//form[@id="form-oger"]').set('action', settings.oger_url)
     resources = [RemoteChecker(id_) for id_ in FILTERS]
     resources.sort(key=lambda r: r.resource.dump_label().lower())
     populate_checkboxes(html, resources)

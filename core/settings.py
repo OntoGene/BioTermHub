@@ -161,5 +161,12 @@ email_conn = (None,  # email address
 
 
 
+#
+# Connection to OGER
+#
+
+oger_url = 'https://pub.cl.uzh.ch/projects/ontogene/oger/'
+
+
 if __name__ == '__main__':
     main()

@@ -8,6 +8,13 @@
   <style>
     body { background:WhiteSmoke; }
     td { padding: 0cm 0.2cm 0cm 0.2cm; }
+    a.button {
+      -webkit-appearance: button;
+      -moz-appearance: button;
+      appearance: button;
+      text-decoration: none;
+      color: initial;
+    }
     .page-heading { padding-bottom:9px; margin:40px 0 20px; }
     .hidden { display: none; }
     .visible {}
@@ -58,7 +65,7 @@
             target_node.innerHTML = xmlhttp.responseText;
             // Success callback.
             if (typeof(success) !== 'undefined') {
-              success(xmlhttp.responseText);
+              success(xmlhttp);
             }
           } else if (xmlhttp.status == 202 && typeof(followup) !== 'undefined') {
             // Follow-up callback.
@@ -89,7 +96,8 @@
           fdata = new FormData();
 
       // Callback actions.
-      function success(response) {
+      function success(xhr) {
+        var response = xhr.responseText;
         if (response == '<p>Up-to-date.</p>') {
           button.setAttribute('disabled', 'disabled');
           button.setAttribute('value', '...');
@@ -127,6 +135,22 @@
       ajax_request(fdata, result_div, 'Updating (might take a few minutes)...');
     }
 
+    // Create a callback function to fill in OGER parameters.
+    function create_oger_callback() {
+      var description = 'Bio Term Hub ' + new Date().toUTCString(),
+          result_div = document.getElementById('div-result'),
+          submit_button = document.getElementById('inp-oger-submit'),
+          desc_param = document.getElementById('inp-oger-description'),
+          settings_param = document.getElementById('inp-oger-settings');
+      return function(xhr) {
+        var location = result_div.getElementsByTagName('a')[0]['href'],
+            settings = JSON.stringify({"termlist_path": location});
+        desc_param.setAttribute('value', description);
+        settings_param.setAttribute('value', settings);
+        submit_button.removeAttribute('disabled');
+      }
+    }
+
     onload = function() {
       // Place an event listener on the main form.
       // It suppresses the normal page-replacing request on
@@ -144,7 +168,8 @@
         resp_div.setAttribute('class', 'visible');
 
         // Post the AJAX request.
-        ajax_request(fdata, result_div, WAIT_MESSAGE);
+        success = create_oger_callback();
+        ajax_request(fdata, result_div, WAIT_MESSAGE, success);
 
         // Prevent reloading the page on submit.
         ev.preventDefault();
@@ -162,7 +187,7 @@
 <body>
   <center>
     <h1 class="page-heading">
-      <a id="anchor-title" style="color: black; text-decoration: none;">
+      <a href="." style="color: black; text-decoration: none;">
         OntoGene Bio Term Hub
       </a>
     </h1>
@@ -186,7 +211,7 @@
                     <p>The Bio Term Hub provides access to biomedical terminology resources in a unified format. We envision its main use as a basis for text mining systems.</p>
                     <p>Select any of the external resources on the left to obtain a custom terminology list. The list is a tab-separated table including terms (names, synonyms), preferred name, concept identifier, entity type, and original resource. The contents of the last two fields can be modified using replacement patterns (uncover the <strong>Renaming</strong> section below using the triangle button). Submit your request with the <strong>Create resource</strong> button at the bottom of the page.</p>
                     <p>Aggregating, filtering, reformatting, and optionally renaming all this information takes time. Creation time mainly depends on the size of each resource. Compiling a list of all terminologies except for EntrezGene takes approximately 90&nbsp;seconds; however, EntrezGene is very large, and processing it requires 3 to 4&nbsp;minutes.</p>
-                    <p>The requested terminology list is compiled on the fly, based on local copies of the external terminology resources. Whenever one of the local copies becomes out-of-date with respect to its remote source, an <strong>Update</strong> button is shown next to the corresponding resource name. This button triggers downloading the latest version to our server. Please note that, due to data volume and bandwidth restrictions, updating may take several minutes for some of the resource.</p>
+                    <p>The requested terminology list is compiled on the fly, based on local copies of the external terminology resources. Whenever one of the local copies becomes out-of-date with respect to its remote source, an <strong>Update</strong> button is shown next to the corresponding resource name. This button triggers downloading the latest version to our server. Please note that, due to data volume and bandwidth restrictions, updating may take several minutes for some of the resources.</p>
                   </td>
                 </tr>
               </table>
@@ -271,7 +296,13 @@
           <h3>Download</h3>
           <div id="div-result"></div>
           <hr/>
-          <p><a id="anchor-reset">Reset</a></p>
+          <a href="." class="button">Reset</a>
+          |
+          <form id="form-oger" role="form" method="post" accept-charset="UTF-8">
+            <input type="submit" value="Send to OGER" disabled="disabled" id="inp-oger-submit" />
+            <input type="hidden" name="description" id="inp-oger-description" />
+            <input type="hidden" name="settings" id="inp-oger-settings" />
+          </form>
         </center>
       </div>
       <hr/>
