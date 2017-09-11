@@ -139,7 +139,7 @@ def general_request(fields):
             # Run the aggregator and return only when finished.
             create_resource(*params)
             outcome = handle_download_request(job_id, zipped, False)
-            return response(outcome)
+            return response(outcome, fmt='xml')
 
         # Without AJAX, proceed with the dumb auto-refresh mode.
         logging.info('Respond with auto-refresh work-around.')
@@ -206,12 +206,12 @@ def build_page(fields, creation_request, job_id, zipped):
     return response(html, xml_declaration=True, doctype='<!doctype html>')
 
 
-def response(node, status='200 OK', **kwargs):
+def response(node, status='200 OK', fmt='html', **kwargs):
     '''
     Serialise HTML and create headers.
     '''
-    output = etree.tostring(node, method='HTML', encoding='UTF-8', **kwargs)
-    response_headers = [('Content-Type', 'text/html;charset=UTF-8'),
+    output = etree.tostring(node, method=fmt, encoding='UTF-8', **kwargs)
+    response_headers = [('Content-Type', 'text/{};charset=UTF-8'.format(fmt)),
                         ('Content-Length', str(len(output)))]
 
     return output, response_headers, status
