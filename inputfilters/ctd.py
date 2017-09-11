@@ -13,11 +13,10 @@ Collect CTD chemicals and diseases
 import csv
 import itertools as it
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
-class RecordSet(AbstractRecordSet):
+class RecordSet(IterConceptRecordSet):
     '''
     Abstract record collector for CTD.
     '''
@@ -44,30 +43,6 @@ class RecordSet(AbstractRecordSet):
             for plain, wrapped in self._resource_names.items()}
         self._exclude = frozenset(exclude)
 
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
-        for ns, id_, pref, synonyms in self._iter_concepts():
-            oid = next(self.oidgen)
-
-            terms = set(synonyms)
-            terms.add(pref)
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
-            resource = self._resource_mapping[ns]
-
-            for term in terms:
-                if (id_, term) not in self._exclude:
-                    yield Fields(oid,
-                                 resource,
-                                 id_,
-                                 term,
-                                 pref,
-                                 self.entity_type)
-
     def _iter_concepts(self):
         '''
         Parse CSV and extract the relevant information.
@@ -78,7 +53,12 @@ class RecordSet(AbstractRecordSet):
         for name, id_, _, _, _, _, _, synonyms, _ in reader:
             ns, id_ = id_.split(':')  # split away the namespace prefix
             synonyms = synonyms.split('|') if synonyms else []
-            yield ns, id_, name, synonyms
+            synonyms.append(name)
+            terms = set(term for term in synonyms
+                        if (id_, term) not in self._exclude)
+            if terms:
+                resource = self._resource_mapping[ns]
+                yield id_, name, terms, self.entity_type, resource
 
     def _iter_body(self):
         '''

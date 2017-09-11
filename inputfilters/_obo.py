@@ -11,37 +11,20 @@ Parser for OBO files.
 
 import re
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
-class OboRecordSet(AbstractRecordSet):
+class OboRecordSet(IterConceptRecordSet):
     '''
     Abstract record collector for OBO dumps.
     '''
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
+    def _iter_concepts(self):
         for concept in self._iter_stanzas():
-            oid = next(self.oidgen)
-
+            pref = concept['pref']
             terms = concept['synonyms']
-            terms.add(concept['pref'])
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
+            terms.add(pref)
             entity_type = self._get_entity_type(concept)
-
-            for term in terms:
-                entry = Fields(oid,
-                               self.resource,
-                               concept['id'],
-                               term,
-                               concept['pref'],
-                               entity_type)
-                yield entry
+            yield concept['id'], pref, terms, entity_type, self.resource
 
     def _iter_stanzas(self):
         '''

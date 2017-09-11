@@ -148,7 +148,7 @@ class IterConceptRecordSet(AbstractRecordSet):
         '''
         Iterate over term entries (1 per synonym).
         '''
-        for id_, pref, terms in self._iter_concepts():
+        for id_, pref, terms, entity_type, resource in self._iter_concepts():
             oid = next(self.oidgen)
 
             if self.collect_stats:
@@ -156,18 +156,18 @@ class IterConceptRecordSet(AbstractRecordSet):
 
             for term in terms:
                 entry = Fields(oid,
-                               self.resource,
+                               resource,
                                id_,
                                term,
                                pref,
-                               self.entity_type)
+                               entity_type)
                 yield entry
 
     def _iter_concepts(self):
         '''
-        Iterate over ID/pref/terms triples.
+        Iterate over ID/pref/terms/type/source quintuples.
         '''
         with open(self.fn, encoding='utf-8') as f:
             for line in f:
                 id_, pref, *terms = line.rstrip('\n').split('\t')
-                yield id_, pref, terms
+                yield id_, pref, terms, self.entity_type, self.resource

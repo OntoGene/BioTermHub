@@ -13,11 +13,10 @@ import re
 import codecs
 from collections import defaultdict
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
-class RecordSet(AbstractRecordSet):
+class RecordSet(IterConceptRecordSet):
     '''
     Record collector for NCBI Taxonomy dumps.
     '''
@@ -40,36 +39,12 @@ class RecordSet(AbstractRecordSet):
         super().__init__(**kwargs)
         self.valid_ranks = self._parse_rank_spec(ranks)
 
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
-        for id_, rank, pref, terms in self._iter_concepts():
-            if rank not in self.valid_ranks:
-                continue
-
-            oid = next(self.oidgen)
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
-
-            for term in terms:
-                entry = Fields(oid,
-                               self.resource,
-                               id_,
-                               term,
-                               pref,
-                               self.entity_type)
-                yield entry
-
     def _iter_concepts(self):
-        '''
-        Iterate over ID/rank/pref/terms quadruples.
-        '''
         with open(self.fn, encoding='utf-8') as f:
             for line in f:
                 id_, rank, pref, *terms = line.rstrip('\n').split('\t')
-                yield id_, rank, pref, terms
+                if rank in self.valid_ranks:
+                    yield id_, pref, terms, self.entity_type, self.resource
 
     @classmethod
     def preprocess(cls, streams):

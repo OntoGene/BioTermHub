@@ -15,8 +15,7 @@ from datetime import datetime
 
 from lxml import etree
 
-from termhub.inputfilters._base import AbstractRecordSet
-from termhub.lib.tools import Fields
+from termhub.inputfilters._base import IterConceptRecordSet
 
 
 # These headings for the initial letter of the MeSH Tree numbers are not given
@@ -48,7 +47,7 @@ SuppEntry = namedtuple('SuppEntry', 'id pref terms refs')
 YEAR = datetime.now().year
 
 
-class RecordSet(AbstractRecordSet):
+class RecordSet(IterConceptRecordSet):
     '''
     Record collector for MeSH.
     '''
@@ -83,26 +82,11 @@ class RecordSet(AbstractRecordSet):
             name: self.mapping(mapping, 'entity_type', name)
             for name in self.entity_type_names(tree_types)}
 
-    def __iter__(self):
-        '''
-        Iterate over term entries (1 per synonym).
-        '''
+    def _iter_concepts(self):
         for entry, tree, resource in self._iter_entries():
-            oid = next(self.oidgen)
-
-            if self.collect_stats:
-                self.update_stats(len(entry.terms))
-
             entity_type = self._entity_type_mapping[self._tree_types[tree]]
             resource = self._resource_mapping[resource]
-
-            for term in entry.terms:
-                yield Fields(oid,
-                             resource,
-                             entry.id,
-                             term,
-                             entry.pref,
-                             entity_type)
+            yield entry.id, entry.pref, entry.terms, entity_type, resource
 
     def _iter_entries(self):
         '''

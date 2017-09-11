@@ -38,7 +38,7 @@ class RecordSet(IterConceptRecordSet):
             terms = set((pref,))
             if 'SY' in stanza:   # synonyms
                 terms.update(synonym_sep.split(stanza['SY']))
-            yield id_, pref, terms
+            yield id_, pref, terms, self.entity_type, self.resource
 
     def _iter_stanzas(self):
         '''
