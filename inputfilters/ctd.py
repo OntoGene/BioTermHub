@@ -32,11 +32,9 @@ class RecordSet(IterConceptRecordSet):
     }
 
     def __init__(self, mapping=None, exclude=(), **kwargs):
-        # Do not give mapping to the superclass, since those fields are not
+        # Do not give mapping to the superclass, since the resource field isn't
         # fixed for CTD.
         super().__init__(**kwargs)
-        # entity_type is fixed in the corresponding subclasses
-        # (but not resource!).
         self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
         self._resource_mapping = {
             plain: self.mapping(mapping, 'resource', wrapped)

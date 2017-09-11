@@ -106,7 +106,7 @@ class AbstractRecordSet(object):
             processing steps (eg. decompressing), ending
             with the ultimate file name (base name).
             The steps are either callables or names of
-            fetch_remote.RemoteChecker methods (eg. "gz").
+            fetch_remote.Pipeline methods (eg. "gz").
         '''
         return [(cls.remote,) + cls._update_steps() + (cls.dump_fn,)]
 
