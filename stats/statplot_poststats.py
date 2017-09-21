@@ -2,13 +2,19 @@
 # coding: utf8
 
 # Author: Adrian van der Lek, 2015
+# Modified: Lenz Furrer, 2017
+
+
+'''
+Create log-log bar-plots from StatsCollector data.
+'''
 
 
 import re
 import os
 import sys
 import matplotlib
-matplotlib.use('pdf')  # Choose a non-interactive backend; the default GTK causes an error unless logged in with X forwarding.
+matplotlib.use('pdf')  # Choose a non-interactive backend.
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import FormatStrFormatter
@@ -16,8 +22,8 @@ from matplotlib.ticker import FormatStrFormatter
 
 from termhub.core import settings
 from termhub.stats import statistics_termfile
+from termhub.lib.tools import sanitise
 
-STATSPATH = settings.path_stats
 
 BAR_COLORS = 'red green blue yellow'.split()
 
@@ -26,34 +32,35 @@ def main():
     '''
     Run as script: process the given term list.
     '''
-    plotstats(sys.argv[1])
+    plotstats(*sys.argv[1:])
 
 
-def plotstats(filename):
+def plotstats(filename, statspath=settings.path_stats):
     '''
     Create an ambiguity/synonymy plot for each resource and entity type.
     '''
-    os.makedirs(STATSPATH, exist_ok=True)
+    os.makedirs(statspath, exist_ok=True)
 
     overall_stats = statistics_termfile.process_file(filename)
-    stats = {}
 
-    stats["Resource"] = overall_stats.resources
-    stats["Entity type"] = overall_stats.entity_types
-
-    for stat_set in ("Resource", "Entity type"):
-        for group in stats[stat_set]:
-            freq_dists = (
-                stats[stat_set][group].id_freq_dist(),
-                stats[stat_set][group].term_freq_dist(),
-                stats[stat_set][group].term_lw_freq_dist(),
-                stats[stat_set][group].term_lw_nows_freq_dist(),
-            )
-            fn = os.path.join(STATSPATH,
-                              '{}.png'.format(re.sub(r'[\W]+', '_', group)))
-            drawbars(freq_dists, group, 'ratio', 'count', fn)
-    fn = os.path.join(STATSPATH, 'Legend.png')
+    for names in overall_stats.substats.values():
+        for name, stat in names.items():
+            plot_one(name, stat, os.path.join(statspath, sanitise(name)+'.png'))
+    fn = os.path.join(statspath, 'Legend.png')
     drawlegend(fn)
+
+
+def plot_one(title, stat, fn):
+    '''
+    Create an ambiguity/synonymy plot for one StatsCollector.
+    '''
+    freq_dists = (
+        stat.id_freq_dist(),
+        stat.term_freq_dist(),
+        stat.term_lw_freq_dist(),
+        stat.term_lw_nows_freq_dist(),
+    )
+    drawbars(freq_dists, title, 'ratio', 'count', fn)
 
 
 def drawbars(freqdists, title, xlab, ylab, fn):
@@ -62,7 +69,7 @@ def drawbars(freqdists, title, xlab, ylab, fn):
     '''
     # create the x-axis
     fig = plt.figure()
-    ax = plt.subplot(111) # we create a variable for the subplot so we can access the axes
+    ax = plt.subplot(111)
 
     # set the top and right axes to invisible
     # matplotlib calls the axis lines spines

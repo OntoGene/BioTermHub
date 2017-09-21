@@ -6,16 +6,13 @@
 
 
 """
-Calculate term statistics over a term file in the ontogene term hub format.
+Calculate term synonymy and ambiguity statistics.
 """
 
 
-from optparse import OptionParser
-import sys
 from collections import Counter, defaultdict
 import csv
 import re
-import cProfile
 
 from termhub.lib.tools import TSVDialect
 
@@ -65,7 +62,7 @@ class StatsCollector(object):
 
     nonalnum = re.compile(r'[\W_]+')
 
-    def update_stats(self, id_, term):
+    def update(self, id_, term):
         '''
         Update all counters with this entry.
         '''
@@ -102,7 +99,6 @@ class StatsCollector(object):
         'IDs per lower-cased, alphanumeric-only term (normalised ambiguity).'
         return freq_dist(self.ambiguous_terms_nows)
 
-
     def display_stats(self):
         '''
         Dump a textual description to STDOUT.
@@ -132,73 +128,69 @@ class OverallStats(StatsCollector):
     '''
     Collector for the whole combined resource.
     '''
-    def __init__(self):
-        super().__init__(None, None)
+    def __init__(self, label=None, name=None):
+        super().__init__(label, name)
 
+        # Total number of entries in the whole term file (tokens).
         self.all_lines_counter = 0
-        # counts the total number of entries in the whole term file (tokens)
-        # simple counter
 
-        self.resources = {}
-        # stores ResourceStats objects for all resources
+        self.substats = defaultdict(dict)
 
-        self.entity_types = {}
-
-    def update_stats(self, line_dict):
+    def update(self, id_, term, **kwargs):
         self.all_lines_counter += 1
 
-        resource = line_dict['resource']
-        entity_type = line_dict['entity_type']
-        id_ = line_dict['original_id']
-        term = line_dict['term']
-
-        # Update Resource stats.
-        if resource not in self.resources:
-            self.resources[resource] = StatsCollector('Resource', resource)
-        self.resources[resource].update_stats(id_, term)
-
-        # Update Entity Type stats.
-        if entity_type not in self.entity_types:
-            self.entity_types[entity_type] = StatsCollector('Entity Type', entity_type)
-        self.entity_types[entity_type].update_stats(id_, term)
+        # Update subordinate stats.
+        for label, name in kwargs.items():
+            if name not in self.substats[label]:
+                self.substats[label][name] = StatsCollector(label, name)
+            self.substats[label][name].update(id_, term)
 
         # Update global stats.
-        super().update_stats(id_, term)
+        super().update(id_, term)
 
     def display_stats(self):
         print('\n')
         print('STATS FOR WHOLE TERM FILE')
         print('Number of lines/terms:', self.all_lines_counter)
-        print('Resources:', ', '.join(self.resources))
-        print('Number of Resources:', len(self.resources))
-        print('Total number of unique terms (types) in the term file:', len(self.terms))
+        print('Substats:')
+        for label, names in self.substats.values():
+            print('  {}:'.format(label), ', '.join(names))
+        print('Total number of unique terms (types) in the term file:',
+              len(self.terms))
         print('Average of tokens per type:', average(self.terms))
         print('Average of ids per term:', average(self.ambiguous_terms))
-        print('Average of ids per term with lowercased terms:', average(self.ambiguous_terms_lower))
-        print('Average of ids per term with lowercased terms and non-alphabetical characters removed:', average(self.ambiguous_terms_nows))
+        print('Average of ids per term with lowercased terms:',
+              average(self.ambiguous_terms_lower))
+        print('Average of ids per term with lowercased terms and non-'
+              'alphabetical characters removed:',
+              average(self.ambiguous_terms_nows))
 
         print('FREQ DIST number of terms per id', self.id_freq_dist())
         print('FREQ DIST number of ids per term', self.term_freq_dist())
-        print('FREQ DIST number of ids per term (terms are lowercased)', self.term_lw_freq_dist())
-        print('FREQ DIST number of ids per term (terms are lowercased and symbols are removed', self.term_lw_nows_freq_dist())
+        print('FREQ DIST number of ids per term (terms are lowercased)',
+              self.term_lw_freq_dist())
+        print('FREQ DIST number of ids per term (terms are lowercased and '
+              'symbols are removed', self.term_lw_nows_freq_dist())
         print('AVG Token Lenght', self.term_length_avg())
 
-        print('-----------')
-        print('RESOURCE STATS')
-        for resource_stats in self.resources.values():
-            resource_stats.display_stats()
-
-        print('-----------')
-        print('ENTITY TYPE STATS')
-        for entity_type_stats in self.entity_types.values():
-            entity_type_stats.display_stats()
+        for label, names in self.substats.values():
+            print('-----------')
+            print(label, 'stats')
+            for substats in names.values():
+                substats.display_stats()
 
 
 def freq_dist(coll):
-    return Counter(len(set(v)) for v in coll.values())
+    '''
+    Frequency distribution.
+    '''
+    return Counter(len(v) for v in coll.values())
 
 
 def average(coll):
+    '''
+    Compute mean or mean length of coll's values.
+    '''
     try:
         total_count = sum(coll.values())
     except TypeError:
@@ -217,51 +209,13 @@ def process_file(csv_file):
     # Generate proper header from first line
     with open(csv_file, 'r') as infile:
         reader = csv.DictReader(infile, dialect=TSVDialect)
-        #fieldnames = 'oid', 'resource', 'original_id', 'term', 'preferred_term', 'entity_type'
 
         overall_stats = OverallStats()
 
         for row in reader:
-            overall_stats.update_stats(row)
+            overall_stats.update(row['original_id'],
+                                 row['term'],
+                                 Resource=row['resource'],
+                                 Entity_Type=row['entity_type'])
 
     return overall_stats
-
-
-def process(options=None, args=None):
-    """
-    Do the processing.
-
-    Put together all functions.
-    """
-    input_file = args[0]
-    # Read input file and calculate statistics
-    overall_stats = process_file(input_file)
-    overall_stats.display_stats()
-
-
-def main():
-    """
-    Invoke this module as a script
-    """
-    usage = "usage: %prog [options]; args[0]: database file - csv file ('Ontogene Format')"
-    parser = OptionParser(version='%prog 0.99', usage=usage)
-
-    parser.add_option('-l', '--logfile', dest='logfilename',
-                      help='write log to FILE', metavar='FILE')
-    parser.add_option('-q', '--quiet',
-                      action='store_true', dest='quiet', default=False,
-                      help='do not print status messages to stderr')
-    parser.add_option('-d', '--debug',
-                      action='store_true', dest='debug', default=False,
-                      help='print debug information')
-
-    (options, args) = parser.parse_args()
-
-    if options.debug:
-        print('# Starting processing', file=sys.stderr)
-
-    process(options=options, args=args)
-
-
-if __name__ == '__main__':
-    cProfile.run('main()', 'calculate_statistics.profile')
