@@ -39,7 +39,7 @@ class RecordSetContainer(object):
     '''
     Handler for multiple inputfilter instances.
     '''
-    def __init__(self, resources=(), flags=(), postfilter=None, **params):
+    def __init__(self, resources=(), flags=(), **params):
         '''
         Args:
             resources (sequence): resource name, as found in FILTERS
@@ -55,8 +55,7 @@ class RecordSetContainer(object):
         self.resources = [(name, FILTERS[name], params.pop(name, {}))
                           for name in sorted(resources, key=self._sort_args)]
         self.flags = frozenset(flags)
-        self.postfilter = postfilter
-        self.params = params  # remaining params -- passed on to the filters
+        self.params = params  # remaining params -- handled later
 
         self.stats = OrderedDict()
         self.cross_lookup = defaultdict(set)
@@ -69,7 +68,7 @@ class RecordSetContainer(object):
         '''
         return (arg in CROSS_DUPLICATES, arg)
 
-    def check_cross_lookup(self, resource):
+    def _check_cross_lookup(self, resource):
         '''
         Check if a resource should be prepared for cross-lookup.
         '''
@@ -83,7 +82,7 @@ class RecordSetContainer(object):
                     return True
         return False
 
-    def iter_resources(self, **kwargs):
+    def _iter_resources(self, **kwargs):
         '''
         Iterate over the readily initialised inputfilters.
         '''
@@ -97,8 +96,7 @@ class RecordSetContainer(object):
                 flag, ref = CROSS_DUPLICATES[name]
                 if flag in self.flags:
                     params['exclude'] = self.cross_lookup[ref]
-            # Override with any global, filter-specific, and local params.
-            params.update(self.params)
+            # Override with any filter-specific and local params.
             params.update(custom_params)
             params.update(kwargs)
             # Create the filter instance and collect some properties.
@@ -151,8 +149,7 @@ class RecordSetContainer(object):
         Iterate over all rows of all resources.
         '''
         # Mix in parameters defined in the constructor.
-        params = dict(self.params, postfilter=self.postfilter)
-        params.update(kwargs)
+        params = dict(self.params, **kwargs)
         return self._iter_rows(**params)
 
     def _iter_rows(self, header=True, postfilter=None, **kwargs):
@@ -164,8 +161,8 @@ class RecordSetContainer(object):
         yield from rows
 
     def _all_rows(self, **kwargs):
-        for recordset, resource in self.iter_resources(**kwargs):
-            if self.check_cross_lookup(resource):
+        for recordset, resource in self._iter_resources(**kwargs):
+            if self._check_cross_lookup(resource):
                 # Iterate with cross-lookup handling.
                 for row in recordset:
                     # Keep all ID-term pairs in memory, so that they can be

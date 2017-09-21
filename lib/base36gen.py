@@ -9,6 +9,9 @@ Generator for Base36 IDs.
 '''
 
 
+import itertools as it
+
+
 class Base36Generator(object):
     '''
     Generator for consecutive base-36 IDs.
@@ -30,14 +33,19 @@ class Base36Generator(object):
         return self
 
     def __next__(self):
-        i = 0
-        while True:
+        for i in it.count():
             # Iterate over the digits as far as necessary.
-            # Most of the time, the while loop does only 1 iteration.
+            # Most of the time, this loop does only 1 iteration.
             try:
                 # Increment this digit. If successful, then we're done.
                 self.current[i] = next(self.counters[i])
                 break
+            except StopIteration:
+                # Overflow: Reset this digit.
+                self.counters[i] = iter(self.alphabet)
+                self.current[i] = next(self.counters[i])
+                # No break here: another iteration is needed
+                # to increment the next-higher digit.
             except IndexError:
                 # A new digit is needed.
                 # Start counting from 1, as we have to skip the implicit
@@ -45,12 +53,6 @@ class Base36Generator(object):
                 self.counters.append(iter(self.alphabet[1:]))
                 self.current.append(next(self.counters[i]))
                 break
-            except StopIteration:
-                # Overflow: Reset this digit and increment the next-higher
-                # digit in the next iteration.
-                self.counters[i] = iter(self.alphabet)
-                self.current[i] = next(self.counters[i])
-                i += 1
         # Format as a string in correct order.
         return self._format(self.current)
 

@@ -369,7 +369,7 @@ def job_hash(rsc):
     # Update with the "skip" flag ("ctd_lookup") and the postfilter flag.
     for flag in rsc.flags:
         key.update(flag.encode('utf8'))
-    if rsc.postfilter:
+    if 'postfilter' in rsc.params:
         key.update(b'postfilter')
     # Update with any renaming rules.
     for level in sorted(rsc.params.get('mapping', ())):
