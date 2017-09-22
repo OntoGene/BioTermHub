@@ -10,8 +10,9 @@ Miscellaneous helper tools.
 '''
 
 
+import re
 import csv
-from collections import OrderedDict, Counter, namedtuple
+from collections import namedtuple
 
 
 # Fields of the output TSV.
@@ -31,40 +32,8 @@ class TSVDialect(csv.Dialect):
     strict = False
 
 
-class DefaultOrderedDict(OrderedDict):
-    # Source: http://stackoverflow.com/a/6190500/562769
-    def __init__(self, default_factory=None, *a, **kw):
-        if default_factory is not None and not callable(default_factory):
-            raise TypeError('first argument must be callable')
-        super().__init__(*a, **kw)
-        self.default_factory = default_factory
-
-    def __getitem__(self, key):
-        try:
-            return OrderedDict.__getitem__(self, key)
-        except KeyError:
-            return self.__missing__(key)
-
-    def __missing__(self, key):
-        if self.default_factory is None:
-            raise KeyError(key)
-        self[key] = value = self.default_factory()
-        return value
-
-    def __reduce__(self):
-        if self.default_factory is None:
-            args = tuple()
-        else:
-            args = self.default_factory,
-        return type(self), args, None, None, self.items()
-
-    def copy(self):
-        return self.__copy__()
-
-    def __copy__(self):
-        return DefaultOrderedDict(self.default_factory, self)
-
-
-class StatDict(DefaultOrderedDict):
-    def __init__(self):
-        super(StatDict, self).__init__(int, {"ids":0, "terms":0, "avg. terms/id":0, "avg. ids/term":0, "ratios":Counter()})
+def sanitise(text):
+    '''
+    Remove any characters except for ASCII a-zA-Z0-9.
+    '''
+    return re.sub(r'[^a-zA-Z0-9]', '', text)

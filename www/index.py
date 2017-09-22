@@ -11,13 +11,13 @@ Web interface for the Bio Term Hub.
 
 import sys
 import os
-import re
 import cgi
 import multiprocessing as mp
 import time
 import datetime as dt
 import math
 import glob
+import shutil
 import logging
 import zipfile
 import hashlib
@@ -103,6 +103,8 @@ def main_handler(fields):
             resp = check_request(fields.getfirst('check-request'))
         elif 'update-request' in fields:
             resp = update_request(fields.getfirst('update-request'))
+        elif 'stat-plot-request' in fields:
+            resp = stat_plot_request(fields.getfirst('stat-plot-request'))
         else:
             resp = general_request(fields)
     except Exception:
@@ -129,9 +131,9 @@ def general_request(fields):
             postfilter=fields.getfirst('postfilter') and RegexFilter().test)
         job_id = job_hash(rsc)
 
-        plot_email = fields.getfirst('plot-email')
+        plot_stats = fields.getfirst('plot-stats')
         log_exception = True
-        params = (rsc, zipped, plot_email, job_id, log_exception)
+        params = (rsc, zipped, plot_stats, job_id, log_exception)
 
         if fields.getfirst('requested-through') == 'ajax':
             # If AJAX is possible, return only a download link to be included.
@@ -177,6 +179,23 @@ def update_request(name):
     p = etree.Element('p')
     p.text = 'Up-to-date.'
     return response(p)
+
+
+def stat_plot_request(job_id):
+    '''
+    Create img nodes for term-statistics plots.
+    '''
+    div = etree.Element('div')  # container
+    index = os.path.join(DOWNLOADDIR, job_id, 'index.log')
+    if os.path.exists(index):
+        se(div, 'hr')
+        with open(index) as f:
+            for line in f:
+                # Create <img> nodes for all plots.
+                fn = line.rstrip()
+                src = '{}{}/{}'.format(DL_URL, job_id, fn)
+                se(div, 'img', src=src, onerror='poll_plot_image(this, 1000)')
+    return response(div)
 
 
 def build_page(fields, creation_request, job_id, zipped):
@@ -336,7 +355,10 @@ def clean_up_dir(dirpath, doc, clear_all=False):
         deadline = time.time() - 3024000  # 35 * 24 * 3600
         del_fns = [fn for fn in fns if os.path.getmtime(fn) < deadline]
     for fn in del_fns:
-        os.remove(fn)
+        try:
+            os.remove(fn)
+        except IsADirectoryError:
+            shutil.rmtree(fn)
 
 
 def parse_renaming(fields):
@@ -454,7 +476,7 @@ def zipname(fn):
 
 
 def create_resource(resources,
-                    zipped=False, plot_email=None,
+                    zipped=False, plot_stats=False,
                     job_id=None, log_exception=False):
     '''
     Run the Bio Term Hub resource creation pipeline, if necessary.
@@ -465,6 +487,12 @@ def create_resource(resources,
     target_fn = os.path.abspath(target_fn)
     r_value = target_fn
 
+    if plot_stats:
+        plot_dir = target_fn[:-4]
+        os.makedirs(plot_dir, exist_ok=True)
+    else:
+        plot_dir = None
+
     # Check if we really have to create this resource
     # (it might already exist from an earlier job).
     if os.path.exists(target_fn):
@@ -472,7 +500,7 @@ def create_resource(resources,
         os.utime(target_fn, None)
     else:
         try:
-            _create_resource(target_fn, resources)
+            _create_resource(target_fn, resources, plot_dir)
         except Exception:
             logging.exception('Resource creation failed:')
             if log_exception:
@@ -493,11 +521,6 @@ def create_resource(resources,
         else:
             with zipfile.ZipFile(zipfn, 'w', zipfile.ZIP_DEFLATED) as f:
                 f.write(target_fn, job_id + '.csv')
-    if plot_email:
-        pending_fn = os.path.join(settings.path_batch, 'pending')
-        plot_email = re.sub(r'\s+', '', plot_email)
-        with open(pending_fn, 'a', encoding='utf8') as f:
-            f.write('{} {}\n'.format(plot_email, target_fn))
 
     # Remove old, unused files.
     clean_up_dir(DOWNLOADDIR, None)
@@ -505,12 +528,25 @@ def create_resource(resources,
     return r_value
 
 
-def _create_resource(target_fn, rsc):
+def _create_resource(target_fn, rsc, plot_dir=None):
     '''
     Run the Bio Term Hub resource creation pipeline.
     '''
-    rsc.write_tsv(target_fn + '.tmp')
+    rsc.write_tsv(target_fn + '.tmp', stats=plot_dir)
     os.rename(target_fn + '.tmp', target_fn)
+    # List all expected plot files in a log file.
+    if plot_dir is not None:
+        log = os.path.join(plot_dir, 'index.log')
+        with open(log, 'w', encoding='utf8') as f:
+            for fn in rsc.plots:
+                f.write(os.path.basename(fn))
+                f.write('\n')
+            # Add the legend to the list.
+            f.write('plot-legend.png\n')
+    # Place a copy of the plot legend in plot_dir.
+    src = os.path.join(PACKAGEPATH, 'termhub', 'stats', 'data',
+                       'plot-legend.png')
+    shutil.copy(src, plot_dir)
 
 
 if __name__ == '__main__':

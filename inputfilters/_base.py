@@ -14,7 +14,7 @@ import re
 
 from termhub.core import settings
 from termhub.lib.base36gen import Base36Generator
-from termhub.lib.tools import StatDict, Fields
+from termhub.lib.tools import Fields
 
 
 class AbstractRecordSet(object):
@@ -29,11 +29,8 @@ class AbstractRecordSet(object):
     remote = None
     source_ref = None
 
-    def __init__(self, fn=None, oidgen=None, mapping=None, idprefix=None,
-                 collect_stats=False):
+    def __init__(self, fn=None, oidgen=None, mapping=None, idprefix=None):
         self.fn = self._resolve_dump_fns(fn)
-        self.stats = StatDict()
-        self.collect_stats = collect_stats
         self.oidgen = Base36Generator() if oidgen is None else oidgen
         self.prefix_id = self._prefix_factory(idprefix)
         self.resource = self.mapping(mapping, 'resource', self.resource)
@@ -93,14 +90,6 @@ class AbstractRecordSet(object):
         else:
             return lambda id_: prefix+id_
 
-    def update_stats(self, terms_per_id):
-        '''
-        Update the ambiguity/redundancy statistics.
-        '''
-        self.stats["ids"] += 1
-        self.stats["terms"] += terms_per_id
-        self.stats["ratios"][terms_per_id, "terms/id"] += 1
-
     @classmethod
     def update_info(cls):
         '''
@@ -158,9 +147,6 @@ class IterConceptRecordSet(AbstractRecordSet):
         for id_, pref, terms, entity_type, resource in self._iter_concepts():
             oid = next(self.oidgen)
             id_ = self.prefix_id(id_)
-
-            if self.collect_stats:
-                self.update_stats(len(terms))
 
             for term in terms:
                 entry = Fields(oid,

@@ -10,7 +10,6 @@ Create log-log bar-plots from StatsCollector data.
 '''
 
 
-import re
 import os
 import sys
 import matplotlib

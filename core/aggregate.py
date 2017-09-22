@@ -11,14 +11,17 @@ Aggregator for joining data from all the different input filters.
 
 
 import csv
-from collections import defaultdict, OrderedDict, Counter
+from collections import defaultdict
 
 # Helper modules.
-from termhub.lib.tools import StatDict, Fields, TSVDialect
+from termhub.lib.tools import Fields, TSVDialect
 from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
 from termhub.inputfilters import FILTERS
+
+# Statistics.
+from termhub.stats.bgplotter import BGPlotter
 
 
 # Cross lookup: ID/term pairs are skipped in "CROSS_DUPLICATES" if they are
@@ -57,7 +60,7 @@ class RecordSetContainer(object):
         self.flags = frozenset(flags)
         self.params = params  # remaining params -- handled later
 
-        self.stats = OrderedDict()
+        self.plots = None
         self.cross_lookup = defaultdict(set)
 
     @staticmethod
@@ -101,40 +104,7 @@ class RecordSetContainer(object):
             params.update(kwargs)
             # Create the filter instance and collect some properties.
             recordset = constr(**params)
-            self.stats[name] = recordset.stats
             yield recordset, name
-
-    def calcstats(self):
-        '''
-        Calculate averages and ratios for terms and IDs.
-        '''
-        total = StatDict()
-        total["ratios"]["terms/id"] = Counter()
-        total["ratios"]["ids/term"] = Counter()
-        for stats in self.stats.values():
-
-            try:
-                stats['avg. terms/id'] = stats["terms"]/stats["ids"]
-            except ZeroDivisionError:
-                stats['avg. terms/id'] = 0
-
-            total["ratios"]["terms/id"] += stats["ratios"]
-
-            total["terms"] += stats["terms"]
-            total["ids"] += stats["ids"]
-            total["avg. terms/id"] += stats["avg. terms/id"]
-            total["avg. ids/term"] += stats["avg. ids/term"]
-
-        try:
-            total["avg. terms/id"] /= len(self.stats)
-        except ZeroDivisionError:
-            total["avg. terms/id"] = 0
-        try:
-            total["avg. ids/term"] /= len(self.stats)
-        except ZeroDivisionError:
-            total["avg. ids/term"] = 0
-
-        self.stats["total"] = total
 
     def write_tsv(self, filename, **kwargs):
         '''
@@ -152,12 +122,14 @@ class RecordSetContainer(object):
         params = dict(self.params, **kwargs)
         return self._iter_rows(**params)
 
-    def _iter_rows(self, header=True, postfilter=None, **kwargs):
+    def _iter_rows(self, header=True, postfilter=None, stats=None, **kwargs):
         if header:
             yield Fields._fields
         rows = self._all_rows(**kwargs)
         if postfilter is not None:
             rows = filter(postfilter, rows)
+        if stats:
+            rows = self._collect_stats(rows, stats)
         yield from rows
 
     def _all_rows(self, **kwargs):
@@ -173,3 +145,15 @@ class RecordSetContainer(object):
             else:
                 # No cross-lookup handling.
                 yield from recordset
+
+    def _collect_stats(self, rows, dest_dir):
+        '''
+        While compiling the term list, collect and plot some statistics
+        in the background.
+        '''
+        stats = BGPlotter(dest_dir)
+        for row in rows:
+            stats.update(row.original_id, row.term, row.entity_type)
+            yield row
+        # Start plotting (non-blocking).
+        self.plots = stats.plot()  # return value is a list of file names

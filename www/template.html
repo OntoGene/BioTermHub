@@ -148,6 +148,22 @@
       submit_button.removeAttribute('disabled');
     }
 
+    // Callback function to request term-statistics plots.
+    function get_stat_plots(location) {
+      var plot_div = document.getElementById('div-stat-plots'),
+          job_id = location.substring(0, location.length-4).split('/').pop(),
+          fdata = new FormData();
+      fdata.append('stat-plot-request', job_id);
+      ajax_request(fdata, plot_div, '');
+    }
+
+    // Check for missing plot images in increasing intervals.
+    function poll_plot_image(img, interval) {
+      next_int = Math.min(interval*2, 15000);
+      img.onerror = function() {poll_plot_image(img, next_int)};
+      setTimeout(function() {img.src = img.src}, interval);
+    }
+
     onload = function() {
       // Place an event listener on the main form.
       // It suppresses the normal page-replacing request on
@@ -168,6 +184,7 @@
         function success(xhr) {
           var result_loc = result_div.getElementsByTagName('a')[0]['href'];
           oger_button(result_loc);
+          get_stat_plots(result_loc);
         }
         ajax_request(fdata, result_div, WAIT_MESSAGE, success);
 
@@ -218,7 +235,7 @@
               </table>
             </div>
             <hr/>
-            <label>Renaming</label>
+            <label>Advanced options: Renaming</label>
             <input type="button" id="btn-renaming" onclick="toggle_advanced('renaming');" value="▶"/>
             <div id="div-renaming" class="hidden">
               <p>Use the following text boxes to change the labeling of resources and entity types.
@@ -270,16 +287,6 @@
               <div style="clear: both"></div>
             </div>
             <hr/>
-            <label>Statistics</label>
-            <input type="button" id="btn-statistics" onclick="toggle_advanced('statistics');" value="▶"/>
-            <div id="div-statistics" class="hidden">
-              <p>
-                Send me an e-mail with resource statistics plots:
-                <input type="text" name="plot-email" placeholder="user@example.com" /><br/>
-                (The plots are created and sent around midnight CET.)
-              </p>
-            </div>
-            <hr/>
             <div style="padding-bottom: .3cm;">
               <p>
                 <strong>Disclaimer:</strong> The Bio Term Hub is a derivative service providing access to publicly available terminology resources.
@@ -288,6 +295,7 @@
               </p>
               <input type="submit" value="Create resource" />&nbsp;&nbsp;&nbsp;
               <input type="checkbox" name="zipped" checked="checked" value="true" />&nbsp;download as Zip archive
+              <input type="checkbox" name="plot-stats" value="true" />&nbsp;create term-statistics plots
             </div>
           </form>
         </div>
@@ -303,6 +311,7 @@
             <input type="hidden" name="description" id="inp-oger-description" />
             <input type="hidden" name="settings" id="inp-oger-settings" />
           </form>
+          <div id="div-stat-plots"></div>
           <hr/>
           <a href="." class="button">Back to resource selection</a>
         </center>
