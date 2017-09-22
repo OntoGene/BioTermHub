@@ -191,7 +191,8 @@
         OntoGene Bio Term Hub
       </a>
     </h1>
-    <p>The Bio Term Hub has been developed by the <a href="http://www.ontogene.org/">OntoGene</a>/<a href="http://www.sib.swiss/rinaldi-fabio/">BioMeXT</a> group. For information, requests and suggestions please contact <a href="mailto:rinaldi@cl.uzh.ch?Subject=Bio%20Term%20Hub">Fabio Rinaldi</a>.</p>
+    <p>The Bio Term Hub (BTH) can be used to download selected terminological resources in a simple text format, or it can be used to annotate user-provided text. In both cases, select the desired resources, then press the button <strong>Create resource</strong> at the bottom of the page.</p>
+    <p>The BTH has been developed by the <a href="http://www.ontogene.org/">OntoGene</a>/<a href="http://www.sib.swiss/rinaldi-fabio/">BioMeXT</a> group. For information, requests and suggestions please contact <a href="mailto:rinaldi@cl.uzh.ch?Subject=Bio%20Term%20Hub">Fabio Rinaldi</a>.</p>
     <hr/>
   </center>
   <center>
@@ -209,7 +210,7 @@
                 <tr>
                   <td id="cell-instructions">
                     <p>The Bio Term Hub provides access to biomedical terminology resources in a unified format. We envision its main use as a basis for text mining systems.</p>
-                    <p>Select any of the external resources on the left to obtain a custom terminology list. The list is a tab-separated table including terms (names, synonyms), preferred name, concept identifier, entity type, and original resource. The contents of the last two fields can be modified using replacement patterns (uncover the <strong>Renaming</strong> section below using the triangle button). Submit your request with the <strong>Create resource</strong> button at the bottom of the page.</p>
+                    <p>Select any of the external resources on the left to obtain a custom terminology list. The list is a tab-separated table including terms (names, synonyms), preferred name, concept identifier, entity type, and original resource. The contents of the last two fields can be modified using replacement patterns (uncover the <strong>Renaming</strong> section below using the triangle button). Submit your request with the <strong>Create resource</strong> button at the bottom of the page. Afterwards you will be offered the opportunity to annotate a text with the selected resources.</p>
                     <p>Aggregating, filtering, reformatting, and optionally renaming all this information takes time. Creation time mainly depends on the size of each resource. Compiling a list of all terminologies except for EntrezGene takes approximately 90&nbsp;seconds; however, EntrezGene is very large, and processing it requires 3 to 4&nbsp;minutes.</p>
                     <p>The requested terminology list is compiled on the fly, based on local copies of the external terminology resources. Whenever one of the local copies becomes out-of-date with respect to its remote source, an <strong>Update</strong> button is shown next to the corresponding resource name. This button triggers downloading the latest version to our server. Please note that, due to data volume and bandwidth restrictions, updating may take several minutes for some of the resources.</p>
                   </td>
@@ -296,13 +297,14 @@
           <h3>Download</h3>
           <div id="div-result"></div>
           <hr/>
-          <a href="." class="button">Reset</a>
-          |
           <form id="form-oger" role="form" method="post" accept-charset="UTF-8">
+            <label>Press the following button to use the selected resources for text annotation:</label>
             <input type="submit" value="Send to OGER" disabled="disabled" id="inp-oger-submit" />
             <input type="hidden" name="description" id="inp-oger-description" />
             <input type="hidden" name="settings" id="inp-oger-settings" />
           </form>
+          <hr/>
+          <a href="." class="button">Back to resource selection</a>
         </center>
       </div>
       <hr/>
