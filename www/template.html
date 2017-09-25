@@ -135,20 +135,17 @@
       ajax_request(fdata, result_div, 'Updating (might take a few minutes)...');
     }
 
-    // Create a callback function to fill in OGER parameters.
-    function create_oger_callback() {
+    // Callback function to fill in OGER parameters.
+    function oger_button(location) {
       var description = 'Bio Term Hub ' + new Date().toUTCString(),
-          result_div = document.getElementById('div-result'),
           submit_button = document.getElementById('inp-oger-submit'),
           desc_param = document.getElementById('inp-oger-description'),
-          settings_param = document.getElementById('inp-oger-settings');
-      return function(xhr) {
-        var location = result_div.getElementsByTagName('a')[0]['href'],
-            settings = JSON.stringify({"termlist_path": location});
-        desc_param.setAttribute('value', description);
-        settings_param.setAttribute('value', settings);
-        submit_button.removeAttribute('disabled');
-      }
+          settings_param = document.getElementById('inp-oger-settings'),
+          csv_loc = location.substring(0, location.length-3) + 'csv',
+          settings = JSON.stringify({"termlist_path": csv_loc});
+      desc_param.setAttribute('value', description);
+      settings_param.setAttribute('value', settings);
+      submit_button.removeAttribute('disabled');
     }
 
     onload = function() {
@@ -168,7 +165,10 @@
         resp_div.setAttribute('class', 'visible');
 
         // Post the AJAX request.
-        success = create_oger_callback();
+        function success(xhr) {
+          var result_loc = result_div.getElementsByTagName('a')[0]['href'];
+          oger_button(result_loc);
+        }
         ajax_request(fdata, result_div, WAIT_MESSAGE, success);
 
         // Prevent reloading the page on submit.
