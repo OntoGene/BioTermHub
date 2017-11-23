@@ -19,7 +19,7 @@ as well as www.index, thus it will be listed in the web GUI.
 
 
 from termhub.inputfilters import cl, cellosaurus, chebi, ctd, entrezgene
-from termhub.inputfilters import go, mesh, ncbitax, pro, so, uniprot
+from termhub.inputfilters import go, mesh, ncbitax, pro, so, uberon, uniprot
 
 
 FILTERS = {
@@ -34,5 +34,6 @@ FILTERS = {
     'ncbitax': ncbitax.RecordSet,
     'pro': pro.RecordSet,
     'so': so.RecordSet,
+    'uberon': uberon.RecordSet,
     'uniprot': uniprot.RecordSet,
 }
