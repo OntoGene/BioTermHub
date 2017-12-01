@@ -29,13 +29,13 @@ class AbstractRecordSet(object):
     remote = None
     source_ref = None
 
-    def __init__(self, fn=None, oidgen=None, mapping=None, collect_stats=False):
+    def __init__(self, fn=None, oidgen=None, mapping=None, idprefix=None,
+                 collect_stats=False):
         self.fn = self._resolve_dump_fns(fn)
         self.stats = StatDict()
         self.collect_stats = collect_stats
-        if oidgen is None:
-            oidgen = Base36Generator()
-        self.oidgen = oidgen
+        self.oidgen = Base36Generator() if oidgen is None else oidgen
+        self.prefix_id = self._prefix_factory(idprefix)
         self.resource = self.mapping(mapping, 'resource', self.resource)
         self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
 
@@ -85,6 +85,13 @@ class AbstractRecordSet(object):
                 if re.match(key, default):
                     return m[key]
             return default
+
+    @staticmethod
+    def _prefix_factory(prefix):
+        if prefix is None:
+            return lambda id_: id_
+        else:
+            return lambda id_: prefix+id_
 
     def update_stats(self, terms_per_id):
         '''
@@ -150,6 +157,7 @@ class IterConceptRecordSet(AbstractRecordSet):
         '''
         for id_, pref, terms, entity_type, resource in self._iter_concepts():
             oid = next(self.oidgen)
+            id_ = self.prefix_id(id_)
 
             if self.collect_stats:
                 self.update_stats(len(terms))
