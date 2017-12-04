@@ -29,22 +29,43 @@ class RecordSet(OboRecordSet):
                             'molecular_function')
 
     def __init__(self, entity_types=None, mapping=None, **kwargs):
+        '''
+        Parameter entity_types: Limit records to the specified
+        subset of entity types. Use the default spelling, even
+        if they are renamed through `mapping`.
+        '''
         # Do not give mapping to the superclass, since the entity_type
         # field is not fixed.
         super().__init__(**kwargs)
         if entity_types is None:
             entity_types = self.entity_type_defaults
-        self._entity_types = entity_types
+        elif isinstance(entity_types, str):
+            entity_types = [entity_types]
+
         self.resource = self.mapping(mapping, 'resource', self.resource)
         self._entity_type_mapping = {
             name: self.mapping(mapping, 'entity_type', name)
-            for name in self._entity_types}
+            for name in entity_types
+        }
+        self._continue_signal = self.ContinueSignal()  # avoid repeated inst.
+
+    def _iter_concepts(self):
+        for concept in self._iter_stanzas():
+            try:
+                yield self._concept_tuple(concept)
+            except self.ContinueSignal:
+                # Ignored entity type.
+                pass
 
     def _get_entity_type(self, concept):
         '''
         Perform eventual entity type renaming.
         '''
-        return self._entity_type_mapping[concept['entity_type']]
+        entity_type = concept['entity_type']
+        try:
+            return self._entity_type_mapping[entity_type]
+        except KeyError:
+            raise self._continue_signal
 
     @classmethod
     def entity_type_names(cls):
@@ -52,3 +73,8 @@ class RecordSet(OboRecordSet):
         Get a list of possible entity_type names.
         '''
         return list(cls.entity_type_defaults)
+
+    class ContinueSignal(Exception):
+        '''
+        Skip this record.
+        '''

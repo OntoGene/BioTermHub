@@ -20,11 +20,14 @@ class OboRecordSet(IterConceptRecordSet):
     '''
     def _iter_concepts(self):
         for concept in self._iter_stanzas():
-            pref = concept['pref']
-            terms = concept['synonyms']
-            terms.add(pref)
-            entity_type = self._get_entity_type(concept)
-            yield concept['id'], pref, terms, entity_type, self.resource
+            yield self._concept_tuple(concept)
+
+    def _concept_tuple(self, concept):
+        pref = concept['pref']
+        terms = concept['synonyms']
+        terms.add(pref)
+        entity_type = self._get_entity_type(concept)
+        return concept['id'], pref, terms, entity_type, self.resource
 
     def _iter_stanzas(self):
         '''
