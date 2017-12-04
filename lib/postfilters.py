@@ -11,13 +11,15 @@ Filters for suppressing certain output rows.
 
 import re
 import csv
+import json
 import gzip
 
 from termhub.core import settings
 from termhub.lib.tools import Fields, TSVDialect
 
 
-__all__ = ('RegexFilter', 'CommonWordFilter', 'EntrezGeneFilter')
+__all__ = ('RegexFilter', 'CommonWordFilter', 'EntrezGeneFilter',
+           'from_json', 'combine')
 
 
 class _BaseFilter:
@@ -104,3 +106,25 @@ class CommonWordFilter(_BaseFilter):
 
     def test(self, row):
         return row.term not in self.frequent
+
+
+def from_json(expression):
+    '''
+    Create a postfilter instance from a JSON expression.
+    '''
+    info = json.loads(expression)
+    class_ = info['class']
+    if class_ not in __all__:
+        raise ValueError('unknown postfilter: {}'.format(class_))
+    constr = globals()[class_]
+    args, kwargs = info.get('args', ()), info.get('kwargs', {})
+    return constr(*args, **kwargs)
+
+
+def combine(filters):
+    '''
+    Wrap the test methods of all filters in a single function.
+    '''
+    def _test(row):
+        return all(f.test(row) for f in filters)
+    return _test

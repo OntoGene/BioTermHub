@@ -2,15 +2,19 @@
 # coding: utf8
 
 # Author: Adrian van der Lek, 2015
-# Modified: Lenz Furrer, 2016
+# Modified: Lenz Furrer, 2016--2017
 
 
 '''
-Aggregator for joining data from all the different input filters.
+Aggregate records from all the different input filters.
 '''
 
 
+import sys
 import csv
+import json
+import logging
+import argparse
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
@@ -19,6 +23,9 @@ from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
 from termhub.inputfilters import FILTERS
+
+# Postfilters.
+from termhub.lib import postfilters as pflt
 
 
 # Cross lookup: ID/term pairs are skipped in "CROSS_DUPLICATES" if they are
@@ -33,6 +40,38 @@ CROSS_DUPLICATES = {
     'ctd_chem': ('ctd_lookup', 'mesh'),
     'ctd_disease': ('ctd_lookup', 'mesh'),
 }
+
+
+def main():
+    '''
+    Run as script.
+    '''
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        'resources', nargs='*', choices=sorted(FILTERS)+['all'],
+        metavar='resource', default='all',
+        help='any subset of: %(choices)s (default: %(default)s)')
+    ap.add_argument(
+        '-f', '--postfilters', nargs='+', metavar='JSON', type=pflt.from_json,
+        help='record postfiltering: specify the class and instantiation '
+             'parameters as a JSON object using "class", "args" and "kwargs" '
+             '(eg. {"class": "RegexFilter", "args": [null, "term"]})')
+    ap.add_argument(
+        '-p', '--params', type=json.loads, metavar='JSON', default={},
+        help='any configuration parameters, given as a JSON object')
+    ap.add_argument(
+        '-q', '--quiet', action='store_true',
+        help='no progress info')
+    args = ap.parse_args()
+    if 'all' in args.resources:
+        args.resources = sorted(FILTERS)
+    if args.postfilters is not None:
+        args.params['postfilter'] = pflt.combine(args.postfilters)
+
+    logging.basicConfig(format='%(asctime)s: %(message)s',
+                        level=logging.WARNING if args.quiet else logging.INFO)
+    rsc = RecordSetContainer(args.resources, **args.params)
+    rsc.write_tsv(sys.stdout.buffer.fileno())
 
 
 class RecordSetContainer(object):
@@ -65,8 +104,9 @@ class RecordSetContainer(object):
         '''
         Make sure "duplicate" resources are read last
         (thus after their reference).
+        Otherwise, don't change the order.
         '''
-        return (arg in CROSS_DUPLICATES, arg)
+        return arg in CROSS_DUPLICATES
 
     def _check_cross_lookup(self, resource):
         '''
@@ -161,7 +201,9 @@ class RecordSetContainer(object):
         yield from rows
 
     def _all_rows(self, **kwargs):
+        logging.info('aggregating %d resource(s)', len(self.resources))
         for recordset, resource in self._iter_resources(**kwargs):
+            logging.info('processing %s...', resource)
             if self._check_cross_lookup(resource):
                 # Iterate with cross-lookup handling.
                 for row in recordset:
@@ -173,3 +215,8 @@ class RecordSetContainer(object):
             else:
                 # No cross-lookup handling.
                 yield from recordset
+        logging.info('done.')
+
+
+if __name__ == '__main__':
+    main()
