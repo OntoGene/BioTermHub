@@ -18,7 +18,8 @@ from termhub.core import settings
 from termhub.lib.tools import Fields, TSVDialect
 
 
-__all__ = ('RegexFilter', 'CommonWordFilter', 'EntrezGeneFilter',
+__all__ = ('RegexFilter', 'CommonWordFilter', 'BlackListFilter',
+           'EntrezGeneFilter',
            'from_json', 'combine')
 
 
@@ -57,41 +58,70 @@ class RegexFilter(_BaseFilter):
         return bool(self.pattern.search(row[self.field]))
 
 
-class EntrezGeneFilter(_BaseFilter):
+class BlackListFilter(_BaseFilter):
+    '''
+    Remove specifically listed terms.
+    '''
+    def __init__(self, resource, blacklist):
+        self.resource = resource
+        self.blacklist = self._load(blacklist)
+
+    def test(self, row):
+        if (row.resource == self.resource and
+                self._normalise(row.term) in self.blacklist):
+            return False
+        return True
+
+    @classmethod
+    def _load(cls, blacklist):
+        if isinstance(blacklist, (str, int)):
+            blacklist = cls._read(blacklist)
+        return frozenset(blacklist)
+
+    @staticmethod
+    def _read(source):
+        with open(source, 'r', encoding='utf8') as f:
+            for word in f:
+                yield word.strip()
+
+    @staticmethod
+    def _normalise(term):
+        return term.lower()
+
+
+class EntrezGeneFilter(BlackListFilter):
     '''
     Remove hopeless general-vocaulary terms from EntrezGene records.
     '''
-    undesired = frozenset(
-        '''act
-           and
-           all
-           but
-           camp
-           can
-           cap
-           cell
-           chip
-           damage
-           early
-           end
-           for
-           had
-           has
-           large
-           light
-           not
-           ray
-           rat
-           the
-           type
-           via
-           was
-           with'''.split())
+    _blacklist = '''act
+                    and
+                    all
+                    but
+                    camp
+                    can
+                    cap
+                    cell
+                    chip
+                    damage
+                    early
+                    end
+                    for
+                    had
+                    has
+                    large
+                    light
+                    not
+                    ray
+                    rat
+                    the
+                    type
+                    via
+                    was
+                    with'''.split()
 
-    def test(self, row):
-        if row.resource == 'EntrezGene' and row.term.lower() in self.undesired:
-            return False
-        return True
+    def __init__(self, resource='EntrezGene', blacklist=None):
+        blacklist = self._blacklist if blacklist is None else blacklist
+        super().__init__(resource, blacklist)
 
 
 class CommonWordFilter(_BaseFilter):
