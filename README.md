@@ -15,3 +15,7 @@ Subpackages:
 The directory containing this file must be named "termhub".
 
 For the automatic updater and the web interface to work, cd into the directory containing this file and run `make`.
+
+## License
+
+Licensed under the BSD 2-Clause License, see [LICENSE.md](LICENSE.md).
