@@ -139,12 +139,13 @@
     function oger_button(location) {
       var description = 'Bio Term Hub ' + new Date().toUTCString(),
           submit_button = document.getElementById('inp-oger-submit'),
-          desc_param = document.getElementById('inp-oger-description'),
-          settings_param = document.getElementById('inp-oger-settings'),
+          payload_param = document.getElementById('inp-oger-payload'),
           csv_loc = location.substring(0, location.length-3) + 'csv',
-          settings = JSON.stringify({"termlist_path": csv_loc});
-      desc_param.setAttribute('value', description);
-      settings_param.setAttribute('value', settings);
+          payload = JSON.stringify({
+            "description": description,
+            "settings": {"termlist_path": csv_loc}
+          });
+      payload_param.setAttribute('value', payload);
       submit_button.removeAttribute('disabled');
     }
 
@@ -300,8 +301,7 @@
           <form id="form-oger" role="form" method="post" accept-charset="UTF-8">
             <label>Press the following button to use the selected resources for text annotation:</label>
             <input type="submit" value="Send to OGER" disabled="disabled" id="inp-oger-submit" />
-            <input type="hidden" name="description" id="inp-oger-description" />
-            <input type="hidden" name="settings" id="inp-oger-settings" />
+            <input type="hidden" name="json" id="inp-oger-payload" />
           </form>
           <hr/>
           <a href="." class="button">Back to resource selection</a>
