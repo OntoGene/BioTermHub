@@ -81,11 +81,12 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
         Heuristically determine the best candidate.
 
         Take the most frequent, counting case insensitively.
-        Break ties by preferring longer names.
+        Break ties first by preferring longer names, then by
+        preferring title-cased names.
         '''
-        lower = [term.lower() for term in terms]
-        frequencies = Counter(lower)
+        frequencies = Counter(term.lower() for term in terms)
         def _sortkey(term):
-            return frequencies[term.lower()], len(term)
+            titlecase = sum(tok.istitle() for tok in term.split())
+            return frequencies[term.lower()], len(term), titlecase
 
         return max(terms, key=_sortkey)
