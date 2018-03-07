@@ -13,6 +13,7 @@ Collect CTD chemicals and diseases
 import io
 import csv
 import itertools as it
+from collections.abc import Mapping
 
 from ._base import IterConceptRecordSet, UMLSIterConceptMixin
 
@@ -44,6 +45,17 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
             plain: self.mapping(mapping, 'resource', wrapped)
             for plain, wrapped in self._resource_names.items()}
         self._exclude = frozenset(exclude)
+
+    def _prefix_factory(self, prefix):
+        if isinstance(prefix, Mapping):
+            # Treat the ID prefix differently for MESH and OMIM.
+            # Base the distinction on the shape of the IDs.
+            def _prefix_id(id_):
+                resource = 'MESH' if id_.startswith(('C', 'D')) else 'OMIM'
+                return prefix[resource] + id_
+            return _prefix_id
+        else:
+            return super()._prefix_factory(prefix)
 
     def _cui_concepts(self):
         for id_, ns, cui, pref, *terms in self._concept_rows():
