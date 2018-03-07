@@ -212,6 +212,12 @@ class UMLSIterConceptMixin:
         for term in terms:
             cui = mapping.get((id_, term), cls.NO_CUI)
             grouped[cui].append(term)
+        if cls.NO_CUI in grouped and len(grouped) == 2:
+            # If there is only one CUI for all terms, but it wasn't found for
+            # all of them, copy this CUI over to all other terms.
+            cuiless_terms = grouped.pop(cls.NO_CUI)
+            (cui_terms,) = grouped.values()
+            cui_terms.extend(cuiless_terms)
         return grouped.items()
 
     @classmethod
