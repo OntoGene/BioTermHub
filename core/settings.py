@@ -87,7 +87,7 @@ def main():
 
 def scratch(*args):
     'Path relative to /mnt/system/.../scratch/.'
-    scr = '/mnt/system/services/httpd/scratch/ontogene/biotermhub'
+    scr = 'scratch'
     return os.path.join(scr, *args)
 
 
@@ -109,7 +109,7 @@ min_check_freq = 4*60*60  # 4 hours
 
 # Client-side timeout when downloading resource dumps.
 
-timeout = 10  # seconds
+timeout = 9999  # seconds
 
 # When checking for concurrent updates, ignore temp files older than this.
 
