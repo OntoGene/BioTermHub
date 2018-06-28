@@ -1,0 +1,11 @@
+28 VI: DLing RX Norm - it's a zip file, so we can't stream. So far, I got it to DL and write the zip file, so the rest should be easier. However, I took the following short cuts that could later on blow up in my face:
+
+* knocked out SSL downloading because NIH server did not like it
+* knocked out Forking in fetch_input.py's zip method, because I don't 100% understand what it does: It's probably related to having multiple files; so if we want to make use of RX Norms full potential, I might just as well end up needing it.
+
+The way how we write the zip file is not very elegant, it would be better to use sockets and write the file chunk by chunk.
+
+Setup:
+* change scratch path in settings and run make
+* venv and install lxml
+* To run: PYTHONPATH=.. python update/fetch_input.py rxnorm
