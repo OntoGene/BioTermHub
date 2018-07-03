@@ -1,3 +1,9 @@
+3 VII: Last time, I also changed the zip function in fetch_remote
+* hardcoded filenames into zip function
+* changed DL function for easier testing
+
+> This is all very ugly. Revert these changes, figure out the forking and make everything look nice and documented.
+
 28 VI: DLing RX Norm - it's a zip file, so we can't stream. So far, I got it to DL and write the zip file, so the rest should be easier. However, I took the following short cuts that could later on blow up in my face:
 
 * knocked out SSL downloading because NIH server did not like it
@@ -8,4 +14,4 @@ The way how we write the zip file is not very elegant, it would be better to use
 Setup:
 * change scratch path in settings and run make
 * venv and install lxml
-* To run: PYTHONPATH=.. python update/fetch_input.py rxnorm
+* To run: PYTHONPATH=.. python update/fetch_remote.py rxnorm
