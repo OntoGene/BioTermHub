@@ -1,3 +1,47 @@
+10 VII:
+
+RXNORM: Name = ingredients, strengths, form.
+It's a metathesaurus, gathering info from different drug records
+
+There are Branded Packs: "{'quantity' (SCD1/SBD1) / 'quantity' (SCD2/SBD2) / 'quantity' (SCDn/SBDn) } Pack [Market Name]"
+
+eg: {12 (Ethinyl Estradiol 0.035 MG / Norethindrone 0.5 MG Oral Tablet) / 9 (Ethinyl Estradiol 0.035 MG / Norethindrone 1 MG Oral Tablet) / 7 (Inert Ingredients 1 MG Oral Tablet) } Pack [Leena 28 Day] 
+
+In RXNREL Branded Packs and Generic Packs are linked
+
+now we get :
+
+zostrix]) / 1 (28300 mg) (menthol 4 % topical cream [zostrix cold therapy]) } pack [zostrix hot and cold therapy system
+zostrix]) / 1 (28300 mg) (menthol 40 mg/ml topical cream [zostrix cold therapy]) } pack [zostrix hot and cold therapy system
+
+but we want multiple entries for that
+
+now we just get the first: okay, fixed
+
+> we're getting all the BPCK
+
+RXNCONSO.RFF: one row for each unique RXAUI (RXCUI: unique concept identifier)
+RXNREL: relationshis
+RXNSAT: attributes
+
+
+
+Thanks to the RXCUI, we can see:
+
+639888 emtricitabine 200 MG / Tenofovir disoproxil fumarate 300 MG Oral Tablet [Truvada]
+639888 Truvada (emtricitabine 200 MG / tenofovir disoproxil fumarate 300 MG (tenofovir disoproxil 245 MG) ) Oral Tablet
+639888 emtricitabine 200 mg / tenofovir disoproxil fumarate 300 mg ORAL TABLET, FILM COATED [Truvada]
+639888 EMTRICITABINE 200 mg / TENOFOVIR DISOPROXIL FUMARATE 300 mg ORAL TABLET, FILM COATED [Truvada]
+
+
+let's find out: for all that have same ids
+
+
+okay, we can do two things: longest common substring, and splitting smartly
+
+
+these are all the same concept. But does this concept have a name?
+
 3 VII: Last time, I also changed the zip function in fetch_remote
 * hardcoded filenames into zip function
 * changed DL function for easier testing
