@@ -113,7 +113,8 @@ timeout = 9999  # seconds
 
 # When checking for concurrent updates, ignore temp files older than this.
 
-concurrent_update_dead = 120  # seconds
+concurrent_update_dead = 1
+# concurrent_update_dead = 120  # seconds
 
 # When waiting for a concurrent update to finish, wait this long between checks.
 

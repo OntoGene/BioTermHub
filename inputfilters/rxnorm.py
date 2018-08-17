@@ -45,22 +45,25 @@ class RecordSet(IterConceptRecordSet):
     def _update_steps(cls):
         return ('zip', cls.preprocess)
     
-    @staticmethod
-    def preprocess(stream):
+    @classmethod
+    def preprocess(self, stream):
         '''
         Save some space by removing unused data right away.
         '''
-        lines = io.TextIOWrapper(stream, encoding='utf-8')
-        for line in lines:
+        reader = csv.reader(stream,delimiter='|')
+        for row in reader:
+            print(row)
+            line = '\t'.join([row[0],row[14],str((row[14],)),self.entity_type,self.resource]) + '\n'
             yield line.encode('utf-8')
             
     def _iter_body(self):
-                '''
-                Iterate over the lines following the header lines.
-                '''
-                with open(self.fn, encoding='utf-8', newline='') as f:
-                    # Skip initial lines until one without leading "#" is found.
-                    yield from it.dropwhile(lambda line: line.startswith('#'), f)        
+        '''
+        Iterate over the lines following the header lines.
+        '''
+        
+        with open(self.dump_fn, encoding='utf-8', newline='') as f:
+            # Skip initial lines until one without leading "#" is found.
+            yield from it.dropwhile(lambda line: line.startswith('#'), f)        
             
     def _iter_concepts(self):
         '''
@@ -69,4 +72,5 @@ class RecordSet(IterConceptRecordSet):
         # https://www.nlm.nih.gov/research/umls/rxnorm/docs/2018/rxnorm_doco_full_2018-1.html#s12_4
         reader = csv.reader(self._iter_body(),delimiter='|')
         for row in reader:
+            print(row)
             yield row[0],row[14],(row[14],),self.entity_type,self.resource

@@ -177,21 +177,21 @@ class RemoteChecker(object):
 
     @staticmethod
     def _download(address, steps):
-        # try:
-        #     
-        #     r = urllib.request.urlopen(address, timeout=settings.timeout)
-        #     size = int(r.headers.get('content-length'))
-        #     Pipeline.run(r, *steps)
-        # except Exception:
-        #     logging.exception('Download failed')
-        #     raise
-        # finally:
-        #     r.close()
-        # return size
+        try:
+            
+            r = urllib.request.urlopen(address, timeout=settings.timeout)
+            size = int(r.headers.get('content-length'))
+            Pipeline.run(r, *steps)
+        except Exception:
+            logging.exception('Download failed')
+            raise
+        finally:
+            r.close()
+        return size
         
         # for faster testing
-        with open(settings.path_dumps + '/test_2.zip','rb') as r:
-            Pipeline.run(r,*steps)
+        # with open(settings.path_dumps + '/test_2.zip','rb') as r:
+        #     Pipeline.run(r,*steps)
 
 
 class Pipeline:
@@ -273,17 +273,21 @@ class Pipeline:
         #     for member in forking.targets:
         #         with z.open(member) as f, forking.fork(member) as branch_steps:
         #             cls._pipe(f, *branch_steps)
-        print(cls,stream,steps)
-        with open(settings.path_dumps + '/test_3.zip', 'wb') as f:
-            f.write(stream.read())
-            
-        with zipfile.ZipFile(settings.path_dumps + '/test_3.zip','r') as z:
-            for filename in z.namelist():
-                if 'RXNCONSO.RRF' in filename:
-                    z.extract(filename,settings.path_dumps + '/RXNCONSO.RRF')
         
-        with open(settings.path_dumps + '/RXNCONSO.RRF/rrf/RXNCONSO.RRF','rb') as r:
-            cls._pipe(r,*steps)            
+        # faster testing
+        # print(cls,stream,steps)
+        # with open(settings.path_dumps + '/test_3.zip', 'wb') as f:
+        #     f.write(stream.read())
+        #     
+        # with zipfile.ZipFile(settings.path_dumps + '/test_3.zip','r') as z:
+        #     for filename in z.namelist():
+        #         if 'RXNCONSO.RRF' in filename:
+        #             z.extract(filename,settings.path_dumps + '/RXNCONSO.RRF')
+        
+        cls.fn = settings.path_dumps
+        print('fast forward')
+        with open(settings.path_dumps + '/RXNCONSO.RRF/rrf/RXNCONSO.RRF','r') as r:
+            cls._pipe(r, *steps)            
         # with zipfile.ZipFile(io.BytesIO(stream.read())) as z:
         #     z.write(settings.path_dumps)
 
