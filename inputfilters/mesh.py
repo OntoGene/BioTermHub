@@ -58,7 +58,7 @@ class RecordSet(IterConceptRecordSet):
     dump_fn = ('mesh-desc.json.pile', 'mesh-supp.json.pile')
     remote = tuple('ftp://nlmpubs.nlm.nih.gov/online/mesh/MESH_FILES/xmlmesh/'
                    '{}{}.gz'.format(level, YEAR) for level in ('desc', 'supp'))
-    source_ref = 'https://www.nlm.nih.gov/pubs/factsheets/mesh.html'
+    source_ref = 'https://www.nlm.nih.gov/mesh/meshhome.html'
 
     tree_type_defaults = {
         'B': 'organism',
