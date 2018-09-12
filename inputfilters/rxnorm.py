@@ -28,30 +28,33 @@ class RecordSet(IterConceptRecordSet):
     '''
 
     resource = 'RX Norm'
-    entity_type = 'chemical' # could be 'drug'?
+    entity_type = 'clinical_drug' # could be 'drug'?
 
     dump_fn = 'RXNCONSO.RFF'
     
     # test this in June again to see if this gives the new file, too?
     import os, ssl
-    if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
-        getattr(ssl, '_create_unverified_context', None)): 
-        ssl._create_default_https_context = ssl._create_unverified_context
+    # if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
+    #     getattr(ssl, '_create_unverified_context', None)): 
+    #     ssl._create_default_https_context = ssl._create_unverified_context
     
     remote = 'http://download.nlm.nih.gov/rxnorm/RxNorm_full_prescribe_current.zip'
     source_ref = 'http://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html'
 
     @classmethod
     def _update_steps(cls):
-        return ('zip', cls.preprocess)
+        return ('zip', [('rrf/RXNCONSO.RRF',)], cls.preprocess)
     
     @classmethod
     def preprocess(self, stream):
         
+        zip_to_text = io.TextIOWrapper(stream[0])
+        reader = csv.reader(zip_to_text, delimiter="|")
+        
         # general file format as described here:
         # https://www.nlm.nih.gov/research/umls/rxnorm/docs/2018/rxnorm_doco_full_2018-1.html#s12_4
         # row[0]: ID, row[11]: source, row[12]: term type, row[14]: term string
-        reader = csv.reader(stream,delimiter='|')
+        # reader = csv.reader(stream,delimiter='|')
         
         # we keep the last read line in memory, 
         # as well as list
@@ -62,6 +65,9 @@ class RecordSet(IterConceptRecordSet):
         
         for row in reader:
             
+            # this should produce that output:
+            # '{}\t{}\t{}\t{}\n'.format(id_, rank, pref, '\t'.join(terms))
+            
             # if ID is the same, then we just
             # add terms to the list
             if current_id == row[0]:
@@ -69,14 +75,14 @@ class RecordSet(IterConceptRecordSet):
             
             # otherwise we write line
             # and update / reset counters etc.   
-            else:     
-                terms_string = '(' + ', '.join(terms) + ')'
-                line = '\t'.join([last_row[0],self.prefered_term(terms),terms_string,last_row[12],last_row[11]]) + '\n'
+            else:
+                
+                line = '{}\t{}\t{}\n'.format(row[0], self.prefered_term(terms), '\t'.join(terms))
                 
                 current_id = row[0]
                 last_row = row
                 terms = [ row[14] ]
-                
+                                
                 yield line.encode('utf-8')
         
         # write the last line
@@ -84,7 +90,8 @@ class RecordSet(IterConceptRecordSet):
         line = '\t'.join([last_row[0],self.prefered_term(terms),terms_string,last_row[12],last_row[11]]) + '\n'
         yield line.encode('utf-8')
 
-    @staticmethod        
+    @staticmethod
+    # obviously, this can use alot more work        
     def prefered_term(terms):
         '''
         Given list of term variations, finds what is most likely to be the preferred term
@@ -121,13 +128,3 @@ class RecordSet(IterConceptRecordSet):
         with open(self.dump_fn, encoding='utf-8', newline='') as f:
             # Skip initial lines until one without leading "#" is found.
             yield from it.dropwhile(lambda line: line.startswith('#'), f)        
-            
-    def _iter_concepts(self):
-        '''
-        Parse RFF and extract the relevant information.
-        '''
-        # https://www.nlm.nih.gov/research/umls/rxnorm/docs/2018/rxnorm_doco_full_2018-1.html#s12_4
-        reader = csv.reader(self._iter_body(),delimiter='|')
-        for row in reader:
-            print(row)
-            yield row[0],row[14],(row[14],),self.entity_type,self.resource
