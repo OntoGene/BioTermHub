@@ -119,12 +119,3 @@ class RecordSet(IterConceptRecordSet):
         
         # if they have equal length, also, then we just take the first one
         return longest_terms[0] 
-            
-    def _iter_body(self):
-        '''
-        Iterate over the lines following the header lines.
-        '''
-        
-        with open(self.dump_fn, encoding='utf-8', newline='') as f:
-            # Skip initial lines until one without leading "#" is found.
-            yield from it.dropwhile(lambda line: line.startswith('#'), f)        
