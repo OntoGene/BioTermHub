@@ -6,13 +6,13 @@
 
 
 '''
-Parse RxNorm Current Prescribable Content ("RXNCONSO.RFF").
+Parse RxNorm Current Prescribable Content ("RXNCONSO.RRF").
 '''
 
 # https://www.nlm.nih.gov/research/umls/rxnorm/docs/2018/rxnorm_doco_full_2018-1.html#s12_4
 
-# RXNSAT.RFF : 
-# RXNREL.RFF : atoms and concept links, links RXAUI and RXCUI 
+# RXNSAT.RRF :
+# RXNREL.RRF : atoms and concept links, links RXAUI and RXCUI
 
 
 import io
@@ -24,13 +24,13 @@ from termhub.inputfilters._base import IterConceptRecordSet
 
 class RecordSet(IterConceptRecordSet):
     '''
-    Record collector for RxNorm RFF.
+    Record collector for RxNorm RRF.
     '''
 
     resource = 'RX Norm'
     entity_type = 'clinical_drug' # could be 'drug'?
 
-    dump_fn = 'RXNCONSO.RFF'
+    dump_fn = 'RXNCONSO.RRF'
     
     # test this in June again to see if this gives the new file, too?
     import os, ssl
