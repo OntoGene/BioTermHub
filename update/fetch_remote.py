@@ -178,7 +178,6 @@ class RemoteChecker(object):
     @staticmethod
     def _download(address, steps):
         try:
-            
             r = urllib.request.urlopen(address, timeout=settings.timeout)
             size = int(r.headers.get('content-length'))
             Pipeline.run(r, *steps)
@@ -266,7 +265,7 @@ class Pipeline:
         forking = Forking(*steps)
         with zipfile.ZipFile(io.BytesIO(stream.read())) as z:
             for member in forking.targets:
-                with z.open(member,mode="r") as f, forking.fork(member) as branch_steps:
+                with z.open(member) as f, forking.fork(member) as branch_steps:
                     cls._pipe(f, *branch_steps)
 
 
