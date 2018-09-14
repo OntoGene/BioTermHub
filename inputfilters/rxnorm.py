@@ -41,43 +41,36 @@ class RecordSet(IterConceptRecordSet):
     @classmethod
     def preprocess(cls, stream):
         '''
-        Parse RRF and create a dump in the canonical _iter_concepts format.
+        Parse RRF and produce lines in the canonical _iter_concepts format.
         '''
         zip_to_text = io.TextIOWrapper(stream[0], encoding='utf-8')
         reader = csv.reader(zip_to_text, delimiter="|")
+        for id_, terms in cls._prep_concepts(reader):
+            pref = cls.preferred_term(terms)
+            line = '{}\t{}\t{}\n'.format(id_, pref, '\t'.join(terms))
+            yield line.encode('utf-8')
 
-        # general file format as described here:
-        # https://www.nlm.nih.gov/research/umls/rxnorm/docs/2018/rxnorm_doco_full_2018-1.html#s12_4
-        # row[0]: ID, row[11]: source, row[12]: term type, row[14]: term string
+    @staticmethod
+    def _prep_concepts(rows):
+        '''
+        Aggregate subsequent lines from the same concept.
 
-        # we keep the last read line in memory,
-        # as well as list
-        # of all term variations for the same ID
-        last_row = next(reader)
-        current_id = last_row[0]
-        terms = [last_row[14]]
-
-        for row in reader:
-            # if ID is the same, then we just
-            # add terms to the list
-            if current_id == row[0]:
-                terms.append(row[14])
-
-            # otherwise we write line
-            # and update / reset counters etc.
-            else:
-                line = '{}\t{}\t{}\n'.format(row[0], cls.preferred_term(terms), '\t'.join(terms))
-
-                current_id = row[0]
-                last_row = row
-                terms = [row[14]]
-
-                yield line.encode('utf-8')
-
-        # write the last line
-        terms_string = '(' + ', '.join(terms) + ')'
-        line = '\t'.join([last_row[0], cls.preferred_term(terms), terms_string, last_row[12], last_row[11]]) + '\n'
-        yield line.encode('utf-8')
+        Relevant columns:
+            0:  ID
+            14: term string
+        '''
+        id_ = None
+        terms = []
+        for row in rows:
+            if row[0] != id_:
+                if terms:
+                    yield id_, terms
+                id_ = row[0]
+                terms.clear()
+            terms.append(row[14])
+        # Don't forget the last concept.
+        if terms:
+            yield id_, terms
 
     @staticmethod
     # obviously, this can use alot more work
