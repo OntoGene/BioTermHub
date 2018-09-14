@@ -17,7 +17,6 @@ Parse RxNorm Current Prescribable Content ("RXNCONSO.RRF").
 
 import io
 import csv
-import itertools as it
 
 from termhub.inputfilters._base import IterConceptRecordSet
 
@@ -28,16 +27,10 @@ class RecordSet(IterConceptRecordSet):
     '''
 
     resource = 'RX Norm'
-    entity_type = 'clinical_drug' # could be 'drug'?
+    entity_type = 'clinical_drug'  # or just 'drug'? 'chemical'?
 
     dump_fn = 'RXNCONSO.RRF'
-    
-    # test this in June again to see if this gives the new file, too?
-    import os, ssl
-    # if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
-    #     getattr(ssl, '_create_unverified_context', None)): 
-    #     ssl._create_default_https_context = ssl._create_unverified_context
-    
+
     remote = 'http://download.nlm.nih.gov/rxnorm/RxNorm_full_prescribe_current.zip'
     source_ref = 'http://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html'
 
@@ -54,9 +47,8 @@ class RecordSet(IterConceptRecordSet):
         # general file format as described here:
         # https://www.nlm.nih.gov/research/umls/rxnorm/docs/2018/rxnorm_doco_full_2018-1.html#s12_4
         # row[0]: ID, row[11]: source, row[12]: term type, row[14]: term string
-        # reader = csv.reader(stream,delimiter='|')
-        
-        # we keep the last read line in memory, 
+
+        # we keep the last read line in memory,
         # as well as list
         # of all term variations for the same ID
         last_row = next(reader)
@@ -64,10 +56,6 @@ class RecordSet(IterConceptRecordSet):
         terms = [ last_row[14] ]
         
         for row in reader:
-            
-            # this should produce that output:
-            # '{}\t{}\t{}\t{}\n'.format(id_, rank, pref, '\t'.join(terms))
-            
             # if ID is the same, then we just
             # add terms to the list
             if current_id == row[0]:
