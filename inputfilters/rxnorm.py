@@ -26,7 +26,7 @@ class RecordSet(IterConceptRecordSet):
     Record collector for RxNorm RRF.
     '''
 
-    resource = 'RX Norm'
+    resource = 'RxNorm'
     entity_type = 'clinical_drug'  # or just 'drug'? 'chemical'?
 
     dump_fn = 'RXNCONSO.RRF'
