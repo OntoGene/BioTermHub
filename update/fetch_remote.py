@@ -268,6 +268,7 @@ class Pipeline:
                 with z.open(member) as f, forking.fork(member) as branch_steps:
                     cls._pipe(f, *branch_steps)
 
+
 class Forking:
     '''
     Resolve a forking in the steps sequence.
