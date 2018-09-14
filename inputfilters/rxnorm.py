@@ -40,7 +40,9 @@ class RecordSet(IterConceptRecordSet):
 
     @classmethod
     def preprocess(cls, stream):
-
+        '''
+        Parse RRF and create a dump in the canonical _iter_concepts format.
+        '''
         zip_to_text = io.TextIOWrapper(stream[0])
         reader = csv.reader(zip_to_text, delimiter="|")
 
@@ -64,8 +66,7 @@ class RecordSet(IterConceptRecordSet):
             # otherwise we write line
             # and update / reset counters etc.
             else:
-
-                line = '{}\t{}\t{}\n'.format(row[0], cls.prefered_term(terms), '\t'.join(terms))
+                line = '{}\t{}\t{}\n'.format(row[0], cls.preferred_term(terms), '\t'.join(terms))
 
                 current_id = row[0]
                 last_row = row
@@ -75,12 +76,12 @@ class RecordSet(IterConceptRecordSet):
 
         # write the last line
         terms_string = '(' + ', '.join(terms) + ')'
-        line = '\t'.join([last_row[0], cls.prefered_term(terms), terms_string, last_row[12], last_row[11]]) + '\n'
+        line = '\t'.join([last_row[0], cls.preferred_term(terms), terms_string, last_row[12], last_row[11]]) + '\n'
         yield line.encode('utf-8')
 
     @staticmethod
     # obviously, this can use alot more work
-    def prefered_term(terms):
+    def preferred_term(terms):
         '''
         Given list of term variations, finds what is most likely to be the preferred term
         * groups all variations by their lowercased version, then takes the most frequent group
