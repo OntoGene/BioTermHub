@@ -43,7 +43,7 @@ class RecordSet(IterConceptRecordSet):
         '''
         Parse RRF and create a dump in the canonical _iter_concepts format.
         '''
-        zip_to_text = io.TextIOWrapper(stream[0])
+        zip_to_text = io.TextIOWrapper(stream[0], encoding='utf-8')
         reader = csv.reader(zip_to_text, delimiter="|")
 
         # general file format as described here:
