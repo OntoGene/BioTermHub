@@ -17,6 +17,7 @@ Parse RxNorm Current Prescribable Content ("RXNCONSO.RRF").
 
 import io
 import csv
+from collections import Counter
 
 from termhub.inputfilters._base import IterConceptRecordSet
 
@@ -73,31 +74,16 @@ class RecordSet(IterConceptRecordSet):
             yield id_, terms
 
     @staticmethod
-    # obviously, this can use alot more work
     def preferred_term(terms):
         '''
-        Given list of term variations, finds what is most likely to be the preferred term
-        * groups all variations by their lowercased version, then takes the most frequent group
-        * if there's a match, takes the longest string
+        Heuristically determine the best candidate.
+
+        Take the most frequent, counting case insensitively.
+        Break ties by preferring longer names.
         '''
-
         lower = [term.lower() for term in terms]
+        frequencies = Counter(lower)
+        def _sortkey(term):
+            return frequencies[term.lower()], len(term)
 
-        # if they're all the same, there's nothing for us to do
-        if len(set(lower)) == 1:
-            return lower[0]
-
-        # let's see if one get's the most counts
-        counts = {term: lower.count(term) for term in set(lower)}
-        max_count = max(counts.values())
-        frequentest_terms = [term for term, count in counts.items() if count == max_count]
-        if len(frequentest_terms) == 1:
-            return frequentest_terms[0]
-
-        # take the longest one from those that have the most counts
-        lengths = {term: len(term) for term in frequentest_terms}
-        max_length = max(lengths.values())
-        longest_terms = [term for term, length in lengths.items() if length == max_length]
-
-        # if they have equal length, also, then we just take the first one
-        return longest_terms[0]
+        return max(terms, key=_sortkey)
