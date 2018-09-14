@@ -30,7 +30,7 @@ class RecordSet(IterConceptRecordSet):
     resource = 'RxNorm'
     entity_type = 'clinical_drug'  # or just 'drug'? 'chemical'?
 
-    dump_fn = 'RXNCONSO.RRF'
+    dump_fn = 'rxnorm.tsv'
 
     remote = 'http://download.nlm.nih.gov/rxnorm/RxNorm_full_prescribe_current.zip'
     source_ref = 'http://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html'
