@@ -53,7 +53,7 @@ class RecordSet(IterConceptRecordSet):
         # of all term variations for the same ID
         last_row = next(reader)
         current_id = last_row[0]
-        terms = [ last_row[14] ]
+        terms = [last_row[14]]
 
         for row in reader:
             # if ID is the same, then we just
@@ -69,13 +69,13 @@ class RecordSet(IterConceptRecordSet):
 
                 current_id = row[0]
                 last_row = row
-                terms = [ row[14] ]
+                terms = [row[14]]
 
                 yield line.encode('utf-8')
 
         # write the last line
         terms_string = '(' + ', '.join(terms) + ')'
-        line = '\t'.join([last_row[0],self.prefered_term(terms),terms_string,last_row[12],last_row[11]]) + '\n'
+        line = '\t'.join([last_row[0], self.prefered_term(terms), terms_string, last_row[12], last_row[11]]) + '\n'
         yield line.encode('utf-8')
 
     @staticmethod
@@ -87,23 +87,23 @@ class RecordSet(IterConceptRecordSet):
         * if there's a match, takes the longest string
         '''
 
-        lower = [ term.lower() for term in terms ]
+        lower = [term.lower() for term in terms]
 
         # if they're all the same, there's nothing for us to do
         if len(set(lower)) == 1:
             return lower[0]
 
         # let's see if one get's the most counts
-        counts = { term : lower.count(term) for term in set(lower) }
+        counts = {term: lower.count(term) for term in set(lower)}
         max_count = max(counts.values())
-        frequentest_terms = [ term for term, count in counts.items() if count == max_count ]
+        frequentest_terms = [term for term, count in counts.items() if count == max_count]
         if len(frequentest_terms) == 1:
             return frequentest_terms[0]
 
         # take the longest one from those that have the most counts
-        lengths = { term : len(term) for term in frequentest_terms }
+        lengths = {term: len(term) for term in frequentest_terms}
         max_length = max(lengths.values())
-        longest_terms = [ term for term, length in lengths.items() if length == max_length ]
+        longest_terms = [term for term, length in lengths.items() if length == max_length]
 
         # if they have equal length, also, then we just take the first one
         return longest_terms[0]
