@@ -275,13 +275,18 @@ class Forking:
 
     Extracting multiple files from a single archive means
     there is a forking in the steps sequence.
-    The next step is a list of branches.
+    The next step is typically a list of branches.
+    However, if it is neither a list nor a tuple, then the
+    next and all remaining steps are seen as a single branch.
     Each branch must be given as a sequence with the
     target member to be extracted as first element.
     Any remaining steps on the top-level are seen as
     common to all targets, which entails a merge process.
     '''
     def __init__(self, nextstep, *remaining):
+        if not isinstance(nextstep, (list, tuple)):
+            nextstep = [(nextstep, *remaining)]
+            remaining = ()
         self.branches = OrderedDict((br[0], tuple(br[1:])) for br in nextstep)
         self.merged_steps = remaining
         self.temps = {}

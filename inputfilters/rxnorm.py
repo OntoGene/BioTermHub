@@ -37,14 +37,14 @@ class RecordSet(IterConceptRecordSet):
 
     @classmethod
     def _update_steps(cls):
-        return ('zip', [('rrf/RXNCONSO.RRF',)], cls.preprocess)
+        return ('zip', 'rrf/RXNCONSO.RRF', cls.preprocess)
 
     @classmethod
     def preprocess(cls, stream):
         '''
         Parse RRF and produce lines in the canonical _iter_concepts format.
         '''
-        zip_to_text = io.TextIOWrapper(stream[0], encoding='utf-8')
+        zip_to_text = io.TextIOWrapper(stream, encoding='utf-8')
         reader = csv.reader(zip_to_text, delimiter="|")
         for id_, terms in cls._prep_concepts(reader):
             pref = cls.preferred_term(terms)

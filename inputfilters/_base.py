@@ -114,6 +114,10 @@ class AbstractRecordSet(object):
             with the ultimate file name (base name).
             The steps are either callables or names of
             fetch_remote.Pipeline methods (eg. "gz").
+
+        Convention: use lists for parallelism (multiple
+        remotes/dump files, zip/tar forkings), tuples for
+        series (sequential steps).
         '''
         return [(cls.remote,) + cls._update_steps() + (cls.dump_fn,)]
 
