@@ -16,7 +16,6 @@ import cgi
 import multiprocessing as mp
 import time
 import datetime as dt
-import math
 import glob
 import logging
 import zipfile
@@ -33,6 +32,7 @@ from termhub.core.aggregate import RecordSetContainer
 from termhub.inputfilters import FILTERS
 from termhub.update.fetch_remote import RemoteChecker
 from termhub.lib.postfilters import RegexFilter
+from termhub.lib.base36gen import Base36Generator
 
 
 # Config globals.
@@ -376,22 +376,9 @@ def job_hash(rsc):
         for entry in sorted(rsc.params['mapping'][level].items()):
             for e in entry:
                 key.update(e.encode('utf8'))
-    return base36digest(key.digest())
-
-
-def base36digest(octets):
-    '''
-    Convert a hash digest to base 36.
-    '''
-    n = sum(256**i * b for i, b in enumerate(octets))
-    length = int(math.ceil(math.log(256**len(octets), 36)))
-    d = ''
-    for _ in range(length):
-        n, r = divmod(n, 36)
-        d += digits[r]
-    return d
-
-digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    # Convert the hash digest to base 36.
+    n = int.from_bytes(key.digest(), 'little')
+    return Base36Generator.int2b36(n, big_endian=False)
 
 
 def start_resource_creation(params):

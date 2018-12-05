@@ -26,8 +26,10 @@ class Base36Generator(object):
         self.current = [None]
 
         # Fast-forward the iterator if need be.
-        for _ in range(start):
-            next(self)
+        if start > 0:
+            self.current = list(self._int2b36(start-1))
+            self.counters = [iter(self.alphabet.split(d)[1])
+                             for d in self.current]
 
     def __iter__(self):
         return self
@@ -57,9 +59,22 @@ class Base36Generator(object):
         return self._format(self.current)
 
     def last(self):
-        'Get the last-yielded value.'
+        '''Get the last-yielded value.'''
         return self._format(self.current)
 
+    @classmethod
+    def int2b36(cls, n, big_endian=True):
+        '''Convert an integer to base-36 representation.'''
+        return cls._format(list(cls._int2b36(n)), big_endian)
+
     @staticmethod
-    def _format(digits):
-        return ''.join(reversed(digits))
+    def _format(digits, big_endian=True):
+        if big_endian:
+            digits = reversed(digits)
+        return ''.join(digits)
+
+    @classmethod
+    def _int2b36(cls, n):
+        while n:
+            n, r = divmod(n, 36)
+            yield cls.alphabet[r]
