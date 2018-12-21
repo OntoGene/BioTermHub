@@ -5,7 +5,7 @@
 
 
 '''
-Collect Cell Ontology entries ("cl.obo").
+Collect Cell Ontology entries ("cl.tsv").
 '''
 
 
@@ -20,14 +20,15 @@ class RecordSet(OboRecordSet):
     resource = 'Cell Ontology'
     entity_type = 'cell'
 
-    dump_fn = 'cl.obo'
+    dump_fn = 'cl.tsv'
     remote = 'http://purl.obolibrary.org/obo/cl.obo'
     source_ref = 'http://obofoundry.org/ontology/cl.html'
 
-    def _iter_stanzas(self):
+    @classmethod
+    def _iter_stanzas(cls, stream):
         '''
         Wrap the superclass method for excluding non-cell records.
         '''
-        for concept in super()._iter_stanzas():
+        for concept in super()._iter_stanzas(stream):
             if concept['id'].startswith('CL:'):
                 yield concept

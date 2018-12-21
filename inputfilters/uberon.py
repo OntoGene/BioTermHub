@@ -5,7 +5,7 @@
 
 
 '''
-Collect Uberon organ/tissue entries ("uberon.basic.obo").
+Collect Uberon organ/tissue entries ("uberon.basic.tsv").
 '''
 
 
@@ -20,12 +20,13 @@ class RecordSet(OboRecordSet):
     resource = 'Uberon'
     entity_type = 'organ/tissue'
 
-    dump_fn = 'uberon.basic.obo'
+    dump_fn = 'uberon.basic.tsv'
     remote = 'http://purl.obolibrary.org/obo/uberon/basic.obo'
     source_ref = 'http://obofoundry.org/ontology/uberon.html'
 
-    def _iter_stanzas(self):
-        for concept in super()._iter_stanzas():
+    @classmethod
+    def _iter_stanzas(cls, stream):
+        for concept in super()._iter_stanzas(stream):
             # Suppress entries without a "name" field.
             if 'pref' in concept:
                 yield concept

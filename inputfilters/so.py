@@ -5,7 +5,7 @@
 
 
 '''
-Collect Sequence Ontology entries ("so.obo").
+Collect Sequence Ontology entries ("so.tsv").
 '''
 
 
@@ -20,7 +20,7 @@ class RecordSet(OboRecordSet):
     resource = 'Sequence Ontology'
     entity_type = 'sequence'
 
-    dump_fn = 'so.obo'
+    dump_fn = 'so.tsv'
     remote = ('https://raw.githubusercontent.com/The-Sequence-Ontology/'
               'SO-Ontologies/master/so.obo')
     source_ref = 'http://www.sequenceontology.org/'

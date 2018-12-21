@@ -5,7 +5,7 @@
 
 
 '''
-Collect Gene Ontology entries ("go.obo").
+Collect Gene Ontology entries ("go.tsv").
 '''
 
 
@@ -20,7 +20,7 @@ class RecordSet(OboRecordSet):
     resource = 'Gene Ontology'
     entity_type = None  # Not a fixed field.
 
-    dump_fn = 'go.obo'
+    dump_fn = 'go.tsv'
     remote = 'http://purl.obolibrary.org/obo/go.obo'
     source_ref = 'http://geneontology.org/'
 
@@ -47,25 +47,14 @@ class RecordSet(OboRecordSet):
             name: self.mapping(mapping, 'entity_type', name)
             for name in entity_types
         }
-        self._continue_signal = self.ContinueSignal()  # avoid repeated inst.
 
     def _iter_concepts(self):
-        for concept in self._iter_stanzas():
-            try:
-                yield self._concept_tuple(concept)
-            except self.ContinueSignal:
-                # Ignored entity type.
-                pass
+        for id_, entity_type, pref, *terms in self._concept_rows():
+            entity_type = self._entity_type_mapping.get(entity_type)
+            if entity_type is not None:
+                yield id_, pref, terms, entity_type, self.resource
 
-    def _get_entity_type(self, concept):
-        '''
-        Perform eventual entity type renaming.
-        '''
-        entity_type = concept['entity_type']
-        try:
-            return self._entity_type_mapping[entity_type]
-        except KeyError:
-            raise self._continue_signal
+    _line_template = '{id}\t{entity_type}\t{pref}\t{terms}\n'
 
     @classmethod
     def entity_type_names(cls):
@@ -73,8 +62,3 @@ class RecordSet(OboRecordSet):
         Get a list of possible entity_type names.
         '''
         return list(cls.entity_type_defaults)
-
-    class ContinueSignal(Exception):
-        '''
-        Skip this record.
-        '''
