@@ -13,10 +13,10 @@ import re
 import codecs
 from collections import defaultdict
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
-class RecordSet(IterConceptRecordSet):
+class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
     '''
     Record collector for NCBI Taxonomy dumps.
     '''
@@ -28,6 +28,7 @@ class RecordSet(IterConceptRecordSet):
     targets = ('names.dmp', 'nodes.dmp')  # archive members
     remote = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
     source_ref = 'https://www.ncbi.nlm.nih.gov/taxonomy'
+    umls_abb = 'NCBI'
 
     def __init__(self, ranks='species', **kwargs):
         '''
@@ -39,12 +40,12 @@ class RecordSet(IterConceptRecordSet):
         super().__init__(**kwargs)
         self.valid_ranks = self._parse_rank_spec(ranks)
 
-    def _iter_concepts(self):
-        for id_, rank, pref, *terms in self._concept_rows():
+    def _cui_concepts(self):
+        for id_, cui, rank, pref, *terms in self._concept_rows():
             if rank in self.valid_ranks:
-                yield id_, pref, terms, self.entity_type, self.resource
+                yield id_, cui, pref, terms, self.entity_type, self.resource
 
-    _line_template = '{id}\t{rank}\t{pref}\t{terms}\n'
+    _line_template = '{id}\t{cui}\t{rank}\t{pref}\t{terms}\n'
 
     @classmethod
     def preprocess(cls, streams):
@@ -52,10 +53,13 @@ class RecordSet(IterConceptRecordSet):
         Join names.dmp and nodes.dmp and extract ID, terms, rank.
         '''
         streams = [codecs.getreader('utf8')(s) for s in streams]
+        cui_map = cls._load_cui_map()
         for concept in cls._iter_stanzas(*streams):
             pref = cls._get_preferred(concept)
             terms = cls._extract_terms(concept)
-            yield cls._canonical_line(pref=pref, terms=terms, **concept)
+            for cui, terms in cls._assign_cuis(concept['id'], terms, cui_map):
+                yield cls._canonical_line(cui=cui, pref=pref, terms=terms,
+                                          **concept)
 
     @staticmethod
     def _iter_stanzas(names, nodes):

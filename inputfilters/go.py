@@ -10,9 +10,10 @@ Collect Gene Ontology entries ("go.tsv").
 
 
 from termhub.inputfilters._obo import OboRecordSet
+from termhub.inputfilters._base import UMLSIterConceptMixin
 
 
-class RecordSet(OboRecordSet):
+class RecordSet(UMLSIterConceptMixin, OboRecordSet):
     '''
     Record collector for Gene Ontology.
     '''
@@ -23,6 +24,7 @@ class RecordSet(OboRecordSet):
     dump_fn = 'go.tsv'
     remote = 'http://purl.obolibrary.org/obo/go.obo'
     source_ref = 'http://geneontology.org/'
+    umls_abb = 'GO'
 
     entity_type_defaults = ('biological_process',
                             'cellular_component',
@@ -48,13 +50,22 @@ class RecordSet(OboRecordSet):
             for name in entity_types
         }
 
-    def _iter_concepts(self):
-        for id_, entity_type, pref, *terms in self._concept_rows():
+    def _cui_concepts(self):
+        for id_, cui, entity_type, pref, *terms in self._concept_rows():
             entity_type = self._entity_type_mapping.get(entity_type)
             if entity_type is not None:
-                yield id_, pref, terms, entity_type, self.resource
+                yield id_, cui, pref, terms, entity_type, self.resource
 
-    _line_template = '{id}\t{entity_type}\t{pref}\t{terms}\n'
+    _line_template = '{id}\t{cui}\t{entity_type}\t{pref}\t{terms}\n'
+
+    @classmethod
+    def _iter_stanzas(cls, stream):
+        cui_map = cls._load_cui_map()
+        for concept in super()._iter_stanzas(stream):
+            groups = cls._assign_cuis(concept['id'], concept['terms'], cui_map)
+            for cui, terms in groups:
+                concept.update(cui=cui, terms=terms)
+                yield concept
 
     @classmethod
     def entity_type_names(cls):

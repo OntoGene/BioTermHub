@@ -98,6 +98,7 @@ def scratch(*args):
 # Download directory.
 
 path_dumps = scratch('dumps')
+path_umls_maps = scratch('dumps', 'umls')
 
 # Do not attempt to update resources if they are younger than min_update_freq.
 

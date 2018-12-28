@@ -11,9 +11,11 @@ Base classes for the RecordSet subclasses.
 
 import os
 import re
+import csv
+import logging
+from collections import defaultdict
 
 from termhub.core import settings
-from termhub.lib.base36gen import Base36Generator
 from termhub.lib.tools import StatDict, Fields
 
 
@@ -29,12 +31,11 @@ class AbstractRecordSet(object):
     remote = None
     source_ref = None
 
-    def __init__(self, fn=None, oidgen=None, mapping=None, idprefix=None,
+    def __init__(self, fn=None, mapping=None, idprefix=None,
                  collect_stats=False):
         self.fn = self._resolve_dump_fns(fn)
         self.stats = StatDict()
         self.collect_stats = collect_stats
-        self.oidgen = Base36Generator() if oidgen is None else oidgen
         self.prefix_id = self._prefix_factory(idprefix)
         self.resource = self.mapping(mapping, 'resource', self.resource)
         self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
@@ -155,25 +156,33 @@ class IterConceptRecordSet(AbstractRecordSet):
     Base class for RecordSet subclasses with a canonical _iter_concepts method.
     '''
 
+    NO_CUI = 'CUI-less'
+
     def __iter__(self):
         '''
         Iterate over term entries (1 per synonym).
         '''
-        for id_, pref, terms, entity_type, resource in self._iter_concepts():
-            oid = next(self.oidgen)
+        for id_, cui, pref, terms, entity_type, resource in self._cui_concepts():
             id_ = self.prefix_id(id_)
 
             if self.collect_stats:
                 self.update_stats(len(terms))
 
             for term in terms:
-                entry = Fields(oid,
+                entry = Fields(cui,
                                resource,
                                id_,
                                term,
                                pref,
                                entity_type)
                 yield entry
+
+    def _cui_concepts(self):
+        '''
+        Iterate over ID/CUI/pref/terms/type/source sextuples.
+        '''
+        for id_, *rest in self._iter_concepts():
+            yield (id_, self.NO_CUI, *rest)
 
     def _iter_concepts(self):
         '''
@@ -194,3 +203,51 @@ class IterConceptRecordSet(AbstractRecordSet):
     def _canonical_line(cls, terms=(), **kwargs):
         line = cls._line_template.format(terms='\t'.join(terms), **kwargs)
         return line.encode('utf-8')
+
+
+class UMLSIterConceptMixin:
+    '''
+    Mix-in for IterConceptRecordSet subclasses with UMLS CUIs.
+    '''
+
+    umls_abb = None  # abbreviation of this source used in UMLS (SAB)
+
+    def _cui_concepts(self):
+        for id_, cui, pref, *terms in self._concept_rows():
+            yield id_, cui, pref, terms, self.entity_type, self.resource
+
+    _iter_concepts = None  # skipped
+
+    _line_template = '{id}\t{cui}\t{pref}\t{terms}\n'
+
+    @classmethod
+    def _assign_cuis(cls, id_, terms, mapping):
+        grouped = defaultdict(list)
+        for term in terms:
+            cui = mapping.get((id_, term), cls.NO_CUI)
+            grouped[cui].append(term)
+        return grouped.items()
+
+    @classmethod
+    def _load_cui_map(cls, sab=None):
+        cui_map = defaultdict(set)
+        try:
+            for cui, id_, term in cls._read_cui_map(sab):
+                cui_map[id_, term].add(cui)
+        except FileNotFoundError:
+            logging.warning('CUI map not found (%s)', cls.umls_dump_fn(sab))
+        cui_map = {k: '/'.join(cuis) for k, cuis in cui_map.items()}
+        return cui_map
+
+    @classmethod
+    def _read_cui_map(cls, sab=None):
+        with open(cls.umls_dump_fn(sab), 'r', encoding='utf-8') as f:
+            yield from csv.reader(f, delimiter='\t', quotechar=None)
+
+    @classmethod
+    def umls_dump_fn(cls, sab=None):
+        '''
+        Path to the CUI-mapping TSV.
+        '''
+        fn = '{}.tsv'.format(sab or cls.umls_abb)
+        return os.path.join(settings.path_umls_maps, fn)

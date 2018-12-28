@@ -14,10 +14,10 @@ import io
 import csv
 import itertools as it
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
-class RecordSet(IterConceptRecordSet):
+class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
     '''
     Abstract record collector for CTD.
     '''
@@ -26,6 +26,9 @@ class RecordSet(IterConceptRecordSet):
     entity_type = None  # fixed value in subclasses
 
     source_ref = 'http://ctdbase.org/'
+    umls_abb = 'OMIM'            # one target for the UMLS update
+    umls_abbs = {'MESH': 'MSH',  # two targets for the CTD update
+                 'OMIM': 'OMIM'}
 
     _resource_names = {
         'MESH': 'CTD (MESH)',
@@ -42,14 +45,14 @@ class RecordSet(IterConceptRecordSet):
             for plain, wrapped in self._resource_names.items()}
         self._exclude = frozenset(exclude)
 
-    def _iter_concepts(self):
-        for id_, ns, pref, *terms in self._concept_rows():
+    def _cui_concepts(self):
+        for id_, ns, cui, pref, *terms in self._concept_rows():
             terms = set(t for t in terms if (id_, t) not in self._exclude)
             if terms:
                 resource = self._resource_mapping[ns]
-                yield id_, pref, terms, self.entity_type, resource
+                yield id_, cui, pref, terms, self.entity_type, resource
 
-    _line_template = '{id}\t{ns}\t{pref}\t{terms}\n'
+    _line_template = '{id}\t{ns}\t{cui}\t{pref}\t{terms}\n'
 
     @classmethod
     def preprocess(cls, stream):
@@ -59,11 +62,15 @@ class RecordSet(IterConceptRecordSet):
         # The CTD format seems to use the default CSV properties
         # (delimiter comma and minimal quoting with '"').
         reader = csv.reader(cls._iter_body(stream))
+        cui_maps = {ns: cls._load_cui_map(sab)
+                    for ns, sab in cls.umls_abbs.items()}
         for name, id_, _, _, _, _, _, synonyms, _ in reader:
             ns, id_ = id_.split(':')  # split away the namespace prefix
             terms = synonyms.split('|') if synonyms else []
             terms.append(name)
-            yield cls._canonical_line(id=id_, ns=ns, pref=name, terms=terms)
+            for cui, terms in cls._assign_cuis(id_, terms, cui_maps[ns]):
+                yield cls._canonical_line(
+                    id=id_, ns=ns, cui=cui, pref=name, terms=terms)
 
     @staticmethod
     def _iter_body(stream):

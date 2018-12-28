@@ -15,7 +15,7 @@ from collections import OrderedDict, Counter, namedtuple
 
 
 # Fields of the output TSV.
-Fields = namedtuple('Fields', 'oid resource original_id '
+Fields = namedtuple('Fields', 'cui resource original_id '
                               'term preferred_term entity_type')
 
 

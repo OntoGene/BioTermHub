@@ -19,7 +19,6 @@ from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
 from termhub.lib.tools import StatDict, Fields, TSVDialect
-from termhub.lib.base36gen import Base36Generator
 
 # Input parsers.
 from termhub.inputfilters import FILTERS
@@ -126,10 +125,9 @@ class RecordSetContainer(object):
         '''
         Iterate over the readily initialised inputfilters.
         '''
-        oidgen = Base36Generator()
         for name, constr, custom_params in self.resources:
             # Prepare cascaded parameter overriding.
-            params = dict(oidgen=oidgen)
+            params = dict()
             # Check if a cross-lookup has to be performed for the resource
             # and if so, pass the corresponding lookup set.
             if name in CROSS_DUPLICATES:

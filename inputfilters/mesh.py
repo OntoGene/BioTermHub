@@ -15,7 +15,7 @@ from datetime import datetime
 
 from lxml import etree
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
 # These headings for the initial letter of the MeSH Tree numbers are not given
@@ -41,13 +41,13 @@ TREES = {
 }
 
 
-DescEntry = namedtuple('DescEntry', 'id pref terms trees')
-SuppEntry = namedtuple('SuppEntry', 'id pref terms refs')
+DescEntry = namedtuple('DescEntry', 'id cui pref terms trees')
+SuppEntry = namedtuple('SuppEntry', 'id cui pref terms refs')
 
 YEAR = datetime.now().year
 
 
-class RecordSet(IterConceptRecordSet):
+class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
     '''
     Record collector for MeSH.
     '''
@@ -59,6 +59,7 @@ class RecordSet(IterConceptRecordSet):
     remote = tuple('ftp://nlmpubs.nlm.nih.gov/online/mesh/MESH_FILES/xmlmesh/'
                    '{}{}.gz'.format(level, YEAR) for level in ('desc', 'supp'))
     source_ref = 'https://www.nlm.nih.gov/mesh/meshhome.html'
+    umls_abb = 'MSH'
 
     tree_type_defaults = {
         'B': 'organism',
@@ -82,11 +83,11 @@ class RecordSet(IterConceptRecordSet):
             name: self.mapping(mapping, 'entity_type', name)
             for name in self.entity_type_names(tree_types)}
 
-    def _iter_concepts(self):
+    def _cui_concepts(self):
         for entry, tree, resource in self._iter_entries():
             entity_type = self._entity_type_mapping[self._tree_types[tree]]
             resource = self._resource_mapping[resource]
-            yield entry.id, entry.pref, entry.terms, entity_type, resource
+            yield (*entry[:-1], entity_type, resource)
 
     def _iter_entries(self):
         '''
@@ -141,14 +142,13 @@ class RecordSet(IterConceptRecordSet):
             # .//ConceptName/String to the terms set,
             # as these are all included in the .//Term/String nodes.
 
-            line = json.dumps((
+            yield (
                 record.find('DescriptorUI').text,
                 record.find('DescriptorName/String').text,
                 tuple(set(n.text for n in record.iterfind('.//Term/String'))),
                 [n.text[0] for n in record.iterfind('.//TreeNumber')],
-            )) + '\n'
+            )
             record.clear()
-            yield line.encode('ascii')
 
     @classmethod
     def _prep_supp(cls, stream):
@@ -156,15 +156,25 @@ class RecordSet(IterConceptRecordSet):
         Preprocess SupplementalRecord entries and save them in a JSON pile.
         '''
         for _, record in etree.iterparse(stream, tag='SupplementalRecord'):
-            line = json.dumps((
+            yield (
                 record.find('SupplementalRecordUI').text,
                 record.find('SupplementalRecordName/String').text,
                 tuple(set(n.text for n in record.iterfind('.//Term/String'))),
                 [n.text.lstrip('*') # What does the * mean in ref IDs?
                  for n in record.iterfind('.//DescriptorUI')],
-            )) + '\n'
+            )
             record.clear()
-            yield line.encode('ascii')
+
+    @classmethod
+    def _json_pile(cls, entries):
+        '''
+        Serialise tuples to a JSON pile. Also, insert UMLS CUIs.
+        '''
+        cui_map = cls._load_cui_map()
+        for id_, pref, terms, meta in entries:
+            for cui, terms in cls._assign_cuis(id_, terms, cui_map):
+                line = json.dumps((id_, cui, pref, terms, meta)) + '\n'
+                yield line.encode('ascii')
 
     @classmethod
     def dump_label(cls):
@@ -173,7 +183,7 @@ class RecordSet(IterConceptRecordSet):
     @classmethod
     def update_info(cls):
         steps = zip(cls.remote, (cls._prep_desc, cls._prep_supp), cls.dump_fn)
-        return [(r, 'gz', prep, fn) for r, prep, fn in steps]
+        return [(r, 'gz', prep, cls._json_pile, fn) for r, prep, fn in steps]
 
     @classmethod
     def resource_names(cls, trees=None):

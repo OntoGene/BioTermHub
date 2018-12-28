@@ -19,10 +19,10 @@ import io
 import csv
 from collections import Counter
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
-class RecordSet(IterConceptRecordSet):
+class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
     '''
     Record collector for RxNorm RRF.
     '''
@@ -34,6 +34,7 @@ class RecordSet(IterConceptRecordSet):
 
     remote = 'http://download.nlm.nih.gov/rxnorm/RxNorm_full_prescribe_current.zip'
     source_ref = 'http://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html'
+    umls_abb = 'RXNORM'
 
     @classmethod
     def _update_steps(cls):
@@ -46,10 +47,11 @@ class RecordSet(IterConceptRecordSet):
         '''
         zip_to_text = io.TextIOWrapper(stream, encoding='utf-8')
         reader = csv.reader(zip_to_text, delimiter="|")
+        cui_map = cls._load_cui_map()
         for id_, terms in cls._prep_concepts(reader):
             pref = cls.preferred_term(terms)
-            terms = set(terms)  # remove duplicates
-            yield cls._canonical_line(id=id_, pref=pref, terms=terms)
+            for cui, t in cls._assign_cuis(id_, set(terms), cui_map):
+                yield cls._canonical_line(id=id_, cui=cui, pref=pref, terms=t)
 
     @staticmethod
     def _prep_concepts(rows):
