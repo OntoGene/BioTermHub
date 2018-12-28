@@ -30,8 +30,8 @@ class RecordSet(IterConceptRecordSet):
     def _update_steps(cls):
         return ('gz', cls.preprocess)
 
-    @staticmethod
-    def preprocess(stream):
+    @classmethod
+    def preprocess(cls, stream):
         '''
         Save some space by removing unused data right away.
         '''
@@ -43,5 +43,4 @@ class RecordSet(IterConceptRecordSet):
                 terms = set((symbol,))
                 if synonyms != '-':
                     terms.update(synonyms.split('|'))
-                line = '{}\t{}\t{}\n'.format(id_, symbol, '\t'.join(terms))
-                yield line.encode('utf-8')
+                yield cls._canonical_line(id=id_, pref=symbol, terms=terms)

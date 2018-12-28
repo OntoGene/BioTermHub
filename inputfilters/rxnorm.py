@@ -49,8 +49,7 @@ class RecordSet(IterConceptRecordSet):
         for id_, terms in cls._prep_concepts(reader):
             pref = cls.preferred_term(terms)
             terms = set(terms)  # remove duplicates
-            line = '{}\t{}\t{}\n'.format(id_, pref, '\t'.join(terms))
-            yield line.encode('utf-8')
+            yield cls._canonical_line(id=id_, pref=pref, terms=terms)
 
     @staticmethod
     def _prep_concepts(rows):

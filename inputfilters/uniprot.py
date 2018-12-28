@@ -47,8 +47,7 @@ class RecordSet(IterConceptRecordSet):
                            for t in syn_tags
                            for s in entry.iterfind(t))
             entry.clear()
-            line = '{}\t{}\t{}\n'.format(id_, pref, '\t'.join(synonyms))
-            yield line.encode('utf-8')
+            yield cls._canonical_line(id=id_, pref=pref, terms=synonyms)
 
     @staticmethod
     def _ns(*tags):

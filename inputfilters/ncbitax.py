@@ -40,11 +40,11 @@ class RecordSet(IterConceptRecordSet):
         self.valid_ranks = self._parse_rank_spec(ranks)
 
     def _iter_concepts(self):
-        with open(self.fn, encoding='utf-8') as f:
-            for line in f:
-                id_, rank, pref, *terms = line.rstrip('\n').split('\t')
-                if rank in self.valid_ranks:
-                    yield id_, pref, terms, self.entity_type, self.resource
+        for id_, rank, pref, *terms in self._concept_rows():
+            if rank in self.valid_ranks:
+                yield id_, pref, terms, self.entity_type, self.resource
+
+    _line_template = '{id}\t{rank}\t{pref}\t{terms}\n'
 
     @classmethod
     def preprocess(cls, streams):
@@ -53,11 +53,9 @@ class RecordSet(IterConceptRecordSet):
         '''
         streams = [codecs.getreader('utf8')(s) for s in streams]
         for concept in cls._iter_stanzas(*streams):
-            id_, rank = concept['id'], concept['rank']
             pref = cls._get_preferred(concept)
             terms = cls._extract_terms(concept)
-            line = '{}\t{}\t{}\t{}\n'.format(id_, rank, pref, '\t'.join(terms))
-            yield line.encode('utf-8')
+            yield cls._canonical_line(pref=pref, terms=terms, **concept)
 
     @staticmethod
     def _iter_stanzas(names, nodes):

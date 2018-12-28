@@ -119,7 +119,7 @@ class AbstractRecordSet(object):
         remotes/dump files, zip/tar forkings), tuples for
         series (sequential steps).
         '''
-        return [(cls.remote,) + cls._update_steps() + (cls.dump_fn,)]
+        return [(cls.remote, *cls._update_steps(), cls.dump_fn,)]
 
     @staticmethod
     def _update_steps():
@@ -179,7 +179,18 @@ class IterConceptRecordSet(AbstractRecordSet):
         '''
         Iterate over ID/pref/terms/type/source quintuples.
         '''
+        for id_, pref, *terms in self._concept_rows():
+            yield id_, pref, terms, self.entity_type, self.resource
+
+    def _concept_rows(self):
         with open(self.fn, encoding='utf-8') as f:
             for line in f:
-                id_, pref, *terms = line.rstrip('\n').split('\t')
-                yield id_, pref, terms, self.entity_type, self.resource
+                yield line.rstrip('\n').split('\t')
+
+    # Line template for the canonical iter-concepts format.
+    _line_template = '{id}\t{pref}\t{terms}\n'
+
+    @classmethod
+    def _canonical_line(cls, terms=(), **kwargs):
+        line = cls._line_template.format(terms='\t'.join(terms), **kwargs)
+        return line.encode('utf-8')
