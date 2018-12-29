@@ -16,6 +16,7 @@ from datetime import datetime
 from lxml import etree
 
 from termhub.inputfilters._base import IterConceptRecordSet
+from termhub.lib.tools import classproperty
 
 
 # These headings for the initial letter of the MeSH Tree numbers are not given
@@ -44,8 +45,6 @@ TREES = {
 DescEntry = namedtuple('DescEntry', 'id pref terms trees')
 SuppEntry = namedtuple('SuppEntry', 'id pref terms refs')
 
-YEAR = datetime.now().year
-
 
 class RecordSet(IterConceptRecordSet):
     '''
@@ -56,9 +55,15 @@ class RecordSet(IterConceptRecordSet):
     entity_type = None  # Not a fixed field.
 
     dump_fn = ('mesh-desc.json.pile', 'mesh-supp.json.pile')
-    remote = tuple('ftp://nlmpubs.nlm.nih.gov/online/mesh/.xmlmesh/{}{}.gz'
-                   .format(level, YEAR) for level in ('desc', 'supp'))
-    source_ref = 'https://www.nlm.nih.gov/pubs/factsheets/mesh.html'
+    _remote = 'ftp://nlmpubs.nlm.nih.gov/online/mesh/MESH_FILES/xmlmesh/{}{}.gz'
+    source_ref = 'https://www.nlm.nih.gov/mesh/meshhome.html'
+
+    @classproperty
+    def remote(cls):
+        '''Keep this attribute up to date for long running processes.'''
+        year = datetime.now().year
+        return tuple(cls._remote.format(level, year)
+                     for level in ('desc', 'supp'))
 
     tree_type_defaults = {
         'B': 'organism',

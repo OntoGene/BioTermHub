@@ -37,3 +37,9 @@ def sanitise(text):
     Remove any characters except for ASCII a-zA-Z0-9.
     '''
     return re.sub(r'[^a-zA-Z0-9]', '', text)
+
+
+class classproperty(property):
+    '''Decorator for class properties.'''
+    def __get__(self, _instance, owner):
+        return super().__get__(owner)
