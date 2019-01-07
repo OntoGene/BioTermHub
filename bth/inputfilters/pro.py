@@ -9,7 +9,7 @@ Collect Protein Ontology entries ("pro_nonreasoned.tsv").
 '''
 
 
-from termhub.inputfilters._obo import OboRecordSet
+from ._obo import OboRecordSet
 
 
 class RecordSet(OboRecordSet):

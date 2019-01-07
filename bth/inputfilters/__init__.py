@@ -18,9 +18,8 @@ as well as www.index, thus it will be listed in the web GUI.
 '''
 
 
-from termhub.inputfilters import cl, cellosaurus, chebi, ctd, entrezgene
-from termhub.inputfilters import go, mesh, ncbitax, pro, so, uberon, uniprot
-from termhub.inputfilters import rxnorm
+from . import cl, cellosaurus, chebi, ctd, entrezgene, go, mesh, ncbitax, pro
+from . import rxnorm, so, uberon, uniprot
 
 
 FILTERS = {

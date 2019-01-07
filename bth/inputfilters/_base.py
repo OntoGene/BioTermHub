@@ -15,8 +15,8 @@ import csv
 import logging
 from collections import defaultdict
 
-from termhub.core import settings
-from termhub.lib.tools import StatDict, Fields
+from ..core import settings
+from ..lib.tools import StatDict, Fields
 
 
 class AbstractRecordSet(object):

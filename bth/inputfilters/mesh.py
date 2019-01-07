@@ -15,7 +15,7 @@ from datetime import datetime
 
 from lxml import etree
 
-from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
+from ._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
 # These headings for the initial letter of the MeSH Tree numbers are not given

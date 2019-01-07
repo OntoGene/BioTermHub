@@ -20,9 +20,9 @@ from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import FormatStrFormatter
 
 
-from termhub.core import settings
-from termhub.stats import statistics_termfile
-from termhub.lib.tools import sanitise
+from ..core import settings
+from . import statistics_termfile
+from ..lib.tools import sanitise
 
 
 BAR_COLORS = 'red green blue yellow'.split()

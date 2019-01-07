@@ -17,8 +17,8 @@ import argparse
 import urllib.request
 from collections import namedtuple
 
-from termhub.core import settings
-from termhub.lib.tools import TSVDialect
+from ..core import settings
+from ..lib.tools import TSVDialect
 
 
 UNIGRAM_URL = ("http://storage.googleapis.com/books/ngrams/books/"

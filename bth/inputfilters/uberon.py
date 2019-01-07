@@ -9,7 +9,7 @@ Collect Uberon organ/tissue entries ("uberon.basic.tsv").
 '''
 
 
-from termhub.inputfilters._obo import OboRecordSet
+from ._obo import OboRecordSet
 
 
 class RecordSet(OboRecordSet):

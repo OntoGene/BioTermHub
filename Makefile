@@ -1,5 +1,5 @@
-WWWDIRS := $(shell core/settings.py -dvr)
-LOGFILE := $(shell core/settings.py -fvr)
+WWWDIRS := $(shell python3 -m bth settings -dvr)
+LOGFILE := $(shell python3 -m bth settings -fvr)
 
 init: $(WWWDIRS) $(LOGFILE)
 

@@ -12,7 +12,7 @@ Parser for OBO files.
 import re
 import io
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from ._base import IterConceptRecordSet
 
 
 class OboRecordSet(IterConceptRecordSet):

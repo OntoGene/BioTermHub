@@ -17,8 +17,8 @@ import zipfile
 import argparse
 from pathlib import Path
 
-from termhub.core import settings
-from termhub.inputfilters import FILTERS
+from ..core import settings
+from ..inputfilters import FILTERS
 
 
 DEFAULT_SOURCES = {rec.umls_abb: Path(rec.umls_dump_fn())

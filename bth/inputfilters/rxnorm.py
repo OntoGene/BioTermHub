@@ -19,7 +19,7 @@ import io
 import csv
 from collections import Counter
 
-from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
+from ._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
 class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):

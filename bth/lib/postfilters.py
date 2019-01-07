@@ -14,8 +14,8 @@ import csv
 import json
 import gzip
 
-from termhub.core import settings
-from termhub.lib.tools import Fields, TSVDialect
+from ..core import settings
+from .tools import Fields, TSVDialect
 
 
 __all__ = ('RegexFilter', 'CommonWordFilter', 'BlackListFilter',

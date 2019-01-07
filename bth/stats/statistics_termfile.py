@@ -14,7 +14,7 @@ from collections import Counter, defaultdict
 import csv
 import re
 
-from termhub.lib.tools import TSVDialect
+from ..lib.tools import TSVDialect
 
 
 class StatsCollector(object):

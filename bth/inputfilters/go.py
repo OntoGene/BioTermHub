@@ -9,8 +9,8 @@ Collect Gene Ontology entries ("go.tsv").
 '''
 
 
-from termhub.inputfilters._obo import OboRecordSet
-from termhub.inputfilters._base import UMLSIterConceptMixin
+from ._obo import OboRecordSet
+from ._base import UMLSIterConceptMixin
 
 
 class RecordSet(UMLSIterConceptMixin, OboRecordSet):

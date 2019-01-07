@@ -13,7 +13,7 @@ import csv
 import codecs
 from collections import defaultdict
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from ._base import IterConceptRecordSet
 
 
 class RecordSet(IterConceptRecordSet):

@@ -18,13 +18,13 @@ import argparse
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
-from termhub.lib.tools import StatDict, Fields, TSVDialect
+from ..lib.tools import StatDict, Fields, TSVDialect
 
 # Input parsers.
-from termhub.inputfilters import FILTERS
+from ..inputfilters import FILTERS
 
 # Postfilters.
-from termhub.lib import postfilters as pflt
+from ..lib import postfilters as pflt
 
 
 # Cross lookup: ID/term pairs are skipped in "CROSS_DUPLICATES" if they are

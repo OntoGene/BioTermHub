@@ -24,15 +24,15 @@ import hashlib
 from lxml import etree
 
 HERE = os.path.dirname(__file__)
-PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..', '..')
+PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..')
 if PACKAGEPATH not in sys.path:
     sys.path.append(PACKAGEPATH)
-from termhub.core import settings
-from termhub.core.aggregate import RecordSetContainer
-from termhub.inputfilters import FILTERS
-from termhub.update.fetch_remote import RemoteChecker
-from termhub.lib.postfilters import RegexFilter
-from termhub.lib.base36gen import Base36Generator
+from bth.core import settings
+from bth.core.aggregate import RecordSetContainer
+from bth.inputfilters import FILTERS
+from bth.update.fetch_remote import RemoteChecker
+from bth.lib.postfilters import RegexFilter
+from bth.lib.base36gen import Base36Generator
 
 
 # Config globals.

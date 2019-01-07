@@ -14,7 +14,7 @@ import io
 import csv
 import itertools as it
 
-from termhub.inputfilters._base import IterConceptRecordSet, UMLSIterConceptMixin
+from ._base import IterConceptRecordSet, UMLSIterConceptMixin
 
 
 class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):

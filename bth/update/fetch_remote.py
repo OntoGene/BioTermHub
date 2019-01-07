@@ -23,8 +23,8 @@ import tempfile
 import contextlib
 from collections import OrderedDict
 
-from termhub.core import settings
-from termhub.inputfilters import FILTERS
+from ..core import settings
+from ..inputfilters import FILTERS
 
 
 def main():

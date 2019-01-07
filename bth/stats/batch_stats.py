@@ -8,9 +8,9 @@
 import os
 import logging
 
-from termhub.core.settings import path_stats, path_batch, email_conn
-from termhub.stats.statplot_poststats import plotstats
-from termhub.stats.email_sending import ConnectionSet, send_mail
+from ..core.settings import path_stats, path_batch, email_conn
+from .statplot_poststats import plotstats
+from .email_sending import ConnectionSet, send_mail
 
 PENDING = os.path.join(path_batch, "pending")
 CREDENTIALS = ConnectionSet(*email_conn)

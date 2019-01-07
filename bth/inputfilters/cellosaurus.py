@@ -11,7 +11,7 @@ Collect Cellosaurus entries ("cellosaurus.txt").
 
 import re
 
-from termhub.inputfilters._base import IterConceptRecordSet
+from ._base import IterConceptRecordSet
 
 
 class RecordSet(IterConceptRecordSet):
