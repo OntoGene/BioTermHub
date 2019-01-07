@@ -17,6 +17,7 @@ COMMANDS = [
     'settings',
     'fetch-remote',
     'fetch-google-ngrams',
+    'fetch-umls',
     'extract-umls-cuis',
 ]
 
@@ -70,6 +71,12 @@ def fetch_google_ngrams():
     '''Update the Google n-grams.'''
     import bth.update.fetch_google_ngrams
     bth.update.fetch_google_ngrams.main()
+
+
+def fetch_umls():
+    '''Download a full UMLS release.'''
+    import bth.update.fetch_umls
+    bth.update.fetch_umls.main()
 
 
 def extract_umls_cuis():

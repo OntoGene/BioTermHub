@@ -14,11 +14,14 @@ import csv
 import gzip
 import codecs
 import zipfile
+import logging
 import argparse
 from pathlib import Path
 
 from ..core import settings
 from ..inputfilters import FILTERS
+from .fetch_umls import fetch_full_release, predict_release
+from ..lib.tools import quiet_option, setup_logging
 
 
 DEFAULT_SOURCES = {rec.umls_abb: Path(rec.umls_dump_fn())
@@ -42,14 +45,29 @@ def main():
         '-u', '--umls-full-zip', metavar='PATH', default=find_umls_zip(),
         help='Zip archive with full UMLS download')
     ap.add_argument(
+        '-f', '--fetch-umls', metavar='RELEASE', nargs='?',
+        const=predict_release(),
+        help='download a full UMLS release (eg. %(const)s) before extracting')
+    ap.add_argument(
         '-s', '--sources', metavar='SRC', nargs='+',
         default=sorted(DEFAULT_SOURCES),
         help='target sources (UMLS SAB field)')
     ap.add_argument(
         '-t', '--target-dir', metavar='PATH',
         help='directory for saving extracted TSV files')
-    args = ap.parse_args()
-    extract_targets(**vars(args))
+    quiet_option(ap)
+    args = vars(ap.parse_args())
+    setup_logging(args.pop('quiet'))
+    fetch_extract(**args)
+
+
+def fetch_extract(fetch_umls, umls_full_zip, **kwargs):
+    '''
+    If requested, download a full release before extracting.
+    '''
+    if fetch_umls:
+        umls_full_zip = fetch_full_release(fetch_umls)
+    extract_targets(umls_full_zip, **kwargs)
 
 
 def extract_targets(umls_full_zip, sources=DEFAULT_SOURCES, target_dir=None):
@@ -69,6 +87,7 @@ def _extract_targets(umls_full_zip, sources):
     files = []
     writers = {}
     for sab, path in sources.items():
+        logging.info('Writing to %s', path)
         files.append(path.open('w', encoding='utf-8'))
         writers[sab] = csv.writer(files[-1], delimiter='\t', quotechar=None)
 
@@ -136,9 +155,11 @@ def iternlm(umls_full_zip):
     '''
     Find the inner archives (zip files with .nlm extension).
     '''
+    logging.info('Searching %s', umls_full_zip)
     with zipfile.ZipFile(umls_full_zip) as full:
         for info in full.infolist():
             if info.filename.endswith('.nlm'):
+                logging.info('Extracting %s', info.filename)
                 with full.open(info) as nlm:
                     if not nlm.seekable():
                         # Read the archive into memory to get a seekable file.
@@ -153,6 +174,7 @@ def iterconsofragments(nlm):
     with zipfile.ZipFile(nlm) as inner:
         for info in inner.infolist():
             if info.filename.split('/')[-1].startswith('MRCONSO'):
+                logging.info('Reading %s', info.filename)
                 with inner.open(info) as f:
                     with gzip.open(f, mode='rb') as conso:
                         yield conso
