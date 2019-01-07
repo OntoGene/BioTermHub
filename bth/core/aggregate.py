@@ -214,7 +214,3 @@ class RecordSetContainer(object):
                 # No cross-lookup handling.
                 yield from recordset
         logging.info('done.')
-
-
-if __name__ == '__main__':
-    main()

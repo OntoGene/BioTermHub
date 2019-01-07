@@ -410,7 +410,3 @@ class StatLog(object):
                 if change_age < settings.concurrent_update_dead:
                     return True
         return False
-
-
-if __name__ == '__main__':
-    main()

@@ -166,7 +166,3 @@ def parseconso(stream, sources):
     for row in r:
         if row[SAB] in sources:
             yield row[SAB], row[CUI], row[CODE], row[STR]
-
-
-if __name__ == '__main__':
-    main()

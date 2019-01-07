@@ -115,7 +115,3 @@ def get_total_count(year_threshold):
         for year, count, *_ in (e.split(',') for e in raw.split())
         if int(year) >= year_threshold)
     return total_count
-
-
-if __name__ == '__main__':
-    main()
