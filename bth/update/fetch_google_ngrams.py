@@ -18,7 +18,7 @@ import urllib.request
 from collections import namedtuple
 
 from ..core import settings
-from ..lib.tools import TSVDialect
+from ..lib.tools import TSVDialect, quiet_option, setup_logging
 
 
 UNIGRAM_URL = ("http://storage.googleapis.com/books/ngrams/books/"
@@ -37,12 +37,9 @@ def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    ap.add_argument(
-        '-q', '--quiet', action='store_true',
-        help='suppress progress info')
+    quiet_option(ap)
     args = ap.parse_args()
-    logging.basicConfig(format='%(asctime)s - %(message)s',
-                        level=logging.WARNING if args.quiet else logging.INFO)
+    setup_logging(args.quiet)
     update()
 
 

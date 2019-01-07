@@ -11,6 +11,7 @@ Miscellaneous helper tools.
 
 
 import csv
+import logging
 from collections import OrderedDict, Counter, namedtuple
 
 
@@ -68,3 +69,20 @@ class DefaultOrderedDict(OrderedDict):
 class StatDict(DefaultOrderedDict):
     def __init__(self):
         super(StatDict, self).__init__(int, {"ids":0, "terms":0, "avg. terms/id":0, "avg. ids/term":0, "ratios":Counter()})
+
+
+def quiet_option(argparser):
+    '''
+    Add a -q/--quiet option to this argument parser.
+    '''
+    argparser.add_argument(
+        '-q', '--quiet', action='store_true',
+        help='suppress progress info')
+
+
+def setup_logging(quiet=False):
+    '''
+    Call basicConfig with default values.
+    '''
+    logging.basicConfig(format='%(asctime)s: %(message)s',
+                        level=logging.WARNING if quiet else logging.INFO)

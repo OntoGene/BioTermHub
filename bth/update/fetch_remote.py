@@ -25,6 +25,7 @@ from collections import OrderedDict
 
 from ..core import settings
 from ..inputfilters import FILTERS
+from ..lib.tools import quiet_option, setup_logging
 
 
 def main():
@@ -41,14 +42,11 @@ def main():
     ap.add_argument(
         '-f', '--force', action='store_true',
         help='force a new download, even if up-to-date')
-    ap.add_argument(
-        '-q', '--quiet', action='store_true',
-        help='no progress info')
+    quiet_option(ap)
     args = ap.parse_args()
     if 'all' in args.resources:
         args.resources = sorted(FILTERS)
-    logging.basicConfig(format='%(asctime)s: %(message)s',
-                        level=logging.WARNING if args.quiet else logging.INFO)
+    setup_logging(args.quiet)
     fetch(args.resources, args.force)
 
 

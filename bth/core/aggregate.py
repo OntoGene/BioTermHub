@@ -18,7 +18,7 @@ import argparse
 from collections import defaultdict, OrderedDict, Counter
 
 # Helper modules.
-from ..lib.tools import StatDict, Fields, TSVDialect
+from ..lib.tools import StatDict, Fields, TSVDialect, quiet_option, setup_logging
 
 # Input parsers.
 from ..inputfilters import FILTERS
@@ -58,17 +58,14 @@ def main():
     ap.add_argument(
         '-p', '--params', type=json.loads, metavar='JSON', default={},
         help='any configuration parameters, given as a JSON object')
-    ap.add_argument(
-        '-q', '--quiet', action='store_true',
-        help='no progress info')
+    quiet_option(ap)
     args = ap.parse_args()
     if 'all' in args.resources:
         args.resources = sorted(FILTERS)
     if args.postfilters is not None:
         args.params['postfilter'] = pflt.combine(args.postfilters)
 
-    logging.basicConfig(format='%(asctime)s: %(message)s',
-                        level=logging.WARNING if args.quiet else logging.INFO)
+    setup_logging(args.quiet)
     rsc = RecordSetContainer(args.resources, **args.params)
     rsc.write_tsv(sys.stdout.buffer.fileno())
 
