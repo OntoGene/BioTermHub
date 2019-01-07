@@ -13,8 +13,8 @@ How to add a new filter:
 - Import the module here.
 - Add an entry to the `FILTERS` module constant.
 
-The new filter will then be accessible to core.aggregate
-as well as www.index, thus it will be listed in the web GUI.
+The new filter will then be accessible to bth.core.aggregate
+as well as www/index.py, thus it will be listed in the web GUI.
 '''
 
 

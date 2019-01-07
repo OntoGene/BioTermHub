@@ -23,10 +23,6 @@ import hashlib
 
 from lxml import etree
 
-HERE = os.path.dirname(__file__)
-PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..')
-if PACKAGEPATH not in sys.path:
-    sys.path.append(PACKAGEPATH)
 from bth.core import settings
 from bth.core.aggregate import RecordSetContainer
 from bth.inputfilters import FILTERS
@@ -38,7 +34,7 @@ from bth.lib.base36gen import Base36Generator
 # Config globals.
 LOGFILE = settings.log_file
 DOWNLOADDIR = settings.path_download
-SCRIPT_NAME = os.path.basename(__file__)
+HERE = os.path.dirname(__file__)
 DL_URL = './downloads/'
 
 
