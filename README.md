@@ -27,4 +27,4 @@ Subpackages:
 
 ## License
 
-Licensed under the BSD 2-Clause License, see [LICENSE.md](LICENSE.md).
+Licensed under the AGPL-3.0 License, see [LICENSE](LICENSE).
