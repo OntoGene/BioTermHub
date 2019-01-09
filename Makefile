@@ -1,5 +1,5 @@
 WWWDIRS := $(shell python3 -m bth settings -dvr)
-LOGFILE := $(shell python3 -m bth settings -fvr)
+LOGFILE := $(shell python3 -m bth settings -vr -n log_file)
 
 init: $(WWWDIRS) $(LOGFILE)
 

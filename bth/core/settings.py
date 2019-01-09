@@ -36,6 +36,9 @@ def main():
         '-f', '--files', action='store_true',
         help='list file paths only')
     ap.add_argument(
+        '-n', '--name', action='append',
+        help='list the setting matching this name (can be repeated)')
+    ap.add_argument(
         '-a', '--all', action='store_true',
         help='list all settings (default)')
     ap.add_argument(
@@ -46,7 +49,7 @@ def main():
         metavar='PATH',
         help='list paths relative to the CWD (or to PATH if given)')
     args = ap.parse_args()
-    if not (args.directories or args.files):
+    if not (args.directories or args.files or args.name):
         args.all = True  # no scope options == all
 
     settings = sorted(
@@ -60,6 +63,7 @@ def main():
             (k, v) for k, v in settings
             if (args.directories and k.startswith('path'))
             or (args.files and k.endswith('file'))
+            or (args.name and k in args.name)
         ]
 
     if args.relative_paths is not None:
