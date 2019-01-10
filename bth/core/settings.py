@@ -146,24 +146,16 @@ gen_voc_db_file = scratch(
 
 # Web interface log
 
+server_host = '0.0.0.0'
+server_port = 17931
+
 path_log = scratch('log')
 log_file = os.path.join(path_log, 'interface.log')
 path_update_logs = scratch('dumps', 'updates')
 
-# Paths for output, statistics and files related to batch processing
+# Location of aggregated termlists for download
 
 path_download = scratch('downloads')
-path_stats = scratch('stats')
-path_batch = scratch('batch')
-
-# Email credentials.
-
-email_conn = (None,  # email address
-              None,  # server URL
-              None,  # port
-              None,  # user
-              None)  # password
-
 
 
 #

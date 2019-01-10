@@ -19,7 +19,6 @@ from matplotlib.ticker import MaxNLocator, LogLocator
 from matplotlib.ticker import FormatStrFormatter
 
 
-from ..core import settings
 from . import statistics_termfile
 from ..lib.tools import sanitise
 
@@ -31,10 +30,11 @@ def main():
     '''
     Run as script: process the given term list.
     '''
-    plotstats(*sys.argv[1:])
+    termlist_path, stats_directory = sys.argv[1:]
+    plotstats(termlist_path, stats_directory)
 
 
-def plotstats(filename, statspath=settings.path_stats):
+def plotstats(filename, statspath):
     '''
     Create an ambiguity/synonymy plot for each resource and entity type.
     '''

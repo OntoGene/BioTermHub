@@ -1,41 +1,57 @@
 #!/usr/bin/env python3
 # coding: utf8
 
-# Author: Lenz Furrer, 2015--2016
+# Author: Lenz Furrer, 2015--2019
 
 
 '''
-Web interface for the Bio Term Hub.
+Web server for the Bio Term Hub.
 '''
 
 
 import sys
 import os
-import cgi
+import threading
 import multiprocessing as mp
 import time
 import datetime as dt
-import glob
 import shutil
+import signal
 import logging
 import zipfile
 import hashlib
+import argparse
+from pathlib import Path
 
 from lxml import etree
+from bottle import Bottle, request, response, static_file, FormsDict
 
 from bth.core import settings
 from bth.core.aggregate import RecordSetContainer
 from bth.inputfilters import FILTERS
 from bth.update.fetch_remote import RemoteChecker
+from bth.stats.bgplotter import BGPlotter
 from bth.lib.postfilters import RegexFilter
 from bth.lib.base36gen import Base36Generator
+from bth.lib.tools import Tempfile
 
 
 # Config globals.
+HOST = settings.server_host
+PORT = settings.server_port
 LOGFILE = settings.log_file
-DOWNLOADDIR = settings.path_download
-HERE = os.path.dirname(__file__)
-DL_URL = './downloads/'
+DOWNLOADDIR = Path(settings.path_download)
+HERE = Path(__file__).parent
+DL_ROUTE = 'downloads'
+
+
+# Raise SIGTERM as an exception, so that the child processes can be gracefully
+# terminated.
+signal.signal(signal.SIGTERM, lambda *_: sys.exit())
+
+
+# Patch bottle.FormsDict to have useful __str__ method (for use in logging).
+FormsDict.__str__ = lambda self: str(list(self.allitems()))
 
 
 # Some shorthands.
@@ -44,106 +60,162 @@ NBSP = '\xA0'
 WAIT_MESSAGE = ('Please wait while the resource is being created '
                 '(this may take a few minutes, '
                 'depending on the size of the resource).')
-with open(os.path.join(HERE, 'template.html'), encoding='utf8') as f:
-    PAGE = f.read()
+REGEXFILTER = RegexFilter().test
+with (HERE/'template.html').open(encoding='utf8') as _f:
+    PAGE = _f.read()
     PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
     PAGE = PAGE.replace('RESOURCE_NAMES', repr(list(FILTERS)))
 
 
 def main():
     '''
-    Run this as a CGI script.
+    Run as script: start the server.
     '''
-    fields = cgi.FieldStorage()
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap.add_argument(
+        '-i', '--host', metavar='IP', default=HOST,
+        help='host IP')
+    ap.add_argument(
+        '-p', '--port', metavar='N', default=PORT, type=int,
+        help='port number')
+    ap.add_argument(
+        '-d', '--debug', action='store_true',
+        help='display exceptions in the served responses')
+    ap.add_argument(
+        '-v', '--verbosity', nargs='?', default='INFO', const='DEBUG',
+        metavar='LEVEL',
+        help='verbosity level (DEBUG/INFO/WARNING)')
+    args = vars(ap.parse_args())
 
-    output, response_headers, status = main_handler(fields)
-    response_headers.insert(0, ('Status', status))
-
-    # HTTP response.
-    for entry in response_headers:
-        print('{}: {}'.format(*entry))
-    print()
-    sys.stdout.flush()
-    sys.stdout.buffer.write(output)
-
-
-def application(environ, start_response):
-    '''
-    Run this as a WSGI script.
-    '''
-    fields = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
-
-    output, response_headers, status = main_handler(fields)
-
-    # HTTP response.
-    start_response(status, response_headers)
-
-    return [output]
-
-
-def main_handler(fields):
-    '''
-    Main program logic, used in both WSGI and CGI mode.
-    '''
     # Set up the logger.
     logging.basicConfig(
-        level=logging.INFO,
+        level=args.pop('verbosity'),
         filename=LOGFILE,
         format='%(process)d - %(asctime)s - %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 
-    # Respond to the user requests.
-    logging.info('Processing request: %r', fields)
+    run(args)
+
+
+def run(bottle_args):
+    '''
+    Run a BTH server forever.
+    '''
+    app = Bottle()
+    manager = AsyncManager(len(FILTERS)+1)
+
+    _api(app, manager)
+
     try:
-        if 'check-request' in fields:
-            resp = check_request(fields.getfirst('check-request'))
-        elif 'update-request' in fields:
-            resp = update_request(fields.getfirst('update-request'))
-        elif 'stat-plot-request' in fields:
-            resp = stat_plot_request(fields.getfirst('stat-plot-request'))
+        app.run(**bottle_args)
+    finally:
+        manager.destroy()
+
+
+def _api(app, manager):
+    @app.get('/')
+    @app.post('/')
+    def _page():
+        if request.params:
+            logging.debug('JS-free termlist polling')
+            msg, status = manager.termlist_request(request.params)
+            page = jsfree_polling(msg, status, request.params.get('zipped'))
         else:
-            resp = general_request(fields)
-    except Exception:
-        logging.exception('Runtime error.')
-        raise
-    else:
-        return resp
+            logging.info('Serve input page')
+            page = input_page()
+        return serialise(page, xml_declaration=True, doctype='<!doctype html>')
+
+    @app.post('/termlist')
+    def _termlist():
+        logging.debug('Termlist request: %s', request.params)
+        msg, status = manager.termlist_request(request.params)
+        return serialise(msg, fmt='xml', status=status)
+
+    @app.get('/{}/<path:path>'.format(DL_ROUTE))
+    def _download(path):
+        logging.debug('Serve static file: %s', path)
+        return static_file(path, root=str(DOWNLOADDIR))
+
+    @app.get('/check/<name>')
+    def _check(name):
+        logging.debug('Check request: %s', name)
+        msg, status = check_request(name)
+        return serialise(msg, status=status)
+
+    @app.get('/update/<name>')
+    def _update(name):
+        logging.info('Update %s cache', name)
+        manager.update_request(name)
+        msg = etree.Element('p')
+        msg.text = 'Running update...'
+        return serialise(msg, status='202 Accepted')
+
+    @app.get('/statplot/<job_id>')
+    def _statplot(job_id):
+        logging.debug('Statplot request: %s', job_id)
+        msg, status = stat_plot_request(job_id)
+        return serialise(msg, status=status)
+
+    # Maintenance API (unprotected).
+
+    @app.post('/maintenance/clearcache')
+    def _clearcache():
+        deleted = clean_up_dir(DOWNLOADDIR, clear_all=True)
+        return {'deleted_files': deleted}
 
 
-def general_request(fields):
+class AsyncManager:
     '''
-    Respond to a non-specific or creation request.
+    Delegate requests to background processes.
     '''
-    creation_request = fields.getlist('resources')
-    job_id = fields.getfirst('dlid')
-    zipped = fields.getfirst('zipped')
+    def __init__(self, workers):
+        self.pool = mp.Pool(workers)
 
-    if creation_request:
+    def destroy(self):
+        '''Terminate all workers.'''
+        self.pool.terminate()
+        self.pool.join()
+
+    def termlist_request(self, params):
+        '''Get an aggregated termlist.'''
+        return termlist_request(params, self._start_resource_creation)
+
+    def _start_resource_creation(self, params):
+        self.pool.apply_async(create_resource, params)
+
+    def update_request(self, name):
+        '''Update a resource from remote.'''
+        self.pool.apply_async(update_request, (name,))
+
+
+def termlist_request(params, callback):
+    '''
+    Respond to a creation/download request.
+    '''
+    resources = params.getlist('resources')
+    job_id = params.get('job_id')
+    zipped = params.get('zipped')
+    just_started = False
+
+    if job_id is None:
         # A creation request has been submitted.
+        logging.info('New creation request')
         rsc = RecordSetContainer(
-            resources=creation_request,
-            flags=fields.getlist('flags'),
-            mapping=parse_renaming(fields),
-            postfilter=fields.getfirst('postfilter') and RegexFilter().test)
+            resources=resources,
+            flags=params.getlist('flags'),
+            mapping=parse_renaming(params),
+            postfilter=params.get('postfilter') and REGEXFILTER)
         job_id = job_hash(rsc)
 
-        plot_stats = fields.getfirst('plot-stats')
+        plot_stats = params.get('plot-stats')
         log_exception = True
         params = (rsc, zipped, plot_stats, job_id, log_exception)
+        callback(params)  # start the aggregation job
+        just_started = True
 
-        if fields.getfirst('requested-through') == 'ajax':
-            # If AJAX is possible, return only a download link to be included.
-            logging.info('Respond to an AJAX request.')
-            # Run the aggregator and return only when finished.
-            create_resource(*params)
-            outcome = handle_download_request(job_id, zipped, False)
-            return response(outcome, fmt='xml')
-
-        # Without AJAX, proceed with the dumb auto-refresh mode.
-        logging.info('Respond with auto-refresh work-around.')
-        start_resource_creation(params)
-
-    return build_page(fields, creation_request, job_id, zipped)
+    return handle_download_request(job_id, zipped, just_started)
 
 
 def check_request(name):
@@ -152,17 +224,16 @@ def check_request(name):
     '''
     # Check request only works with AJAX.
     remote = RemoteChecker(name)
-    kwargs = {}
+    msg = etree.Element('p')
+    status = '200 OK'
     if remote.stat.concurrent_update():
-        msg = 'Concurrent update...'
-        kwargs['status'] = '202 Accepted'
+        msg.text = 'Concurrent update...'
+        status = '202 Accepted'
     elif remote.has_changed():
-        msg = 'Update available.'
+        msg.text = 'Update available.'
     else:
-        msg = 'Up-to-date.'
-    p = etree.Element('p')
-    p.text = msg
-    return response(p, **kwargs)
+        msg.text = 'Up-to-date.'
+    return msg, status
 
 
 def update_request(name):
@@ -171,10 +242,11 @@ def update_request(name):
     '''
     # Update request also only works with AJAX.
     remote = RemoteChecker(name)
-    remote.update(wait=True)
-    p = etree.Element('p')
-    p.text = 'Up-to-date.'
-    return response(p)
+    try:
+        remote.update()
+    except RuntimeError as e:
+        if e.args != ('Concurrent update in progress'):
+            raise
 
 
 def stat_plot_request(job_id):
@@ -182,54 +254,50 @@ def stat_plot_request(job_id):
     Create img nodes for term-statistics plots.
     '''
     div = etree.Element('div')  # container
-    index = os.path.join(DOWNLOADDIR, job_id, 'index.log')
-    if os.path.exists(index):
+    index = DOWNLOADDIR / job_id / 'index.log'
+    if index.exists():
+        status = '200 OK'
         se(div, 'hr')
-        with open(index) as f:
+        with index.open(encoding='utf8') as f:
             for line in f:
                 # Create <img> nodes for all plots.
                 fn = line.rstrip()
-                src = '{}{}/{}'.format(DL_URL, job_id, fn)
+                src = '/'.join((DL_ROUTE, job_id, fn))
                 se(div, 'img', src=src, onerror='poll_plot_image(this, 1000)')
-    return response(div)
-
-
-def build_page(fields, creation_request, job_id, zipped):
-    '''
-    Complete page needed for initial loading and JS-free creation request.
-    '''
-    if job_id is None:
-        # Empty form.
-        html = input_page()
-        if fields.getfirst('del') == 'all':
-            clean_up_dir(DOWNLOADDIR, html, clear_all=True)
+    elif index.parent.exists():
+        status = '202 Accepted'
     else:
-        # Creation has started already. Check for the resulting CSV.
-        html = response_page()
-        result = handle_download_request(job_id, zipped, bool(creation_request))
-        html.find('.//*[@id="div-result"]').append(result)
-        if result.text == WAIT_MESSAGE:
-            # Add auto-refresh to the page.
-            link = '.?dlid={}'.format(job_id)
-            if zipped:
-                link += '&zipped=true'
-            se(html.find('head'), 'meta',
-               {'http-equiv': "refresh",
-                'content': "5; url={}".format(link)})
-
-    # Serialise the complete page.
-    return response(html, xml_declaration=True, doctype='<!doctype html>')
+        status = '404 Not Found'
+    return div, status
 
 
-def response(node, status='200 OK', fmt='html', **kwargs):
+def jsfree_polling(msg, status, zipped):
     '''
-    Serialise HTML and create headers.
+    Complete page with results for JS-free creation requests.
+    '''
+    html = response_page()
+    if status == '202 Accepted':
+        job_id = msg.text
+        msg.text = WAIT_MESSAGE
+        # Add auto-refresh to the page.
+        link = '.?job_id={}'.format(job_id)
+        if zipped:
+            link += '&zipped=true'
+        se(html.find('head'), 'meta',
+           {'http-equiv': "refresh",
+            'content': "5; url={}".format(link)})
+    html.find('.//*[@id="div-result"]').append(msg)
+    return html
+
+
+def serialise(node, status=200, fmt='html', **kwargs):
+    '''
+    Serialise HTML or XML and set the content-type header.
     '''
     output = etree.tostring(node, method=fmt, encoding='UTF-8', **kwargs)
-    response_headers = [('Content-Type', 'text/{};charset=UTF-8'.format(fmt)),
-                        ('Content-Length', str(len(output)))]
-
-    return output, response_headers, status
+    response.content_type = 'text/{}; charset=UTF8'.format(fmt)
+    response.status = status
+    return output
 
 
 def input_page():
@@ -335,36 +403,34 @@ def add_resource_labels(doc):
                 se(cell, 'br').tail = n
 
 
-def clean_up_dir(dirpath, doc, clear_all=False):
+def clean_up_dir(dirpath: Path, clear_all=False):
     '''
     Remove old (or all) files under this directory.
     '''
-    fns = glob.iglob('{}/*'.format(dirpath))
+    fns = dirpath.glob('*')
     if clear_all:
-        # Hidden functionality: clear the downloads directory with "?del=all".
-        # Report this when it happens.
+        # Maintenace call: clear the downloads directory.
         del_fns = list(fns)
-        msg = 'INFO: removed {} files in {}.'.format(len(del_fns), dirpath)
-        doc.find('.//*[@id="div-msg"]').text = msg
     else:
         # Automatic clean-up of files older than 35 days.
         deadline = time.time() - 3024000  # 35 * 24 * 3600
-        del_fns = [fn for fn in fns if os.path.getmtime(fn) < deadline]
+        del_fns = [fn for fn in fns if fn.stat().st_mtime < deadline]
     for fn in del_fns:
         try:
-            os.remove(fn)
+            fn.unlink()
         except IsADirectoryError:
-            shutil.rmtree(fn)
+            shutil.rmtree(str(fn))
+    return list(map(str, del_fns))
 
 
-def parse_renaming(fields):
+def parse_renaming(params):
     '''
     Get any user-specified renaming entries.
     '''
     m = {}
     for level in ('resource', 'entity_type'):
         m[level] = {}
-        entries = [fields.getfirst('{}-{}'.format(level, n), '').split('\n')
+        entries = [params.get('{}-{}'.format(level, n), '').split('\n')
                    for n in ('std', 'custom')]
         for std, custom in zip(*entries):
             if std and custom:
@@ -399,45 +465,41 @@ def job_hash(rsc):
     return Base36Generator.int2b36(n, big_endian=False)
 
 
-def start_resource_creation(params):
-    '''
-    Asynchronous initialisation.
-    '''
-    # Start the creation process, but don't wait for its termination.
-    p = mp.Process(target=create_resource,
-                   args=params)
-    p.start()
-
-
-def handle_download_request(job_id, zipped, is_recent):
+def handle_download_request(job_id, zipped, just_started):
     '''
     Check if the CSV is ready yet, or if an error occurred.
     '''
     msg = etree.Element('p')
-    fn = job_id + '.csv'
-    path = os.path.join(DOWNLOADDIR, fn)
-    if zipped and os.path.exists(zipname(path)):
-        success_msg(msg, zipname(fn), zipname(path))
-    elif not zipped and os.path.exists(path):
-        success_msg(msg, fn, path)
-    elif os.path.exists(path + '.log'):
-        with open(path + '.log', 'r', encoding='utf8') as f:
+    status = '200 OK'
+    path = termlist_path(job_id)
+    zpath = zipname(path)
+    lpath = logname(path)
+    tpath = Tempfile(path).tmp
+    if zipped and zpath.exists():
+        success_msg(msg, zpath)
+    elif not zipped and path.exists():
+        success_msg(msg, path)
+    elif lpath.exists():
+        with lpath.open('r', encoding='utf8') as f:
             msg.text = 'Runtime error: {}'.format(f.read())
-    elif os.path.exists(path + '.tmp') or is_recent:
-        msg.text = WAIT_MESSAGE
+        status = '500 Internal Server Error'
+    elif tpath.exists() or just_started:
+        msg.text = job_id
+        status = '202 Accepted'
     else:
         msg.text = 'Cannot find the requested resource.'
-    return msg
+        status = '404 Not Found'
+    return msg, status
 
 
-def success_msg(msg, fn, path):
+def success_msg(msg, path):
     '''
     Create a download link.
     '''
     msg.text = 'Download resource: '
-    link = se(msg, 'a', href=DL_URL+fn)
-    link.text = fn
-    link.tail = size_fmt(os.path.getsize(path), ' ({:.1f} {}B)')
+    link = se(msg, 'a', href='/'.join((DL_ROUTE, path.name)))
+    link.text = path.name
+    link.tail = size_fmt(path.stat().st_size, ' ({:.1f} {}B)')
 
 
 def size_fmt(num, fmt='{:.1f} {}B'):
@@ -451,11 +513,21 @@ def size_fmt(num, fmt='{:.1f} {}B'):
     return fmt.format(num, 'Yi')
 
 
-def zipname(fn):
+def termlist_path(job_id: str) -> Path:
     '''
-    Replace the last 4 characters with ".zip".
+    Canonical path to the aggregated termlist.
     '''
-    return fn[:-4] + '.zip'
+    return DOWNLOADDIR / (job_id + '.csv')
+
+
+def zipname(path: Path) -> Path:
+    '''Replace the suffix with ".zip". '''
+    return path.with_suffix('.zip')
+
+
+def logname(path: Path) -> Path:
+    '''Add a ".log" suffix.'''
+    return path.with_suffix(path.suffix + '.log')
 
 
 def create_resource(resources,
@@ -466,28 +538,34 @@ def create_resource(resources,
     '''
     if job_id is None:
         job_id = job_hash(resources)
-    target_fn = os.path.join(DOWNLOADDIR, job_id + '.csv')
-    target_fn = os.path.abspath(target_fn)
-    r_value = target_fn
+    target_fn = termlist_path(job_id)
 
+    stats = None
     if plot_stats:
-        plot_dir = target_fn[:-4]
-        os.makedirs(plot_dir, exist_ok=True)
-    else:
-        plot_dir = None
+        plot_dir = target_fn.with_suffix('')
+        try:
+            plot_dir.mkdir()
+        except FileExistsError:
+            # The plots exist already. Update mtime, but don't recreate.
+            plot_dir.touch()
+        else:
+            stats = BGPlotter(plot_dir, proc_type=threading.Thread)
 
     # Check if we really have to create this resource
     # (it might already exist from an earlier job).
-    if os.path.exists(target_fn):
+    if target_fn.exists():
         # Touch this file to keep it from being cleaned away.
-        os.utime(target_fn, None)
+        target_fn.touch()
+        if stats:
+            stats.from_disk(target_fn)
     else:
         try:
-            _create_resource(target_fn, resources, plot_dir)
+            with Tempfile(target_fn) as tmp:
+                resources.write_tsv(str(tmp), stats=stats)
         except Exception:
             logging.exception('Resource creation failed:')
             if log_exception:
-                with open(target_fn + '.log', 'w', encoding='utf8') as f:
+                with logname(target_fn).open('w', encoding='utf8') as f:
                     f.write(
                         'An internal error occurred. '
                         'Please inform the webmaster at info@ontogene.org '
@@ -498,38 +576,30 @@ def create_resource(resources,
 
     if zipped:
         zipfn = zipname(target_fn)
-        r_value = zipfn
-        if os.path.exists(zipfn):
-            os.utime(zipfn, None)  # touch as well
+        if zipfn.exists():
+            zipfn.touch()
         else:
-            with zipfile.ZipFile(zipfn, 'w', zipfile.ZIP_DEFLATED) as f:
-                f.write(target_fn, job_id + '.csv')
+            with zipfile.ZipFile(str(zipfn), 'w', zipfile.ZIP_DEFLATED) as z:
+                z.write(str(target_fn), target_fn.name)
 
-    # Remove old, unused files.
-    clean_up_dir(DOWNLOADDIR, None)
-
-    return r_value
-
-
-def _create_resource(target_fn, rsc, plot_dir=None):
-    '''
-    Run the Bio Term Hub resource creation pipeline.
-    '''
-    rsc.write_tsv(target_fn + '.tmp', stats=plot_dir)
-    os.rename(target_fn + '.tmp', target_fn)
     # List all expected plot files in a log file.
-    if plot_dir is not None:
-        log = os.path.join(plot_dir, 'index.log')
-        with open(log, 'w', encoding='utf8') as f:
-            for fn in rsc.plots:
-                f.write(os.path.basename(fn))
+    if stats:
+        log = plot_dir / 'index.log'
+        with log.open('w', encoding='utf8') as f:
+            for fn in stats.destinations:
+                f.write(fn.name)
                 f.write('\n')
             # Add the legend to the list.
             f.write('plot-legend.png\n')
         # Place a copy of the plot legend in plot_dir.
-        src = os.path.join(HERE, '..', 'bth', 'stats', 'data',
-                           'plot-legend.png')
-        shutil.copy(src, plot_dir)
+        src = HERE / '..' / 'bth' / 'stats' / 'data' / 'plot-legend.png'
+        shutil.copy(str(src), str(plot_dir))
+        stats.join()
+
+    # Remove old, unused files.
+    clean_up_dir(DOWNLOADDIR)
+
+    return
 
 
 if __name__ == '__main__':

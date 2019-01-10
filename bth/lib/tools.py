@@ -13,6 +13,7 @@ Miscellaneous helper tools.
 import re
 import csv
 import logging
+from pathlib import Path
 from collections import namedtuple
 
 
@@ -61,3 +62,20 @@ def setup_logging(quiet=False):
     '''
     logging.basicConfig(format='%(asctime)s: %(message)s',
                         level=logging.WARNING if quiet else logging.INFO)
+
+
+class Tempfile:
+    '''Context handler for transparent temp files as intermediate target.'''
+    def __init__(self, target: Path):
+        self.target = target
+        self.tmp = target.with_suffix(target.suffix + '.tmp')
+
+    def __enter__(self):
+        return self.tmp
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            self.tmp.rename(self.target)
+        except OSError:
+            pass
+        return False  # don't suppress exceptions

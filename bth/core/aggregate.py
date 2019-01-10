@@ -95,7 +95,6 @@ class RecordSetContainer(object):
         self.flags = frozenset(flags)
         self.params = params  # remaining params -- handled later
 
-        self.plots = None
         self.cross_lookup = defaultdict(set)
 
     @staticmethod
@@ -163,7 +162,7 @@ class RecordSetContainer(object):
         rows = self._all_rows(**kwargs)
         if postfilter is not None:
             rows = filter(postfilter, rows)
-        if stats:
+        if stats is not None:
             rows = self._collect_stats(rows, stats)
         yield from rows
 
@@ -184,14 +183,16 @@ class RecordSetContainer(object):
                 yield from recordset
         logging.info('done.')
 
-    def _collect_stats(self, rows, dest_dir):
+    @staticmethod
+    def _collect_stats(rows, stats):
         '''
         While compiling the term list, collect and plot some statistics
         in the background.
         '''
-        stats = BGPlotter(dest_dir)
+        if not isinstance(stats, BGPlotter):
+            stats = BGPlotter(stats)
         for row in rows:
             stats.update(row.original_id, row.term, row.entity_type)
             yield row
         # Start plotting (non-blocking).
-        self.plots = stats.plot()  # return value is a list of file names
+        stats.plot()

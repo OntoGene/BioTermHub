@@ -52,11 +52,9 @@
     // AJAX stuff.
 
     // Actual AJAX mechanism.
-    function ajax_request(fdata, target_node, wait_msg, success, failure, followup) {
+    function ajax_request(address, fdata, target_node, wait_msg,
+                          success, followup, failure) {
       var xmlhttp = new XMLHttpRequest();
-
-      // Mark this request as originating from AJAX.
-      fdata.append("requested-through", "ajax");
 
       // Status handling.
       xmlhttp.onreadystatechange = function() {
@@ -68,13 +66,14 @@
               success(xmlhttp);
             }
           } else if (xmlhttp.status == 202 && typeof(followup) !== 'undefined') {
+            target_node.innerHTML = wait_msg;
             // Follow-up callback.
-            followup();
+            followup(xmlhttp);
           } else {
             target_node.innerHTML = "Error " + xmlhttp.status + " occurred";
             // Failure callback.
             if (typeof(failure) !== 'undefined') {
-              failure();
+              failure(xmlhttp);
             }
           }
         } else {
@@ -83,17 +82,18 @@
       }
 
       // Data transmission.
-      xmlhttp.open("POST", '.', true);
-      xmlhttp.timeout = 1800000;  // 30 minutes
+      xmlhttp.open(fdata !== null ? "POST" : "GET", address, true);
       xmlhttp.send(fdata);
     }
 
     // Check if there is an update for this resource.
-    function check_resource(name) {
+    function check_resource(name, wait_msg, poll_interval) {
       var name = name,  // Make sure this is bound to the local closure.
           result_div = document.getElementById('div-update-' + name),
           button = document.getElementById('btn-update-' + name),
-          fdata = new FormData();
+          route = 'check/' + name,
+          wait_msg = wait_msg || 'Checking for remote changes...',
+          poll_interval = poll_interval || 1000;  // ms between poll requests
 
       // Callback actions.
       function success(xhr) {
@@ -108,7 +108,8 @@
         }
       }
       function followup() {
-        update_resource(name);
+        setTimeout(check_resource, poll_interval,
+                   name, wait_msg, Math.min(poll_interval*2, 15000));
       }
       function failure() {
         button.removeAttribute('disabled');
@@ -116,23 +117,27 @@
         button.setAttribute('onclick', 'check_resource("' + name + '")');
       }
 
-      fdata.append('check-request', name);
       button.setAttribute('disabled', 'disabled');
       button.setAttribute('value', '...');
-      ajax_request(fdata, result_div, 'Checking for remote changes...',
-                   success, failure, followup);
+      ajax_request(route, null, result_div, wait_msg,
+                   success, followup, failure);
     }
 
     // Post an update request.
     function update_resource(name) {
       var result_div = document.getElementById('div-update-' + name),
           button = document.getElementById('btn-update-' + name),
-          fdata = new FormData();
+          wait_msg = 'Updating (might take a few minutes)...',
+          route = 'update/' + name;
 
-      fdata.append('update-request', name);
+      function followup() {
+        setTimeout(check_resource, 3000, name, wait_msg);
+      }
+
       button.setAttribute('disabled', 'disabled');
       button.setAttribute('value', '...');
-      ajax_request(fdata, result_div, 'Updating (might take a few minutes)...');
+      ajax_request(route, null, result_div, wait_msg,
+                   undefined, followup);
     }
 
     // Callback function to fill in OGER parameters.
@@ -153,9 +158,11 @@
     function get_stat_plots(location) {
       var plot_div = document.getElementById('div-stat-plots'),
           job_id = location.substring(0, location.length-4).split('/').pop(),
-          fdata = new FormData();
-      fdata.append('stat-plot-request', job_id);
-      ajax_request(fdata, plot_div, '');
+          route = 'statplot/' + job_id;
+      function followup() {
+        setTimeout(get_stat_plots, 1000, location);
+      }
+      ajax_request(route, null, plot_div, '', undefined, followup);
     }
 
     // Check for missing plot images in increasing intervals.
@@ -165,33 +172,61 @@
       setTimeout(function() {img.src = img.src}, interval);
     }
 
+    function create_termlist(main_form) {
+      var inp_div = document.getElementById('div-input-form'),
+          resp_div = document.getElementById('div-download-page'),
+          fdata = new FormData(main_form),
+          zipped = fdata.get('zipped'),
+          plot_stats = fdata.get('plot-stats');
+
+      // Replace the form div with the response div.
+      inp_div.setAttribute('class', 'hidden');
+      resp_div.setAttribute('class', 'visible');
+
+      function followup(xhr) {
+        var job_id = xhr.responseXML.children[0].textContent,
+            fdata = new FormData();
+        fdata.append('job_id', job_id);
+        if (zipped) { fdata.append('zipped', zipped); }
+        if (plot_stats) { fdata.append('plot-stats', plot_stats); }
+
+        setTimeout(poll_termlist, 1000, fdata, 1000);
+      }
+
+      request_termlist(fdata, followup);
+    }
+
+    function poll_termlist(fdata, interval) {
+      function followup() {
+        setTimeout(poll_termlist, interval, fdata, Math.min(interval*2, 15000));
+      }
+      request_termlist(fdata, followup);
+    }
+
+    function request_termlist(fdata, followup) {
+      var result_div = document.getElementById('div-result');
+      function success() {
+        var result_loc = result_div.getElementsByTagName('a')[0]['href'];
+        oger_button(result_loc);
+        if (fdata.get('plot-stats')) {
+          setTimeout(get_stat_plots, 1000, result_loc);
+        }
+      }
+      function failure(xhr) {
+        result_div.innerHTML = xhr.responseText;
+      }
+      ajax_request('termlist', fdata, result_div, WAIT_MESSAGE,
+                   success, followup, failure);
+    }
+
     onload = function() {
       // Place an event listener on the main form.
       // It suppresses the normal page-replacing request on
       // form submission.
       var main_form = document.getElementById('form-res');
       main_form.addEventListener('submit', function(ev) {
-
-        var result_div = document.getElementById('div-result'),
-            inp_div = document.getElementById('div-input-form'),
-            resp_div = document.getElementById('div-download-page'),
-            fdata = new FormData(main_form);
-
-        // Replace the form div with the response div.
-        inp_div.setAttribute('class', 'hidden');
-        resp_div.setAttribute('class', 'visible');
-
-        // Post the AJAX request.
-        function success(xhr) {
-          var result_loc = result_div.getElementsByTagName('a')[0]['href'];
-          oger_button(result_loc);
-          get_stat_plots(result_loc);
-        }
-        ajax_request(fdata, result_div, WAIT_MESSAGE, success);
-
-        // Prevent reloading the page on submit.
+        create_termlist(main_form);
         ev.preventDefault();
-
       }, false);
 
       // Check if any resource has been changed since the last update.
@@ -238,7 +273,7 @@
               </table>
             </div>
             <hr/>
-            <label>Advanced options: Renaming</label>
+            <label>Renaming</label>
             <input type="button" id="btn-renaming" onclick="toggle_advanced('renaming');" value="▶"/>
             <div id="div-renaming" class="hidden">
               <p>Use the following text boxes to change the labeling of resources and entity types.
