@@ -65,7 +65,7 @@ def fetch(which=FILTERS.keys(), force=False):
             logging.info('No change for %s', name)
 
 
-class RemoteChecker(object):
+class RemoteChecker:
     '''Checking and updating for one specific resource.'''
     def __init__(self, name, resource=None):
         if resource is None:
@@ -261,10 +261,10 @@ class Pipeline:
         random access to the file (cannot stream).
         '''
         forking = Forking(*steps)
-        with zipfile.ZipFile(io.BytesIO(stream.read())) as z:
+        with LazyZipFile(stream) as z:
             for member in forking.targets:
-                with z.open(member) as f, forking.fork(member) as branch_steps:
-                    cls._pipe(f, *branch_steps)
+                with forking.fork(member) as branch_steps:
+                    cls._pipe(z.open(member), *branch_steps)
 
 
 class Forking:
@@ -330,7 +330,40 @@ class Forking:
             # Do nothing on exit.
 
 
-class StatLog(object):
+class LazyZipFile:
+    '''
+    Lazy wrapper around ZipFile.
+
+    This is mainly needed to allow establishing the entire
+    pipeline before waiting for all the zip-file data to
+    be downloaded.
+    '''
+    def __init__(self, stream):
+        self._stream = stream
+        self._archive = None
+
+    @property
+    def archive(self):
+        '''Download and open the archive, if necessary.'''
+        if self._archive is None:
+            self._archive = zipfile.ZipFile(io.BytesIO(self._stream.read()))
+        return self._archive
+
+    def open(self, member):
+        '''Iterate over the contents of this archive member.'''
+        with self.archive.open(member) as f:
+            yield from f
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._archive is not None:
+            return self._archive.__exit__(exc_type, exc_val, exc_tb)
+        return False  # don't suppress exceptions
+
+
+class StatLog:
     '''Cached reading/writing of the dump stat log.'''
     def __init__(self, name, resource):
         self._logfn = os.path.join(settings.path_update_logs,

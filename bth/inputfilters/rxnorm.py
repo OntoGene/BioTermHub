@@ -15,8 +15,8 @@ Parse RxNorm Current Prescribable Content ("RXNCONSO.RRF").
 # RXNREL.RRF : atoms and concept links, links RXAUI and RXCUI
 
 
-import io
 import csv
+import codecs
 from collections import Counter
 
 from ._base import IterConceptRecordSet, UMLSIterConceptMixin
@@ -45,7 +45,7 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
         '''
         Parse RRF and produce lines in the canonical _iter_concepts format.
         '''
-        zip_to_text = io.TextIOWrapper(stream, encoding='utf-8')
+        zip_to_text = codecs.iterdecode(stream, encoding='utf-8')
         reader = csv.reader(zip_to_text, delimiter="|")
         cui_map = cls._load_cui_map()
         for id_, terms in cls._prep_concepts(reader):
