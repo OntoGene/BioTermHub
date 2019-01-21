@@ -10,17 +10,19 @@ Central entry point to all BTH executables.
 
 
 import sys
+import importlib
+from collections import OrderedDict
 
 
-COMMANDS = [
-    'aggregate',
-    'server',
-    'settings',
-    'fetch-remote',
-    'fetch-google-ngrams',
-    'fetch-umls',
-    'extract-umls-cuis',
-]
+COMMANDS = OrderedDict([
+    ('aggregate',           'bth.core.aggregate'),
+    ('server',               'bth.server.server'),
+    ('settings',            'bth.core.settings'),
+    ('fetch-remote',        'bth.update.fetch_remote'),
+    ('fetch-google-ngrams', 'bth.update.fetch_google_ngrams'),
+    ('fetch-umls',          'bth.update.fetch_umls'),
+    ('extract-umls-cuis',   'bth.update.extract_umls_cuis'),
+])
 
 
 def main():
@@ -41,55 +43,16 @@ def main():
 
 
 def _resolve_action(arg):
+    arg = arg.replace('_', '-')
+    arg = arg.replace('f-', 'fetch-')
     matches = [cmd for cmd in COMMANDS if cmd.startswith(arg)]
     try:
         (cmd,) = matches
     except ValueError:
         raise LookupError
-    cmd = cmd.replace('-', '_')
-    return globals()[cmd]
-
-
-def aggregate():
-    '''Aggregate from cached dumps.'''
-    import bth.core.aggregate
-    bth.core.aggregate.main()
-
-
-def server():
-    '''Start a server.'''
-    import bth.server.server
-    bth.server.server.main()
-
-
-def settings():
-    '''Show settings.'''
-    import bth.core.settings
-    bth.core.settings.main()
-
-
-def fetch_remote():
-    '''Update cached dumps.'''
-    import bth.update.fetch_remote
-    bth.update.fetch_remote.main()
-
-
-def fetch_google_ngrams():
-    '''Update the Google n-grams.'''
-    import bth.update.fetch_google_ngrams
-    bth.update.fetch_google_ngrams.main()
-
-
-def fetch_umls():
-    '''Download a full UMLS release.'''
-    import bth.update.fetch_umls
-    bth.update.fetch_umls.main()
-
-
-def extract_umls_cuis():
-    '''Update the extracted CUIs.'''
-    import bth.update.extract_umls_cuis
-    bth.update.extract_umls_cuis.main()
+    name = COMMANDS[cmd]
+    module = importlib.import_module(name)
+    return module.main
 
 
 if __name__ == '__main__':
