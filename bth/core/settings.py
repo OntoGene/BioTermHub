@@ -14,7 +14,7 @@ import os
 import argparse
 
 
-ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 def rel(*args):
     '''
@@ -86,23 +86,23 @@ def main():
 
 
 #
-# All data written by the services must be under /mnt/system/ now.
+# All data written by the services is under this directory.
 #
 
-def scratch(*args):
-    'Path relative to /mnt/system/.../scratch/.'
-    scr = '/mnt/system/services/httpd/scratch/ontogene/biotermhub'
-    return os.path.join(scr, *args)
+path_data_root = os.path.join(ROOT, 'data')
+
+def data(*args):
+    '''Path relative to the data root.'''
+    return os.path.join(path_data_root, *args)
 
 
 #
-# Downloaded dumps path
+# Resource cache.
 #
 
-# Download directory.
-
-path_dumps = scratch('dumps')
-path_umls_maps = scratch('dumps', 'umls')
+path_dumps = data('dumps')
+path_update_logs = data('dumps', 'updates')
+path_umls_maps = data('dumps', 'umls')
 
 # Do not attempt to update resources if they are younger than min_update_freq.
 
@@ -136,26 +136,23 @@ tempfile_buffer_size = 2**30  # Bytes (0: never write to disk)
 
 gen_voc_year_threshold = 1990
 gen_voc_occ_threshold = 1e-7
-gen_voc_db_file = scratch(
+gen_voc_db_file = data(
     'dumps', 'googlebooks-1grams-f-{}.tsv.gz'.format(gen_voc_occ_threshold))
 
 
 #
-# Terminology DB builder
+# Web interface
 #
-
-# Web interface log
 
 server_host = '0.0.0.0'
 server_port = 17931
 
-path_log = scratch('log')
+path_log = data('log')
 log_file = os.path.join(path_log, 'interface.log')
-path_update_logs = scratch('dumps', 'updates')
 
 # Location of aggregated termlists for download
 
-path_download = scratch('downloads')
+path_download = data('downloads')
 
 
 #
