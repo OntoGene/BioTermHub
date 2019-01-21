@@ -15,7 +15,6 @@ import cgi
 import multiprocessing as mp
 import time
 import datetime as dt
-import math
 import glob
 import shutil
 import logging
@@ -24,21 +23,18 @@ import hashlib
 
 from lxml import etree
 
-HERE = os.path.dirname(__file__)
-PACKAGEPATH = os.path.join(os.path.realpath(HERE), '..', '..')
-if PACKAGEPATH not in sys.path:
-    sys.path.append(PACKAGEPATH)
-from termhub.core import settings
-from termhub.core.aggregate import RecordSetContainer
-from termhub.inputfilters import FILTERS
-from termhub.update.fetch_remote import RemoteChecker
-from termhub.lib.postfilters import RegexFilter
+from bth.core import settings
+from bth.core.aggregate import RecordSetContainer
+from bth.inputfilters import FILTERS
+from bth.update.fetch_remote import RemoteChecker
+from bth.lib.postfilters import RegexFilter
+from bth.lib.base36gen import Base36Generator
 
 
 # Config globals.
 LOGFILE = settings.log_file
 DOWNLOADDIR = settings.path_download
-SCRIPT_NAME = os.path.basename(__file__)
+HERE = os.path.dirname(__file__)
 DL_URL = './downloads/'
 
 
@@ -398,22 +394,9 @@ def job_hash(rsc):
         for entry in sorted(rsc.params['mapping'][level].items()):
             for e in entry:
                 key.update(e.encode('utf8'))
-    return base36digest(key.digest())
-
-
-def base36digest(octets):
-    '''
-    Convert a hash digest to base 36.
-    '''
-    n = sum(256**i * b for i, b in enumerate(octets))
-    length = int(math.ceil(math.log(256**len(octets), 36)))
-    d = ''
-    for _ in range(length):
-        n, r = divmod(n, 36)
-        d += digits[r]
-    return d
-
-digits = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    # Convert the hash digest to base 36.
+    n = int.from_bytes(key.digest(), 'little')
+    return Base36Generator.int2b36(n, big_endian=False)
 
 
 def start_resource_creation(params):
@@ -543,10 +526,10 @@ def _create_resource(target_fn, rsc, plot_dir=None):
                 f.write('\n')
             # Add the legend to the list.
             f.write('plot-legend.png\n')
-    # Place a copy of the plot legend in plot_dir.
-    src = os.path.join(PACKAGEPATH, 'termhub', 'stats', 'data',
-                       'plot-legend.png')
-    shutil.copy(src, plot_dir)
+        # Place a copy of the plot legend in plot_dir.
+        src = os.path.join(HERE, '..', 'bth', 'stats', 'data',
+                           'plot-legend.png')
+        shutil.copy(src, plot_dir)
 
 
 if __name__ == '__main__':

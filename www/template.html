@@ -139,12 +139,13 @@
     function oger_button(location) {
       var description = 'Bio Term Hub ' + new Date().toUTCString(),
           submit_button = document.getElementById('inp-oger-submit'),
-          desc_param = document.getElementById('inp-oger-description'),
-          settings_param = document.getElementById('inp-oger-settings'),
+          payload_param = document.getElementById('inp-oger-payload'),
           csv_loc = location.substring(0, location.length-3) + 'csv',
-          settings = JSON.stringify({"termlist_path": csv_loc});
-      desc_param.setAttribute('value', description);
-      settings_param.setAttribute('value', settings);
+          payload = JSON.stringify({
+            "description": description,
+            "settings": {"termlist_path": csv_loc}
+          });
+      payload_param.setAttribute('value', payload);
       submit_button.removeAttribute('disabled');
     }
 
@@ -227,7 +228,9 @@
                 <tr>
                   <td id="cell-instructions">
                     <p>The Bio Term Hub provides access to biomedical terminology resources in a unified format. We envision its main use as a basis for text mining systems.</p>
-                    <p>Select any of the external resources on the left to obtain a custom terminology list. The list is a tab-separated table including terms (names, synonyms), preferred name, concept identifier, entity type, and original resource. The contents of the last two fields can be modified using replacement patterns (uncover the <strong>Renaming</strong> section below using the triangle button). Submit your request with the <strong>Create resource</strong> button at the bottom of the page. Afterwards you will be offered the opportunity to annotate a text with the selected resources.</p>
+                    <p>Select any of the external resources on the left to obtain a custom terminology list. The list is a tab-separated table with the following six fields:
+                      <pre>CUI, source, native ID, term, preferred name, entity type</pre>
+                    Each term (name/synonym) is on a separate row. As a recent addition (January 2019), the corresponding <a href="https://www.nlm.nih.gov/research/umls/">UMLS</a> identifier (CUI) is given in the first column, if defined. The contents of the fields <em>source</em> and <em>entity type</em> can be modified using replacement patterns (uncover the <strong>Renaming</strong> section below using the triangle button). Submit your request with the <strong>Create resource</strong> button at the bottom of the page. Afterwards you will be offered the opportunity to annotate a text with the selected resources.</p>
                     <p>Aggregating, filtering, reformatting, and optionally renaming all this information takes time. Creation time mainly depends on the size of each resource. Compiling a list of all terminologies except for EntrezGene takes approximately 90&nbsp;seconds; however, EntrezGene is very large, and processing it requires 3 to 4&nbsp;minutes.</p>
                     <p>The requested terminology list is compiled on the fly, based on local copies of the external terminology resources. Whenever one of the local copies becomes out-of-date with respect to its remote source, an <strong>Update</strong> button is shown next to the corresponding resource name. This button triggers downloading the latest version to our server. Please note that, due to data volume and bandwidth restrictions, updating may take several minutes for some of the resources.</p>
                   </td>
@@ -243,7 +246,7 @@
               <p>You can define multiple pattern-replacement pairs
                 by using corresponding lines in the left/right box.</p>
               <div style="float: left; padding-right: .2cm; padding-bottom: .2cm">
-                <label>Resources:</label>
+                <label>Sources:</label>
                 <table>
                   <tr>
                     <td>
@@ -275,7 +278,7 @@
               <div style="float: left;">
                 <table>
                   <tr>
-                    <th>Existing resource labels:</th>
+                    <th>Existing source labels:</th>
                     <th>Existing entity-type labels:</th>
                   </tr>
                   <tr style="vertical-align: top;">
@@ -308,8 +311,7 @@
           <form id="form-oger" role="form" method="post" accept-charset="UTF-8">
             <label>Press the following button to use the selected resources for text annotation:</label>
             <input type="submit" value="Send to OGER" disabled="disabled" id="inp-oger-submit" />
-            <input type="hidden" name="description" id="inp-oger-description" />
-            <input type="hidden" name="settings" id="inp-oger-settings" />
+            <input type="hidden" name="json" id="inp-oger-payload" />
           </form>
           <div id="div-stat-plots"></div>
           <hr/>
