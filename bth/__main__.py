@@ -14,6 +14,7 @@ import sys
 
 COMMANDS = [
     'aggregate',
+    'server',
     'settings',
     'fetch-remote',
     'fetch-google-ngrams',
@@ -53,6 +54,12 @@ def aggregate():
     '''Aggregate from cached dumps.'''
     import bth.core.aggregate
     bth.core.aggregate.main()
+
+
+def server():
+    '''Start a server.'''
+    import bth.server.server
+    bth.server.server.main()
 
 
 def settings():

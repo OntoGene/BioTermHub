@@ -26,14 +26,14 @@ from pathlib import Path
 from lxml import etree
 from bottle import Bottle, request, response, static_file, FormsDict
 
-from bth.core import settings
-from bth.core.aggregate import RecordSetContainer
-from bth.inputfilters import FILTERS
-from bth.update.fetch_remote import RemoteChecker
-from bth.stats.bgplotter import BGPlotter
-from bth.lib.postfilters import RegexFilter
-from bth.lib.base36gen import Base36Generator
-from bth.lib.tools import Tempfile
+from ..core import settings
+from ..core.aggregate import RecordSetContainer
+from ..inputfilters import FILTERS
+from ..update.fetch_remote import RemoteChecker
+from ..stats.bgplotter import BGPlotter
+from ..lib.postfilters import RegexFilter
+from ..lib.base36gen import Base36Generator
+from ..lib.tools import Tempfile
 
 
 # Config globals.
@@ -61,7 +61,7 @@ WAIT_MESSAGE = ('Please wait while the resource is being created '
                 '(this may take a few minutes, '
                 'depending on the size of the resource).')
 REGEXFILTER = RegexFilter().test
-with (HERE/'template.html').open(encoding='utf8') as _f:
+with (HERE/'data'/'template.html').open(encoding='utf8') as _f:
     PAGE = _f.read()
     PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
     PAGE = PAGE.replace('RESOURCE_NAMES', repr(list(FILTERS)))
@@ -592,7 +592,7 @@ def create_resource(resources,
             # Add the legend to the list.
             f.write('plot-legend.png\n')
         # Place a copy of the plot legend in plot_dir.
-        src = HERE / '..' / 'bth' / 'stats' / 'data' / 'plot-legend.png'
+        src = HERE / 'data' / 'plot-legend.png'
         shutil.copy(str(src), str(plot_dir))
         stats.join()
 
@@ -600,7 +600,3 @@ def create_resource(resources,
     clean_up_dir(DOWNLOADDIR)
 
     return
-
-
-if __name__ == '__main__':
-    main()
