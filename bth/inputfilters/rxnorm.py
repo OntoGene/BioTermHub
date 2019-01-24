@@ -33,7 +33,7 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
     dump_fn = 'rxnorm.tsv'
 
     remote = 'http://download.nlm.nih.gov/rxnorm/RxNorm_full_prescribe_current.zip'
-    source_ref = 'http://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html'
+    source_ref = 'http://www.nlm.nih.gov/research/umls/rxnorm/'
     umls_abb = 'RXNORM'
 
     @classmethod
