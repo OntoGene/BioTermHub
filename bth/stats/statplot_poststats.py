@@ -95,14 +95,13 @@ def drawbars(freqdists, title, xlab, ylab, fn):
         value = counter.values()
         color = next(colors)
         # width argument slims down the bars
-        plt.bar(key, value, color=color, align='center', width=0.1)
+        ax.bar(key, value, color=color, align='center', width=0.1)
         offset += 0.1
-    plt.hold(True)
 
-    plt.xlabel(xlab, fontsize=18)
-    plt.ylabel(ylab, fontsize=18)
+    ax.set_xlabel(xlab, fontsize=18)
+    ax.set_ylabel(ylab, fontsize=18)
 
-    plt.title(title, fontsize=24)
+    ax.set_title(title, fontsize=24)
     ax.autoscale()
 
     plt.savefig(fn, bbox_inches='tight')
