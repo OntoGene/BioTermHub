@@ -23,6 +23,7 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
 
     resource = 'NCBI Taxonomy'
     entity_type = 'organism'
+    uri_prefix = 'http://www.ncbi.nlm.nih.gov/taxonomy/'
 
     dump_fn = 'ncbitax.tsv'
     targets = ('names.dmp', 'nodes.dmp')  # archive members

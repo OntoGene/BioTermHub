@@ -29,6 +29,7 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
 
     resource = 'RxNorm'
     entity_type = 'clinical_drug'  # or just 'drug'? 'chemical'?
+    uri_prefix = 'http://purl.bioontology.org/ontology/RXNORM/'
 
     dump_fn = 'rxnorm.tsv'
 

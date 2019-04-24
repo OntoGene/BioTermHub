@@ -5,7 +5,13 @@
 
 
 '''
-Collect ChEBI chemicals ("chebi.obo").
+Collect ChEBI chemicals ("chebi.tsv").
+
+Implementation note:
+This collector doesn't use the "chebi.obo" file, because
+language information is only given in the TSV version.
+The OboRecordSet class is inherited only for the URI-prefix
+functionality.
 '''
 
 
@@ -13,10 +19,10 @@ import csv
 import codecs
 from collections import defaultdict
 
-from ._base import IterConceptRecordSet
+from ._obo import OboRecordSet
 
 
-class RecordSet(IterConceptRecordSet):
+class RecordSet(OboRecordSet):
     '''
     Record collector for ChEBI.
     '''
@@ -86,3 +92,8 @@ class RecordSet(IterConceptRecordSet):
         next(reader)  # skip header line
         for compid, _, chid, _, _, name, _, _, _, _ in reader:
             yield compid, chid, name
+
+    # Explicitly disable unused inherited methods.
+    _iter_stanzas = None
+    _relevant_synonym = None
+    _update_steps = None

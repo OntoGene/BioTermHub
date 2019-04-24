@@ -20,6 +20,15 @@ class OboRecordSet(IterConceptRecordSet):
     Abstract record collector for OBO dumps.
     '''
 
+    uri_prefix = 'http://purl.obolibrary.org/obo/'
+
+    @staticmethod
+    def _prefix_factory(prefix):
+        if prefix is None:
+            return lambda id_: id_
+        else:
+            return lambda id_: prefix+id_.replace(':', '_')
+
     @classmethod
     def preprocess(cls, stream):
         '''

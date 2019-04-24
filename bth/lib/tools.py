@@ -17,6 +17,10 @@ from pathlib import Path
 from collections import namedtuple
 
 
+# Special value for the `idprefix` parameter: make all IDs URIs.
+URI_PREFIX = '$URI$'
+
+
 # Fields of the output TSV.
 Fields = namedtuple('Fields', 'cui resource original_id '
                               'term preferred_term entity_type')

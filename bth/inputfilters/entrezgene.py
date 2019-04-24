@@ -21,6 +21,7 @@ class RecordSet(IterConceptRecordSet):
 
     resource = 'EntrezGene'
     entity_type = 'gene/protein'
+    uri_prefix = 'http://www.ncbi.nlm.nih.gov/gene/'
 
     dump_fn = 'gene_info.trunc'
     remote = 'ftp://ftp.ncbi.nih.gov/gene/DATA/gene_info.gz'

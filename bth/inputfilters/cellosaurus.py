@@ -21,6 +21,7 @@ class RecordSet(IterConceptRecordSet):
 
     resource = 'Cellosaurus'
     entity_type = 'cell_line'
+    uri_prefix = 'http://web.expasy.org/cellosaurus/'
 
     dump_fn = 'cellosaurus.txt'
     remote = 'ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.txt'

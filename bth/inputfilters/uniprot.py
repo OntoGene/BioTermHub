@@ -21,6 +21,7 @@ class RecordSet(IterConceptRecordSet):
 
     resource = 'Swiss-Prot'
     entity_type = 'gene/protein'
+    uri_prefix = 'http://www.uniprot.org/uniprot/'
 
     dump_fn = 'uniprot_sprot.tsv'
     remote = ('ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/'

@@ -16,7 +16,7 @@ import logging
 from collections import defaultdict
 
 from ..core import settings
-from ..lib.tools import Fields
+from ..lib.tools import Fields, URI_PREFIX
 
 
 class AbstractRecordSet(object):
@@ -26,6 +26,7 @@ class AbstractRecordSet(object):
 
     resource = None
     entity_type = None
+    uri_prefix = None
 
     dump_fn = None
     remote = None
@@ -33,7 +34,7 @@ class AbstractRecordSet(object):
 
     def __init__(self, fn=None, mapping=None, idprefix=None):
         self.fn = self._resolve_dump_fns(fn)
-        self.prefix_id = self._prefix_factory(idprefix)
+        self.prefix_id = self._handle_prefix(idprefix)
         self.resource = self.mapping(mapping, 'resource', self.resource)
         self.entity_type = self.mapping(mapping, 'entity_type', self.entity_type)
 
@@ -83,6 +84,11 @@ class AbstractRecordSet(object):
                 if re.match(key, default):
                     return m[key]
             return default
+
+    def _handle_prefix(self, prefix):
+        if prefix == URI_PREFIX:
+            prefix = self.uri_prefix
+        return self._prefix_factory(prefix)
 
     @staticmethod
     def _prefix_factory(prefix):

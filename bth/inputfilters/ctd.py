@@ -25,6 +25,10 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
 
     resource = None  # varying values
     entity_type = None  # fixed value in subclasses
+    uri_prefix = {
+        'MESH': 'http://id.nlm.nih.gov/mesh/',
+        'OMIM': 'http://www.omim.org/entry/',
+    }
 
     source_ref = 'http://ctdbase.org/'
     umls_abb = 'OMIM'            # one target for the UMLS update

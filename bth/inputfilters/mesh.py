@@ -53,6 +53,7 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
 
     resource = None  # Not a fixed field.
     entity_type = None  # Not a fixed field.
+    uri_prefix = 'http://id.nlm.nih.gov/mesh/'
 
     dump_fn = ('mesh-desc.json.pile', 'mesh-supp.json.pile')
     _remote = 'ftp://nlmpubs.nlm.nih.gov/online/mesh/MESH_FILES/xmlmesh/{}{}.gz'
