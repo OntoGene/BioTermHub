@@ -50,9 +50,10 @@ class RecordSet(UMLSIterConceptMixin, IterConceptRecordSet):
         if isinstance(prefix, Mapping):
             # Treat the ID prefix differently for MESH and OMIM.
             # Base the distinction on the shape of the IDs.
+            mesh, omim = prefix['MESH'], prefix['OMIM']
             def _prefix_id(id_):
-                resource = 'MESH' if id_.startswith(('C', 'D')) else 'OMIM'
-                return prefix[resource] + id_
+                prefix = mesh if id_.startswith(('C', 'D')) else omim
+                return prefix + id_
             return _prefix_id
         else:
             return super()._prefix_factory(prefix)
