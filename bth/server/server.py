@@ -33,7 +33,7 @@ from ..update.fetch_remote import RemoteChecker
 from ..stats.bgplotter import BGPlotter
 from ..lib.postfilters import RegexFilter
 from ..lib.base36gen import Base36Generator
-from ..lib.tools import Tempfile
+from ..lib.tools import Tempfile, URI_PREFIX
 
 
 # Config globals.
@@ -206,6 +206,7 @@ def termlist_request(params, callback):
             resources=resources,
             flags=params.getlist('flags'),
             mapping=parse_renaming(params),
+            idprefix=params.get('idprefix'),
             postfilter=params.get('postfilter') and REGEXFILTER)
         job_id = job_hash(rsc)
 
@@ -356,6 +357,9 @@ def populate_checkboxes(doc, resources):
     label = 'remove very short terms (1 or 2 characters) and plain numbers'
     checkbox_par(tbl.getparent(), [label],
                  name='postfilter', value='true', checked='checked')
+    # Add a checkbox for URI identifiers.
+    label = 'create universal, HTTP-based identifiers (URI)'
+    checkbox_par(tbl.getparent(), [label], name='idprefix', value=URI_PREFIX)
 
 
 def source_link(href):
@@ -453,8 +457,9 @@ def job_hash(rsc):
     # Update with the "skip" flag ("ctd_lookup") and the postfilter flag.
     for flag in rsc.flags:
         key.update(flag.encode('utf8'))
-    if rsc.params.get('postfilter') is not None:
-        key.update(b'postfilter')
+    for param in ('postfilter', 'idprefix'):
+        if rsc.params.get(param) is not None:
+            key.update(param.encode('utf8'))
     # Update with any renaming rules.
     for level in sorted(rsc.params.get('mapping', ())):
         for entry in sorted(rsc.params['mapping'][level].items()):
