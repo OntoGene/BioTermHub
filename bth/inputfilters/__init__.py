@@ -18,8 +18,8 @@ as well as www/index.py, thus it will be listed in the web GUI.
 '''
 
 
-from . import cl, cellosaurus, chebi, ctd, entrezgene, go, mesh, ncbitax, pro
-from . import rxnorm, so, uberon, uniprot
+from . import cl, cellosaurus, chebi, ctd, entrezgene, go, mesh, mop
+from . import ncbitax, pro, rxnorm, so, uberon, uniprot
 
 
 FILTERS = {
@@ -31,6 +31,7 @@ FILTERS = {
     'entrezgene': entrezgene.RecordSet,
     'go': go.RecordSet,
     'mesh': mesh.RecordSet,
+    'mop': mop.RecordSet,
     'ncbitax': ncbitax.RecordSet,
     'pro': pro.RecordSet,
     'rxnorm': rxnorm.RecordSet,
