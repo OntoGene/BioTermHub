@@ -20,7 +20,7 @@ from .tools import Fields, TSVDialect
 
 __all__ = ('RegexFilter', 'CommonWordFilter', 'BlackListFilter',
            'EntrezGeneFilter',
-           'from_json', 'combine')
+           'from_json', 'from_spec', 'combine')
 
 
 class _BaseFilter:
@@ -147,9 +147,23 @@ class CommonWordFilter(_BaseFilter):
 
 def from_json(expression):
     '''
-    Create a postfilter instance from a JSON expression.
+    Create a postfilter callable from a JSON expression.
+
+    Examples:
+        {"class": "RegexFilter", "args": ["C[0-9]*", "cui"]}
+        {"class": "RegexFilter", "kwargs": {"field": "preferred_term"}}
+        [{"class": "CommonWordFilter"}, {"class": "EntrezGeneFilter"}]
     '''
     info = json.loads(expression)
+    if isinstance(info, list):
+        return combine(list(map(from_spec, info)))
+    return from_spec(info)
+
+
+def from_spec(info):
+    """
+    Construct a postfilter instance from class/args/kwargs.
+    """
     class_ = info['class']
     if class_ not in __all__:
         raise ValueError('unknown postfilter: {}'.format(class_))
