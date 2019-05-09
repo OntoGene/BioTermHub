@@ -24,10 +24,17 @@ __all__ = ('RegexFilter', 'CommonWordFilter', 'BlackListFilter',
 
 
 class _BaseFilter:
+    # Explicit method for backwards-compatibility; use __call__() now.
     def test(self, row):
         '''
         Does this row pass the filter?
         '''
+        return self(row)
+
+    def __call__(self, row):
+        """
+        Apply the filter: True means pass, False means skip.
+        """
         raise NotImplementedError
 
 
@@ -54,7 +61,7 @@ class RegexFilter(_BaseFilter):
         self.pattern = re.compile(pattern)
         self.field = Fields._fields.index(field)
 
-    def test(self, row):
+    def __call__(self, row):
         return bool(self.pattern.search(row[self.field]))
 
 
@@ -66,7 +73,7 @@ class BlackListFilter(_BaseFilter):
         self.resource = resource
         self.blacklist = self._load(blacklist)
 
-    def test(self, row):
+    def __call__(self, row):
         if (row.resource == self.resource and
                 self._normalise(row.term) in self.blacklist):
             return False
@@ -134,7 +141,7 @@ class CommonWordFilter(_BaseFilter):
             self.frequent = frozenset(ngram for ngram, _, freq in rows
                                       if float(freq) >= threshold)
 
-    def test(self, row):
+    def __call__(self, row):
         return row.term not in self.frequent
 
 
@@ -155,6 +162,9 @@ def combine(filters):
     '''
     Wrap the test methods of all filters in a single function.
     '''
+    if len(filters) == 1:
+        return filters[0]
+
     def _test(row):
-        return all(f.test(row) for f in filters)
+        return all(f(row) for f in filters)
     return _test

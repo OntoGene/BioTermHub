@@ -60,7 +60,7 @@ NBSP = '\xA0'
 WAIT_MESSAGE = ('Please wait while the resource is being created '
                 '(this may take a few minutes, '
                 'depending on the size of the resource).')
-REGEXFILTER = RegexFilter().test
+REGEXFILTER = RegexFilter()
 with (HERE/'data'/'template.html').open(encoding='utf8') as _f:
     PAGE = _f.read()
     PAGE = PAGE.replace('WAIT_MESSAGE', repr(WAIT_MESSAGE))
