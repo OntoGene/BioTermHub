@@ -25,10 +25,8 @@ class RecordSet(OboRecordSet):
     source_ref = 'http://obofoundry.org/ontology/cl.html'
 
     @classmethod
-    def _iter_stanzas(cls, stream):
-        '''
-        Wrap the superclass method for excluding non-cell records.
-        '''
-        for concept in super()._iter_stanzas(stream):
+    def iter_stanzas(cls, stream):
+        # Wrap the superclass method for excluding non-cell records.
+        for concept in super().iter_stanzas(stream):
             if concept['id'].startswith('CL:'):
                 yield concept

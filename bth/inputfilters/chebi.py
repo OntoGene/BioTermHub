@@ -94,6 +94,6 @@ class RecordSet(OboRecordSet):
             yield compid, chid, name
 
     # Explicitly disable unused inherited methods.
-    _iter_stanzas = None
+    iter_stanzas = None
     _relevant_synonym = None
     _update_steps = None

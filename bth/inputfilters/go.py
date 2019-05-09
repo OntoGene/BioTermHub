@@ -59,9 +59,9 @@ class RecordSet(UMLSIterConceptMixin, OboRecordSet):
     _line_template = '{id}\t{cui}\t{entity_type}\t{pref}\t{terms}\n'
 
     @classmethod
-    def _iter_stanzas(cls, stream):
+    def iter_stanzas(cls, stream):
         cui_map = cls._load_cui_map()
-        for concept in super()._iter_stanzas(stream):
+        for concept in super().iter_stanzas(stream):
             groups = cls._assign_cuis(concept['id'], concept['terms'], cui_map)
             for cui, terms in groups:
                 concept.update(cui=cui, terms=terms)

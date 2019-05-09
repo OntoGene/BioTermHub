@@ -25,10 +25,8 @@ class RecordSet(OboRecordSet):
     source_ref = 'https://www.ebi.ac.uk/ols/ontologies/mop'
 
     @classmethod
-    def _iter_stanzas(cls, stream):
-        '''
-        Wrap the superclass method for excluding non-MOP concepts.
-        '''
-        for concept in super()._iter_stanzas(stream):
+    def iter_stanzas(cls, stream):
+        # Wrap the superclass method for excluding non-MOP concepts.
+        for concept in super().iter_stanzas(stream):
             if concept['id'].startswith('MOP:'):
                 yield concept

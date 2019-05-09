@@ -26,11 +26,9 @@ class RecordSet(OboRecordSet):
     source_ref = 'http://pir20.georgetown.edu/pro/'
 
     @classmethod
-    def _iter_stanzas(cls, stream):
-        '''
-        Wrap the superclass method for excluding non-gene records.
-        '''
-        for concept in super()._iter_stanzas(stream):
+    def iter_stanzas(cls, stream):
+        # Wrap the superclass method for excluding non-gene records.
+        for concept in super().iter_stanzas(stream):
             if concept['id'].startswith('PR:'):
                 # This is the bulk of the data.
                 yield concept

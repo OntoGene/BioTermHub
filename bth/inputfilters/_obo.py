@@ -35,17 +35,13 @@ class OboRecordSet(IterConceptRecordSet):
         Parse .obo stanzas and produce extended _iter_concepts format.
         '''
         stream = io.TextIOWrapper(stream, encoding='utf-8')
-        for concept in cls._iter_stanzas(stream):
+        for concept in cls.iter_stanzas(stream):
             yield cls._canonical_line(**concept)
 
     @classmethod
-    def _iter_stanzas(cls, stream):
+    def iter_stanzas(cls, stream):
         '''
         Parse the .obo stanzas.
-
-        Do not call list(...) on this method:
-        The same object is yielded in every iteration
-        (with modified content).
         '''
         tag_value = re.compile(r'(\w+): (.+)')
         synonym_type = re.compile(r'"((?:[^"]|\\")*)" (.+)')
@@ -59,7 +55,7 @@ class OboRecordSet(IterConceptRecordSet):
                 if 'id' in concept:
                     yield concept
                 inside = False
-                concept.clear()
+                concept = {}
             elif line == '[Term]':
                 # Stanza starts.
                 inside = True
