@@ -60,8 +60,6 @@ class OboRecordSet(IterConceptRecordSet):
                 # Stanza starts.
                 inside = True
                 concept['terms'] = set()
-            elif line == 'is_obsolete: true':
-                continue
             elif inside:
                 tag, value = tag_value.match(line).groups()
                 if tag == 'id':
@@ -77,6 +75,8 @@ class OboRecordSet(IterConceptRecordSet):
                         # Unescape quotes.
                         synonym = synonym.replace('\\"', '"')
                         concept['terms'].add(synonym)
+                elif (tag, value) == ('is_obsolete', 'true'):
+                    concept['obsolete'] = True
         if 'id' in concept:
             # After the final stanza: last yield.
             yield concept
