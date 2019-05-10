@@ -44,7 +44,7 @@ class OboRecordSet(IterConceptRecordSet):
         Parse the .obo stanzas.
         '''
         tag_value = re.compile(r'(\w+): (.+)')
-        synonym_type = re.compile(r'"((?:[^"]|\\")*)" (.+)')
+        synonym_type = re.compile(r'"((?:[^"]|\\")*)" ([A-Z]+)')
 
         inside = False
         concept = {}
@@ -71,7 +71,7 @@ class OboRecordSet(IterConceptRecordSet):
                     concept['terms'].add(value)
                 elif tag == 'synonym':
                     synonym, syntype = synonym_type.match(value).groups()
-                    if cls._relevant_synonym(syntype):
+                    if cls.relevant_synonym(syntype):
                         # Unescape quotes.
                         synonym = synonym.replace('\\"', '"')
                         concept['terms'].add(synonym)
@@ -82,7 +82,7 @@ class OboRecordSet(IterConceptRecordSet):
             yield concept
 
     @classmethod
-    def _relevant_synonym(cls, syntype):
+    def relevant_synonym(cls, syntype):
         '''
         Subclass hook for filtering by synonym type.
         '''

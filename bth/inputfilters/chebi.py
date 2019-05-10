@@ -95,5 +95,5 @@ class RecordSet(OboRecordSet):
 
     # Explicitly disable unused inherited methods.
     iter_stanzas = None
-    _relevant_synonym = None
+    relevant_synonym = None
     _update_steps = None
