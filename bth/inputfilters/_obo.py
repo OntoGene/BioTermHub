@@ -11,6 +11,7 @@ Parser for OBO files.
 
 import re
 import io
+import logging
 
 from ._base import IterConceptRecordSet
 
@@ -61,7 +62,11 @@ class OboRecordSet(IterConceptRecordSet):
                 inside = True
                 concept['terms'] = set()
             elif inside:
-                tag, value = tag_value.match(line).groups()
+                try:
+                    tag, value = tag_value.match(line).groups()
+                except AttributeError:
+                    logging.warning('invalid OBO line: %r', line)
+                    continue
                 if tag == 'id':
                     concept['id'] = value
                 elif tag == 'namespace':
