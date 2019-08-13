@@ -19,7 +19,7 @@ from .tools import Fields, TSVDialect
 
 
 __all__ = ('RegexFilter', 'CommonWordFilter', 'BlackListFilter',
-           'EntrezGeneFilter',
+           'EntrezGeneFilter', 'PatternReplaceAdder',
            'from_json', 'from_spec', 'combine')
 
 
@@ -144,6 +144,49 @@ class CommonWordFilter(_BaseFilter):
 
     def test(self, row):
         return row.term not in self.frequent
+
+
+class _BaseAdder:
+    """Abstract base for row-adding filters."""
+
+    def __call__(self, rows):
+        for row in rows:
+            yield row
+            yield from self._extend(row)
+
+    def _extend(self, row):
+        raise NotImplementedError
+
+
+class PatternReplaceAdder(_BaseAdder):
+    """
+    Add rows with term variants using `re.sub()`.
+
+    Example:
+        For a row with the term "Parkinson disease", copy
+        the row and add another one with only "Parkinson".
+    """
+    def __init__(self, replacements, resources):
+        r"""
+        Specify term replacements and target resources.
+
+        Args:
+            replacements (dict(str, str)): regex patterns
+                mapped to replacements, eg. {r"\\s+disease$": ""}.
+                If order matters, specify an OrderedDict.
+            resources (list(str)): eg. ["CTD (MESH)"]
+        """
+        self.repl = [(re.compile(p), r) for p, r in replacements.items()]
+        self.resources = set(resources)
+
+    def _extend(self, row):
+        if row.resource not in self.resources:
+            return
+
+        for pat, rep in self.repl:
+            variant, n = pat.subn(rep, row.term)
+            if n:
+                yield row._replace(term=variant)
 
 
 def from_json(expression):
