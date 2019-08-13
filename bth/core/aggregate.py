@@ -54,10 +54,11 @@ def main():
         metavar='resource', default='all',
         help='any subset of: %(choices)s (default: %(default)s)')
     ap.add_argument(
-        '-f', '--postfilters', nargs='+', metavar='JSON', type=pflt.from_json,
+        '-f', '--postfilters', metavar='JSON', type=pflt.from_json,
         help='record postfiltering: specify the class and instantiation '
              'parameters as a JSON object using "class", "args" and "kwargs" '
-             '(eg. {"class": "RegexFilter", "args": [null, "term"]})')
+             '(eg. {"class": "RegexFilter", "args": [null, "term"]}). '
+             'For multiple postfilters, specify a JSON array of objects')
     ap.add_argument(
         '-p', '--params', type=json.loads, metavar='JSON', default={},
         help='any configuration parameters, given as a JSON object')
@@ -66,7 +67,7 @@ def main():
     if 'all' in args.resources:
         args.resources = sorted(FILTERS)
     if args.postfilters is not None:
-        args.params['postfilter'] = pflt.combine(args.postfilters)
+        args.params['postfilter'] = args.postfilters
 
     setup_logging(args.quiet)
     rsc = RecordSetContainer(args.resources, **args.params)
@@ -161,7 +162,7 @@ class RecordSetContainer(object):
             yield Fields._fields
         rows = self._all_rows(**kwargs)
         if postfilter is not None:
-            rows = filter(postfilter, rows)
+            rows = postfilter(rows)
         if stats is not None:
             rows = self._collect_stats(rows, stats)
         yield from rows
