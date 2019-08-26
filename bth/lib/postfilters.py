@@ -19,7 +19,7 @@ from .tools import Fields, TSVDialect
 
 
 __all__ = ('RegexFilter', 'CommonWordFilter', 'BlackListFilter',
-           'EntrezGeneFilter', 'PatternReplaceAdder',
+           'EntrezGeneFilter', 'PatternReplaceAdder', 'LookupReplaceAdder',
            'from_json', 'from_spec', 'combine')
 
 
@@ -158,6 +158,36 @@ class _BaseAdder:
         raise NotImplementedError
 
 
+class LookupReplaceAdder(_BaseAdder):
+    """Add rows with term variants using a lookup table."""
+
+    def __init__(self, mapping, resources, from_file=False):
+        """
+        Specify term replacements and target resources.
+
+        Args:
+            mapping (dict(str, str)): full terms matched
+                exactly against the row.term field
+            resources (list(str)): limit replacements to these,
+                eg. ["CTD (MESH)"]
+            from_file (bool): if True, the mapping parameter
+                is interpreted as a filename pointing to a
+                2-column TSV file containing key-value pairs
+        """
+        if from_file:
+            with open(mapping, encoding='utf8') as f:
+                mapping = dict(csv.reader(f, dialect=TSVDialect))
+        self.repl = {(r, k): v for r in resources for k, v in mapping.items()}
+
+    def _extend(self, row):
+        try:
+            variant = self.repl[row.resource, row.term]
+        except KeyError:
+            return
+        else:
+            yield row._replace(term=variant)
+
+
 class PatternReplaceAdder(_BaseAdder):
     """
     Add rows with term variants using `re.sub()`.
@@ -166,6 +196,7 @@ class PatternReplaceAdder(_BaseAdder):
         For a row with the term "Parkinson disease", copy
         the row and add another one with only "Parkinson".
     """
+
     def __init__(self, replacements, resources):
         r"""
         Specify term replacements and target resources.
@@ -174,7 +205,8 @@ class PatternReplaceAdder(_BaseAdder):
             replacements (dict(str, str)): regex patterns
                 mapped to replacements, eg. {r"\\s+disease$": ""}.
                 If order matters, specify an OrderedDict.
-            resources (list(str)): eg. ["CTD (MESH)"]
+            resources (list(str)): limit replacements to these,
+                eg. ["CTD (MESH)"]
         """
         self.repl = [(re.compile(p), r) for p, r in replacements.items()]
         self.resources = set(resources)
